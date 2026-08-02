@@ -12,11 +12,9 @@ from __future__ import annotations
 import asyncio
 import json
 import os
-from collections import defaultdict
 from dataclasses import dataclass, field
 
 import asyncpg
-
 
 SCHEMAS = ["baseline_v1", "baseline_v2", "baseline_v3", "baseline_v4", "baseline_v5"]
 

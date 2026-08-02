@@ -1,2 +1,368 @@
-"""Integration tests for the Magentic shim layer."""
+"""End-to-end plumbing for the governed marketplace, without LLMs or Postgres.
+
+Messages are pushed through ``GovernedMarketplaceProtocol.execute_action`` —
+the same entry point the real server calls — against a stub database. So these
+tests exercise the actual interception path, message rewriting included,
+rather than a parallel implementation that could drift from it.
+"""
+
 from __future__ import annotations
+
+from datetime import UTC, datetime
+from typing import Any
+
+import numpy as np
+import pytest
+from magentic_marketplace.marketplace.actions import SendMessage
+from magentic_marketplace.marketplace.actions.messaging import (
+    OrderItem,
+    OrderProposal,
+    TextMessage,
+)
+from magentic_marketplace.marketplace.shared.models import Business, Customer
+from magentic_marketplace.platform.shared.models import (
+    ActionExecutionRequest,
+    AgentProfile,
+)
+
+from src.contract import ContractSpec
+from src.marketplace_integration.protocol import GovernedMarketplaceProtocol
+from src.marketplace_integration.replay import replay_messages
+from src.marketplace_integration.terms import from_order_proposal
+from src.marketplace_integration.theta import ContractRegistry
+
+# --------------------------------------------------------------------------
+# Stubs
+# --------------------------------------------------------------------------
+
+
+class _StubAgents:
+    async def get_by_id(self, agent_id: str) -> AgentProfile:
+        return AgentProfile(id=agent_id)
+
+
+class StubDatabase:
+    """Just enough database for ``execute_send_message`` to accept a message."""
+
+    def __init__(self) -> None:
+        self.agents = _StubAgents()
+
+
+def business(**overrides) -> Business:
+    data = {
+        "id": "business_0001",
+        "name": "Cantina",
+        "description": "A test business.",
+        "rating": 1.0,
+        "progenitor_customer": "customer_0001",
+        "menu_features": {"Tacos": 10.0, "Agua": 4.0},
+        "amenity_features": {"Outdoor Seating": True},
+        "min_price_factor": 0.5,
+    }
+    data.update(overrides)
+    return Business.model_validate(data)
+
+
+def customer(**overrides) -> Customer:
+    data = {
+        "id": "customer_0001",
+        "name": "Buyer",
+        "request": "Tacos and an agua please.",
+        "menu_features": {"Tacos": 8.0, "Agua": 3.0},
+        "amenity_features": ["Outdoor Seating"],
+    }
+    data.update(overrides)
+    return Customer.model_validate(data)
+
+
+def registry(businesses=None, customers=None, **kwargs) -> ContractRegistry:
+    return ContractRegistry.from_participants(
+        businesses or [business()],
+        customers or [customer()],
+        spec=ContractSpec(),
+        **kwargs,
+    )
+
+
+def proposal(total: float, quantity: int = 2, pid: str = "p1") -> OrderProposal:
+    unit = total / quantity
+    return OrderProposal(
+        id=pid,
+        items=[
+            OrderItem(
+                id="Item-1", item_name="Tacos", quantity=quantity, unit_price=unit
+            )
+        ],
+        total_price=total,
+    )
+
+
+def envelope(message, sender: str, recipient: str) -> ActionExecutionRequest:
+    action = SendMessage(
+        from_agent_id=sender,
+        to_agent_id=recipient,
+        created_at=datetime.now(UTC),
+        message=message,
+    )
+    return ActionExecutionRequest(
+        name="SendMessage", parameters=action.model_dump(mode="json")
+    )
+
+
+async def send(protocol, message, sender="business_0001", recipient="customer_0001"):
+    """Push one message through the real interception path."""
+    request = envelope(message, sender, recipient)
+    result = await protocol.execute_action(
+        agent=AgentProfile(id=sender), action=request, database=StubDatabase()
+    )
+    forwarded: dict[str, Any] = result.content
+    return SendMessage.model_validate(forwarded)
+
+
+# --------------------------------------------------------------------------
+# Tests
+# --------------------------------------------------------------------------
+
+
+class TestFilterMode:
+    async def test_a_compliant_proposal_is_forwarded_untouched(self):
+        # theta: B = 8 + 3 = 11, q_min = 2, c = 0.5 * (10 + 4) / 2 = 3.5
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        sent = await send(protocol, proposal(total=10.0, quantity=2))
+        assert sent.message.total_price == pytest.approx(10.0)
+        assert protocol.report()["breach_rate"] == 0.0
+
+    async def test_an_opening_proposal_over_budget_is_projected_into_C(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        sent = await send(protocol, proposal(total=30.0, quantity=2))
+
+        assert sent.message.total_price < 30.0
+        contract = protocol.registry.get("business_0001", "customer_0001")
+        terms = from_order_proposal(sent.message)
+        assert contract.without_deadline().is_safe(terms.vector)
+        # The pair is recorded as having opened outside the safe set.
+        assert protocol.report()["pairs_opened_outside_C"] == 1.0
+
+    async def test_a_rewritten_proposal_stays_internally_consistent(self):
+        """Otherwise the marketplace's own validators would reject it."""
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        sent = await send(protocol, proposal(total=40.0, quantity=3))
+        line_sum = sum(i.unit_price * i.quantity for i in sent.message.items)
+        assert sent.message.total_price == pytest.approx(line_sum, abs=0.011)
+        assert sent.message.id == "p1"
+
+    async def test_later_proposals_are_governed_by_the_barrier(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter", gamma=0.4)
+        await send(protocol, proposal(total=10.0, quantity=2, pid="p1"))
+        sent = await send(protocol, proposal(total=25.0, quantity=2, pid="p2"))
+
+        assert sent.message.total_price < 25.0
+        records = protocol.records
+        assert len(records) == 2
+        assert records[1].intervention > 0.0
+        assert records[1].solved
+
+    async def test_no_breach_across_a_long_erratic_negotiation(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        rng = np.random.default_rng(5)
+        await send(protocol, proposal(total=10.0, quantity=2, pid="p0"))
+        for k in range(30):
+            total = float(rng.uniform(1.0, 40.0))
+            await send(protocol, proposal(total=total, quantity=2, pid=f"p{k + 1}"))
+        report = protocol.report()
+        assert report["breach_rate"] == 0.0
+        assert report["solver_solver_failure_rate"] == 0.0
+        assert report["certificate_gap_rate"] == 0.0
+
+
+class TestMonitorMode:
+    async def test_monitor_records_breaches_without_changing_the_message(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="monitor")
+        sent = await send(protocol, proposal(total=30.0, quantity=2))
+        assert sent.message.total_price == pytest.approx(30.0)
+        report = protocol.report()
+        assert report["breach_rate"] == 1.0
+        assert report["mean_intervention"] == 0.0
+
+    async def test_off_mode_records_the_trajectory_only(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="off")
+        await send(protocol, proposal(total=30.0, quantity=2))
+        assert protocol.records[0].breach
+        assert protocol.records[0].mode == "off"
+
+
+class TestUngovernableCases:
+    async def test_a_pair_with_no_contract_passes_through_and_is_counted(self):
+        reg = registry(customers=[customer(menu_features={"Something Else": 5.0})])
+        protocol = GovernedMarketplaceProtocol(reg, mode="filter")
+        sent = await send(protocol, proposal(total=99.0, quantity=2))
+        assert sent.message.total_price == pytest.approx(99.0)
+        assert protocol.report()["ungoverned_messages"] == 1.0
+
+    async def test_an_unsatisfiable_contract_is_not_projected_into_nothing(self):
+        """C(theta) empty: record the breach, forward untouched, flag the pair.
+
+        Projecting into an empty set is not a safety operation, and letting
+        every step degrade onto slack would read in aggregate as a filter that
+        cannot hold its constraints.
+        """
+        expensive = business(min_price_factor=1.0, menu_features={"Tacos": 50.0})
+        reg = registry(
+            businesses=[expensive],
+            customers=[customer(menu_features={"Tacos": 8.0})],
+        )
+        assert reg.unsatisfiable == ["business_0001|customer_0001"]
+
+        protocol = GovernedMarketplaceProtocol(reg, mode="filter")
+        sent = await send(protocol, proposal(total=60.0, quantity=1))
+        assert sent.message.total_price == pytest.approx(60.0)
+        report = protocol.report()
+        assert report["pairs_unsatisfiable"] == 1.0
+        assert report["breach_rate"] == 1.0
+
+
+class TestBuyerMoves:
+    async def test_a_counter_offer_extends_the_observed_trajectory_only(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        await send(protocol, proposal(total=10.0, quantity=2))
+        await send(
+            protocol,
+            TextMessage(content="Could you do $8 total?"),
+            sender="customer_0001",
+            recipient="business_0001",
+        )
+        state = protocol.states["business_0001|customer_0001"]
+        assert len(state.binding) == 1  # buyer prose is not a binding term
+        assert len(state.observed) == 2  # but it is a move for the energy
+
+    async def test_prose_without_terms_is_not_a_move(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        await send(protocol, proposal(total=10.0, quantity=2))
+        await send(
+            protocol,
+            TextMessage(content="Thanks, let me think about it."),
+            sender="customer_0001",
+            recipient="business_0001",
+        )
+        state = protocol.states["business_0001|customer_0001"]
+        assert len(state.observed) == 1
+
+    async def test_a_buyer_message_is_never_rewritten(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        await send(protocol, proposal(total=10.0, quantity=2))
+        text = "I'll pay $1 total, final offer."
+        sent = await send(
+            protocol,
+            TextMessage(content=text),
+            sender="customer_0001",
+            recipient="business_0001",
+        )
+        assert sent.message.content == text
+
+
+class TestCoupling:
+    """Coupling is isolated here: budget and per-pair quantity bounds are made
+    slack on purpose, so that whatever clamps the trajectory is the shared
+    capacity clause and not one of the private rows."""
+
+    @staticmethod
+    def _uncoupled_registry(**kwargs) -> ContractRegistry:
+        rich = customer(menu_features={"Tacos": 500.0, "Agua": 500.0})
+        return ContractRegistry.from_participants(
+            [business()],
+            [
+                rich.model_copy(update={"id": "customer_0001"}),
+                rich.model_copy(update={"id": "customer_0002", "name": "Second"}),
+            ],
+            spec=ContractSpec(q_max_factor=10.0),
+            **kwargs,
+        )
+
+    async def test_a_business_serving_two_customers_shares_capacity(self):
+        """The clause binds on whoever is moving, and carries a shadow price.
+
+        Only the in-flight message can be adjusted — a proposal already sent to
+        the other customer cannot be retracted — so the coupling clause acts as
+        a residual-capacity constraint on the current mover.
+        """
+        # Q = 1.5 * (2 + 2) = 6, so both pairs can open at q = 2.
+        reg = self._uncoupled_registry(capacity_factor=1.5)
+        capacity = reg.capacity_for("business_0001")
+        protocol = GovernedMarketplaceProtocol(reg, mode="filter", couple=True)
+
+        await send(protocol, proposal(total=2.0, quantity=2, pid="a1"),
+                   recipient="customer_0001")
+        await send(protocol, proposal(total=2.0, quantity=2, pid="b1"),
+                   recipient="customer_0002")
+        assert sum(
+            float(s.binding[-1][1]) for s in protocol.states.values()
+        ) <= capacity + 1e-6
+
+        # Pair 1 now wants 6 units; with the peer holding 2 that would be 8.
+        await send(protocol, proposal(total=6.0, quantity=6, pid="a2"),
+                   recipient="customer_0001")
+
+        record = protocol.records[-1]
+        assert record.duals["shared:capacity"] > 0.0
+        total_q = sum(
+            float(state.binding[-1][1]) for state in protocol.states.values()
+        )
+        assert total_q <= capacity + 1e-6
+
+    async def test_without_coupling_the_same_move_is_unconstrained(self):
+        """Isolates the clause: same trajectory, no capacity, no clamp."""
+        reg = self._uncoupled_registry()  # no capacities at all
+        protocol = GovernedMarketplaceProtocol(reg, mode="filter", couple=True)
+
+        await send(protocol, proposal(total=2.0, quantity=2, pid="a1"),
+                   recipient="customer_0001")
+        await send(protocol, proposal(total=2.0, quantity=2, pid="b1"),
+                   recipient="customer_0002")
+        await send(protocol, proposal(total=6.0, quantity=6, pid="a2"),
+                   recipient="customer_0001")
+
+        assert "shared:capacity" not in protocol.records[-1].duals
+        total_q = sum(
+            float(state.binding[-1][1]) for state in protocol.states.values()
+        )
+        assert total_q > 6.0
+
+
+class TestReplay:
+    def test_replay_measures_the_ungoverned_breach_rate(self):
+        """Replay reports what happened; it must not filter."""
+        reg = registry()
+        rows = [
+            {
+                "from_agent": "business_0001",
+                "to_agent": "customer_0001",
+                "msg_type": "order_proposal",
+                "msg_json": proposal(total=t, quantity=2, pid=f"p{i}").model_dump(
+                    mode="json"
+                ),
+            }
+            for i, t in enumerate([10.0, 30.0, 9.0, 25.0])
+        ]
+        result = replay_messages(rows, reg)
+        assert result.proposals_seen == 4
+        assert result.proposals_governed == 4
+        # Two of the four exceed the budget of 11.
+        assert result.summary()["breach_rounds"] == 2.0
+        # The recorded terms are the ones actually sent, unmodified.
+        traj = result.trajectories["business_0001|customer_0001"]
+        assert traj[1][0] == pytest.approx(15.0)
+
+    def test_replay_counts_pairs_it_cannot_govern(self):
+        reg = registry(customers=[customer(menu_features={"Something Else": 5.0})])
+        rows = [
+            {
+                "from_agent": "business_0001",
+                "to_agent": "customer_0001",
+                "msg_type": "order_proposal",
+                "msg_json": proposal(total=10.0).model_dump(mode="json"),
+            }
+        ]
+        result = replay_messages(rows, reg)
+        assert result.proposals_seen == 1
+        assert result.proposals_governed == 0
+        assert result.ungoverned[0]["reason"] == "no definable contract"
