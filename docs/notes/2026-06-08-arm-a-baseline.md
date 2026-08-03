@@ -89,3 +89,21 @@ Suboptimal rate: 1/5 (20%)
 For the paper, the 5 runs give mean welfare **62.46 ± 1.99**. The high SD (3.2% of mean) is driven almost entirely by v5's Angela Ng outlier ($37.53 vs the usual $32.88). With v5 excluded as an outlier, the remaining 4 runs give 63.54 ± 0.15.
 
 Recommend reporting: mean ± SD over all 5 runs, with a note that v5 contains an anomalous Angela Ng transaction (first-proposer accepted despite being 14% above optimal).
+
+---
+
+**Update 2026-08-03.** These five runs are still the arm-A record, and the
+welfare numbers stand. Under the contracts-as-controllers framing they gain a
+second use: `experiments/arm_a_no_contract.py` replays them against the
+contract θ implied by the same scenario data, giving the *ungoverned breach
+rate* on real LLM behaviour at no API cost.
+
+Two things to expect when reading that output. Susan Young's reservation prices
+sum to $13.48 while the cheapest business charges $13.51, so every seed
+overspends her stated budget by three cents — a breach of h₁ in all five runs.
+And `business_0009|customer_0003` has an empty safe set, which means Angela
+Ng's v5 purchase at $37.53 (recorded above as an anomaly) was a deal that could
+not have satisfied her own reservation prices at any price the seller would
+accept. The "anomaly" has a contract-level explanation.
+
+See `docs/notes/2026-08-03-magentic-integration.md`.

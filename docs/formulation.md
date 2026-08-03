@@ -206,3 +206,65 @@ This is the payoff-based version of v1's headline: anchored certificates stall a
 ---
 
 *Status: formulation complete and verified; simulation may proceed. Open theoretical obligations: asymmetric bargaining weights; formal derivation of the drift constants (α, β); a sufficient condition on θ guaranteeing C(θ) ⊆ monotone region.*
+
+---
+
+# Addendum — integration (2026-08-03)
+
+*Written after wiring the formulation into the Magentic Marketplace. It answers the open items above, records what the integration changed, and adds the limitations that only appear once the model meets a testbed. Nothing here revises the theory; where a measurement disagrees with an expectation stated above, the measurement is reported and the expectation is marked.*
+
+## A.1 §10.5 discharged — E13 under the real DCBF-QP
+
+§10.5 asks for the constrained-dynamics experiment rerun with the filter rather than the crude boundary projection, and guesses the 0.61-unit residual is "plausibly this plus incomplete step-size decay". Rerun (`experiments/certificates/e13_dcbf.py`), it is **neither**.
+
+| γ | spend at settle | h_budget | ‖x − x\*_c‖_M |
+|---|---|---|---|
+| 0.2 | 796.8 | 3.19 | 0.765 |
+| 0.4 | 798.8 | 1.20 | 0.750 |
+| 0.7 | 799.7 | 0.34 | 0.746 |
+| 1.0 | 799.6 | 0.37 | 0.746 |
+
+1. **Not the projection.** Under the filter the dynamics settle ≈0.75 scaled units from the constrained NBS against 0.642 for the clip — the same order, marginally worse. Replacing the clip does not close it.
+2. **Not step-size decay**, though the reference schedule contributes: a geometric decay has finite total path length and can freeze the draft before it arrives. Under a Robbins–Monro schedule ρ_k = ρ₀/(1+k)^0.51 the draft may travel arbitrarily far and still stops ≈0.75 away. The cause is that alternating single-agent ascent converges to the **efficient quantity** q = 100, not to the constrained bargaining solution's q = 94.2. §8 measures the separation between field-zero and equal split as 0.029 units *at the constrained NBS*; what the dynamics find is the former, and the distance to the latter is that separation compounded along the budget surface.
+3. **The new result is the boundary layer.** The filter parks the draft strictly *inside* the budget by a γ-dependent margin that falls steeply and then flattens rather than reaching zero. This is F6's conservatism premium measured in **term space** rather than in the dual, and it sharpens §8's closing claim: because the constraint is never active at the settled point, **Φ_proj = Φ throughout** — the projection has nothing to remove. Φ_proj earns its keep on *boundary-attaining* dynamics such as a hard clip; under a DCBF the object of interest is the displaced equilibrium, and γ is what displaces it.
+
+## A.2 §1 operating-box guard resolved
+
+§1 leaves the choice: "either fold a p_max into θ or drop the guard". **Dropped.** The budget row B − pq ≥ 0 caps price on its own, which is precisely the argument §1 makes when it observes the guard never binds. Retaining a numerical guard with no counterpart in θ would leave a term in the experiments that the theory does not contain. The integration has no box.
+
+## A.3 §11 instantiated, with the estimation split by identifiability
+
+§11 asks for utilities estimated from transcripts, and its own practical warning — LLM negotiations run 5–15 rounds — is the reason a joint fit of (a, b, c, e, λ) will not identify. The implemented split:
+
+- **Structure from the scenario, exactly.** `Business.min_price_factor` (present in every Magentic dataset, read by no code path or prompt before this work) gives c; `Customer.menu_features` gives the buyer's reservation price. Requiring q_eff to equal the requested quantity and marginal value to equal the reservation price there determines a and e uniquely. The buyer curvature b is the only free parameter and is recorded as a modelling choice.
+- **λ from the transcript**, by one-parameter maximum likelihood over accept/reject events, with the profile likelihood returned. One-sided data is reported as unidentified and falls back to the prior rather than returning a grid artefact.
+- **Cost-benefit rationalizability tested, not assumed.** Every round the agent moved caps κ and every stall floors it; an empty interval means no κ explains the behaviour. This is the single assumption carrying the transfer from the gradient-ascent proxies of §3 to LLM agents, and it is the one genuinely falsifiable claim in the chain.
+
+**A counter-intuitive fact worth adding to §4's note.** ‖∇Û_i‖_M is *larger* at the bargaining solution (79.56) than at the far start (16.63): gradients grow as the draft improves, because acceptance becomes likely and the deal becomes worth having. Any intuition of the form "far from agreement ⇒ strong incentive to move" is backwards — and this is precisely the mechanism of Prop. 2, stated there in terms of κ\*(x) rather than of the gradients themselves.
+
+## A.4 Two units errors found in implementation
+
+Both are the error the metric M = diag(σ)⁻¹ of §1 exists to prevent, and both survived because they change magnitudes without changing signs.
+
+1. **The safety filter's QP minimised ‖u − u^prop‖ in raw Euclidean norm**, treating one day of deadline as exactly as intrusive as one pound of price. §7's statement of the filter should be read as minimising in the M-metric.
+2. **The stability check took eigenvalues of the unscaled symmetric part.** λ_max at x\*_NBS is **−6.86 in the metric and −0.07 without it** (§6.1 quotes the former, correctly). A sign check passes either way, so the error is invisible to any test that only asks whether the game is stable.
+
+A third, subtler point. Preconditioning the QP by dividing each constraint row by ‖∇h_i‖_M is necessary — the rows carry mixed units and the condition spread costs the solver its convergence — but it must be a **change of variables** (δ_i = s_i δ̄_i, objective weight ρ s_i²), not a re-weighting. Penalising δ̄ directly looks like a principled "relative violation" measure and is a *different filter*: slack on the budget row becomes ~10⁶ times cheaper and trajectories leave C(θ) through it.
+
+## A.5 Additions to §10 (assumptions and limitations)
+
+9. **Coupling requires a scenario that has it.** In `mexican_3_9` each business stocks the items of exactly one customer, so no business ever serves two buyers concurrently and the shared-capacity clause, the GNE displacement and the shadow prices of §8 **cannot be exhibited there at all**. `mexican_33_99` reaches three customers per business; the coupled experiments must use it.
+
+10. **The bargaining scenario is authored.** Stock Magentic negotiations settle in two or three messages, which is too short for any decay estimate, so `data/bargain_3_9` discloses the seller's existing discount authority and gives the buyer a binding budget inside the bargaining zone. Both edits are YAML only — the marketplace, the agents and the prompts are unmodified — but the resulting negotiation is *designed* rather than naturally occurring. The stock scenario is retained as the control that guards this.
+
+11. **Some contracts derived from real scenario data have an empty safe set.** Where the seller's cost floor exceeds the buyer's budget, C(θ) = ∅ and no proposal can ever satisfy the contract. This is economically correct — no deal should close — but it must be *detected* (closed form: c·q_min ≤ B), because otherwise every filtered step degrades onto slack and reads in aggregate as a filter that cannot hold its constraints. A breach on such a pair is the correct outcome and is reported separately.
+
+12. **Extraction risk is asymmetric, and smaller than §10.6 assumes.** `OrderProposal` is structured, so the seller's terms are read rather than inferred and the budget row is exact. Only the buyer's free-text counter-offers are extracted, so the trusted computing base is one-sided.
+
+13. **Reproducibility is against a pinned environment, not only pinned seeds.** The prototype files are byte-identical and their seeds fixed, yet `audit.py`'s SLSQP probe now reports 7/60 status failures where §7 quotes 6.7% (4/60). scipy changed, not the code. This strengthens rather than weakens §7's implementation standard, but the claim should read "reproducible against a pinned environment", and the environment is not currently pinned.
+
+## A.6 Still open
+
+Unchanged from the closing note above: asymmetric bargaining weights; a formal derivation of the drift constants (α, β); and a sufficient condition on θ guaranteeing C(θ) ⊆ the monotone region. On the last, the integration adds a *checkable* version — the worst-case corner of the box bounding C(θ), against the measured stability radius — which is conservative and sufficient but not a condition on θ in closed form.
+
+Added by the integration: arm C's θ-negotiation pre-phase needs a message type for proposing a rulebook, and a decision on whether that pre-phase counts against T_max. Both change the liveness certificate.
