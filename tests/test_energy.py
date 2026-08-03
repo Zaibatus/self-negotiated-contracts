@@ -1,10 +1,21 @@
-"""The convergence layer: anchor-free energy, decay estimators, liveness.
+"""The two certificates, and the propositions they rest on.
 
-The headline property under test is the one that motivates the whole
-equilibrium-independent apparatus: G reaches zero at the constrained
-equilibrium *without being told where that is*, including when a coupling
-clause has moved the equilibrium to the generalised Nash point, where an
-anchored certificate plateaus at its own squared anchor error.
+These tests exist to pin the claims formulation.md v2 makes, so that a change
+which quietly breaks one of them fails here rather than in a dissertation
+chapter:
+
+  * Prop. 1 — the zero of the concession field is the Nash bargaining
+    solution, so Phi is a merit function for the *economic* equilibrium and
+    not for an artefact of the update rule;
+  * section 8 — under a binding constraint Phi does not vanish but Phi_proj
+    does, which is what "anchor-free" has to mean once the agreement point has
+    no closed form;
+  * Prop. 2 — the termination threshold rises along an improving path, so no
+    constant friction both permits progress and halts at the deal;
+  * section 6.1 — the stability check is taken in the unit metric. Getting
+    that wrong changes the headline number from -6.86 to -0.07 without
+    changing any sign, which is exactly the kind of error that survives
+    review.
 """
 
 from __future__ import annotations
@@ -12,146 +23,270 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from src.certificates.dcbf import DCBFFilter
 from src.certificates.energy import (
-    ConcessionModel,
+    contract_is_inside_monotone_region,
     contraction_transient,
     drift_outside_ball,
-    g_lookahead,
+    friction_window,
+    g_kappa,
     g_realised,
     g_realised_series,
-    roundpair_lookahead,
+    is_monotone,
+    kappa_star,
+    phi,
+    phi_projected,
+    stability_radius,
 )
-from src.certificates.metrics import time_to_contract
-from src.contract import Contract
+from src.contract import Contract, ControllerSpec
+from src.payoffs import SCALE, PayoffModel
 
-BUYER = ConcessionModel(rate=np.full(3, 0.25), target=np.array([6.5, 110.0, 40.0]))
-SELLER = ConcessionModel(rate=np.full(3, 0.25), target=np.array([11.5, 60.0, 12.0]))
-
-
-def contract(**overrides) -> Contract:
-    data = {
-        "budget": 100000.0,  # slack, so the barrier does not bind
-        "cost_floor": 0.0,
-        "q_min": 0.0,
-        "q_max": 1e6,
-        "deadline_active": False,
-    }
-    data.update(overrides)
-    return Contract(**data)
+# The far start used throughout the formulation's experiments.
+X0 = np.array([11.0, 40.0, 40.0])
 
 
-class TestRealisedEnergy:
-    def test_it_is_a_round_pair_displacement(self):
-        traj = [np.array([1.0, 0.0, 0.0]), np.array([5.0, 0.0, 0.0]),
-                np.array([4.0, 0.0, 0.0])]
+@pytest.fixture(scope="module")
+def model() -> PayoffModel:
+    return PayoffModel()
+
+
+@pytest.fixture(scope="module")
+def x_star(model: PayoffModel) -> np.ndarray:
+    return model.nash_bargaining_solution()[0]
+
+
+class TestPhiIsAMeritFunctionForTheBargainingSolution:
+    def test_phi_vanishes_at_the_nash_bargaining_solution(self, model, x_star):
+        """Prop. 1. The formulation reports 6.4e-9."""
+        assert phi(model, x_star) < 1e-7
+
+    def test_phi_is_large_away_from_it(self, model):
+        assert phi(model, X0) > 1.0
+
+    def test_phi_tracks_distance_locally(self, model, x_star):
+        """Locally Phi ~ L ||x - x*||, which is what a merit function needs.
+
+        Not a distance, though: L is about 80 here, and Phi carries
+        payoff-gradient units. Comparing Phi across differently calibrated
+        negotiations would be meaningless.
+        """
+        previous = 0.0
+        for radius in (0.05, 0.1, 0.2, 0.4):
+            value = phi(model, x_star + radius * SCALE * np.array([1.0, 0.0, 0.0]))
+            assert value > previous
+            previous = value
+
+    def test_the_field_is_a_sum_of_opposed_gradients(self, model, x_star):
+        """At the deal each side still wants to move; only the sum vanishes.
+
+        This is why one scalar cannot certify both convergence and
+        termination, and therefore why there are two certificates.
+        """
+        from src.payoffs import norm_M
+
+        assert norm_M(model.grad_u_hat(x_star, "buyer")) > 10.0
+        assert norm_M(model.grad_u_hat(x_star, "seller")) > 10.0
+        assert phi(model, x_star) < 1e-7
+
+
+class TestProjectedCertificateUnderCoupling:
+    """Section 8: the anchor-free claim, in the regime that motivates it."""
+
+    @staticmethod
+    def _binding_contract() -> Contract:
+        # Unconstrained NBS spends 850, so a budget of 800 binds.
+        return Contract(
+            budget=800.0,
+            cost_floor=6.0,
+            q_min=20.0,
+            q_max=120.0,
+            d_min=7.0,
+            d_max=45.0,
+            deadline_active=True,
+        )
+
+    def test_projection_is_inert_when_nothing_is_active(self, model, x_star):
+        loose = Contract(budget=1e6, cost_floor=0.0, q_min=0.0, q_max=1e6)
+        assert phi_projected(model, x_star, loose) == pytest.approx(
+            phi(model, x_star)
+        )
+
+    def test_on_the_boundary_the_projection_removes_the_absorbed_component(
+        self, model
+    ):
+        """Phi stays large, Phi_proj drops: the field points into the budget."""
+        contract = self._binding_contract()
+        # A point exactly on the budget boundary, near the constrained deal.
+        q = 94.249
+        x = np.array([800.0 / q, q, 25.7])
+        assert contract.h(x)[0] == pytest.approx(0.0, abs=1e-6)
+
+        unprojected = phi(model, x)
+        projected = phi_projected(model, x, contract)
+        assert projected < unprojected
+        assert projected < 2.0
+
+    def test_a_constraint_the_field_points_away_from_is_left_alone(self, model):
+        """Active but not binding on this motion — projecting it out would
+        discard a real component of the field."""
+        contract = Contract(
+            budget=1e6, cost_floor=6.0, q_min=20.0, q_max=120.0
+        )
+        # Sit on q_min, where the field wants to increase q (into the set).
+        x = np.array([8.5, 20.0, 26.0])
+        assert contract.h(x)[2] == pytest.approx(0.0, abs=1e-9)
+        assert model.concession_field(x)[1] > 0
+        assert phi_projected(model, x, contract) == pytest.approx(phi(model, x))
+
+
+class TestTerminationAndProposition2:
+    def test_the_threshold_rises_along_an_improving_path(self, model, x_star):
+        """kappa*(x_0) = 15.95 and kappa*(NBS) = 39.78 in the formulation."""
+        rho = 0.5
+        assert kappa_star(model, X0, rho) == pytest.approx(15.95, abs=0.05)
+        assert kappa_star(model, x_star, rho) == pytest.approx(39.78, abs=0.05)
+
+    def test_no_constant_friction_works(self, model):
+        """Prop. 2, stated as a property of the measured window."""
+        window = friction_window(model, X0, rho=0.5)
+        assert not window.constant_friction_possible
+        assert window.kappa_at_start < window.kappa_at_deal
+        assert "escalating friction" in window.describe()
+
+    def test_friction_below_the_start_threshold_permits_motion(self, model):
+        window = friction_window(model, X0, rho=0.5)
+        kappa = 0.5 * window.kappa_at_start
+        assert g_kappa(model, X0, kappa, rho=0.5) > 0.0
+
+    def test_friction_above_the_deal_threshold_freezes_the_start(self, model):
+        window = friction_window(model, X0, rho=0.5)
+        assert g_kappa(model, X0, window.kappa_at_deal, rho=0.5) == 0.0
+
+    def test_the_escalating_schedule_drives_g_kappa_to_zero_by_t_max(
+        self, model, x_star
+    ):
+        """Termination becomes a theorem rather than an assumption."""
+        spec = ControllerSpec(t_max=12, kappa0=2.0, rho=0.5)
+        values = [
+            g_kappa(model, x_star, spec.kappa(k), spec.rho)
+            for k in range(spec.t_max + 1)
+        ]
+        assert values[0] > 0.0, "friction must start low enough to permit motion"
+        assert values[-1] == 0.0
+        assert all(b <= a + 1e-9 for a, b in zip(values, values[1:]))
+
+    def test_g_kappa_is_zero_only_when_both_sides_stall(self, model, x_star):
+        rho = 0.5
+        just_below = kappa_star(model, x_star, rho) * 0.99
+        assert g_kappa(model, x_star, just_below, rho) > 0.0
+        assert g_kappa(model, x_star, kappa_star(model, x_star, rho), rho) == 0.0
+
+
+class TestStability:
+    def test_lambda_max_is_taken_in_the_unit_metric(self, model, x_star):
+        """The formulation reports -6.86; unscaled the same quantity is -0.07.
+
+        Both are negative, so a sign check would pass either way — which is
+        why this asserts the magnitude.
+        """
+        monotone, lam_max = is_monotone(model, x_star)
+        assert monotone
+        assert lam_max == pytest.approx(-6.86, abs=0.05)
+
+    def test_the_game_is_locally_but_not_globally_stable(self, model):
+        """Section 6.1: certified radius about 1 scaled unit, and the
+        fractions fall away beyond it. That is a design instruction — confine
+        C(theta) to the monotone region — not a caveat."""
+        result = stability_radius(model, radii=(0.5, 1.0, 2.0, 3.0), samples=120)
+        assert result["monotone_within_0.5"] == 1.0
+        assert result["monotone_within_1.0"] == 1.0
+        assert result["monotone_within_3.0"] < 0.6
+        assert result["certified_radius"] == 1.0
+
+    def test_a_wide_contract_does_not_fit_inside_the_stable_region(self, model):
+        wide = Contract(budget=2000.0, cost_floor=6.0, q_min=20.0, q_max=120.0)
+        fits, worst = contract_is_inside_monotone_region(model, wide, radius=1.0)
+        assert not fits
+        assert worst > 1.0
+
+    def test_a_tight_contract_does(self, model, x_star):
+        p, q, d = x_star
+        tight = Contract(
+            budget=float(p * q * 1.005),
+            cost_floor=float(p * 0.995),
+            q_min=float(q * 0.995),
+            q_max=float(q * 1.005),
+            d_min=float(d - 1.0),
+            d_max=float(d + 1.0),
+            deadline_active=True,
+        )
+        fits, worst = contract_is_inside_monotone_region(model, tight, radius=1.0)
+        assert fits
+        assert worst < 1.0
+
+    def test_an_unbounded_deadline_cannot_be_certified(self, model, x_star):
+        """C(theta) unbounded in a dimension the payoffs price: no ball holds it.
+
+        Reporting a finite distance here would certify a contract that does not
+        actually confine the negotiation.
+        """
+        p, q, _ = x_star
+        no_deadline = Contract(
+            budget=float(p * q * 1.005),
+            cost_floor=float(p * 0.995),
+            q_min=float(q * 0.995),
+            q_max=float(q * 1.005),
+            deadline_active=False,
+        )
+        assert model.deadline_active
+        fits, worst = contract_is_inside_monotone_region(
+            model, no_deadline, radius=1.0
+        )
+        assert not fits
+        assert worst == float("inf")
+
+
+class TestAssumptionFreeFallback:
+    """The v1 realised-displacement energy, kept for transcripts the payoff
+    model cannot be fitted to. Strictly weaker: it measures movement, so it
+    cannot tell a negotiation that agreed from one that gave up."""
+
+    def test_it_is_a_round_pair_displacement_in_scaled_units(self):
+        traj = [
+            np.array([1.0, 0.0, 0.0]),
+            np.array([5.0, 0.0, 0.0]),
+            np.array([4.0, 0.0, 0.0]),
+        ]
         assert g_realised(traj, 0) == pytest.approx(9.0)
 
+    def test_quantity_is_scaled_before_squaring(self):
+        """10 units of quantity is one scaled unit, same as GBP 1 of price."""
+        traj = [np.zeros(3), np.zeros(3), np.array([0.0, 10.0, 0.0])]
+        assert g_realised(traj, 0) == pytest.approx(1.0)
+
     def test_an_incomplete_pair_raises_rather_than_shrinking_the_window(self):
-        """A short window would report a smaller energy, i.e. false progress."""
-        traj = [np.array([1.0, 0.0, 0.0]), np.array([5.0, 0.0, 0.0])]
         with pytest.raises(IndexError):
-            g_realised(traj, 0)
+            g_realised([np.zeros(3), np.ones(3)], 0)
+
+    def test_market_energy_is_the_sum_over_pairs(self):
+        a = [np.zeros(3), np.zeros(3), np.array([2.0, 0.0, 0.0])]
+        b = [np.zeros(3), np.zeros(3), np.array([0.0, 30.0, 0.0])]
+        assert g_realised_series({"a": a, "b": b}) == [pytest.approx(13.0)]
 
     def test_a_settled_negotiation_has_zero_energy(self):
         traj = [np.array([3.0, 2.0, 1.0])] * 5
         assert g_realised_series({"pair": traj}) == [0.0, 0.0, 0.0]
 
-    def test_market_energy_is_the_sum_over_pairs(self):
-        a = [np.zeros(3), np.zeros(3), np.array([2.0, 0.0, 0.0])]
-        b = [np.zeros(3), np.zeros(3), np.array([0.0, 3.0, 0.0])]
-        assert g_realised_series({"a": a, "b": b}) == [pytest.approx(13.0)]
-
-    def test_pairs_of_unequal_length_contribute_while_they_last(self):
-        short = [np.zeros(3), np.zeros(3), np.array([1.0, 0.0, 0.0])]
-        long = [np.zeros(3)] * 5
-        series = g_realised_series({"s": short, "l": long})
-        assert len(series) == 3
-        assert series[0] == pytest.approx(1.0)
-
-
-class TestConcessionModel:
-    def test_it_recovers_the_rate_and_target_it_generated(self):
-        rate, target = 0.3, np.array([10.0, 50.0, 5.0])
-        states = [np.array([2.0, 90.0, 30.0])]
-        for _ in range(8):
-            states.append(states[-1] + rate * (target - states[-1]))
-        fitted = ConcessionModel.fit(states)
-        np.testing.assert_allclose(fitted.rate, rate, atol=1e-6)
-        np.testing.assert_allclose(fitted.target, target, atol=1e-5)
-
-    def test_a_static_dimension_gets_a_zero_rate_not_an_extrapolation(self):
-        states = [np.array([5.0, 10.0, 0.0]),
-                  np.array([5.0, 12.0, 0.0]),
-                  np.array([5.0, 13.6, 0.0]),
-                  np.array([5.0, 14.88, 0.0])]
-        fitted = ConcessionModel.fit(states)
-        assert fitted.rate[0] == 0.0
-        assert fitted.target[0] == pytest.approx(5.0)
-        assert fitted.rate[1] > 0.0
-
-    def test_too_few_observations_is_an_error_not_a_guess(self):
-        with pytest.raises(ValueError, match="at least 3"):
-            ConcessionModel.fit([np.zeros(3), np.ones(3)])
-
-
-class TestLookaheadEnergy:
-    def test_it_vanishes_exactly_at_the_fixed_point(self):
-        con = contract()
-        dcbf = DCBFFilter(gamma=1.0)
-        xs = [np.array([9.0, 90.0, 30.0])]
-        for _ in range(400):
-            xs = roundpair_lookahead(xs, [con], (BUYER, SELLER), dcbf)
-        assert g_lookahead(xs, [con], (BUYER, SELLER), dcbf) < 1e-9
-
-    def test_it_decays_monotonically_towards_that_point(self):
-        con = contract()
-        dcbf = DCBFFilter(gamma=1.0)
-        xs = [np.array([9.0, 90.0, 30.0])]
-        energies = []
-        for _ in range(30):
-            energies.append(g_lookahead(xs, [con], (BUYER, SELLER), dcbf))
-            xs = roundpair_lookahead(xs, [con], (BUYER, SELLER), dcbf)
-        assert np.all(np.diff(energies) < 1e-9)
-
-    def test_the_filter_inside_the_rollout_moves_the_zero_set(self):
-        """With a binding constraint, G vanishes at the *constrained* point.
-
-        This is the property that makes the energy anchor-free: nobody had to
-        compute where the constrained equilibrium is, and it is not where the
-        unconstrained one is.
-        """
-        dcbf = DCBFFilter(gamma=1.0)
-        free, bound = contract(), contract(q_max=70.0)
-
-        xs_free = [np.array([9.0, 90.0, 30.0])]
-        xs_bound = [np.array([9.0, 90.0, 30.0])]
-        for _ in range(400):
-            xs_free = roundpair_lookahead(xs_free, [free], (BUYER, SELLER), dcbf)
-            xs_bound = roundpair_lookahead(xs_bound, [bound], (BUYER, SELLER), dcbf)
-
-        assert g_lookahead(xs_bound, [bound], (BUYER, SELLER), dcbf) < 1e-9
-        # The constrained equilibrium is genuinely elsewhere...
-        assert abs(xs_bound[0][1] - xs_free[0][1]) > 1.0
-        # ...and it sits on the boundary the contract imposes.
-        assert xs_bound[0][1] <= 70.0 + 1e-6
-        # An energy anchored at the unconstrained point would read non-zero
-        # here — that is the failure mode being avoided.
-        assert np.sum((xs_bound[0] - xs_free[0]) ** 2) > 1.0
-
 
 class TestDecayEstimators:
     def test_transient_fit_recovers_a_known_rate(self):
         rate = 0.4
-        values = [100.0 * rate**k for k in range(12)]
-        assert contraction_transient(values) == pytest.approx(rate, rel=1e-6)
+        assert contraction_transient(
+            [100.0 * rate**k for k in range(12)]
+        ) == pytest.approx(rate, rel=1e-6)
 
     def test_the_noise_floor_is_excluded_from_the_fit(self):
-        """A plateau must not be allowed to masquerade as slow contraction.
-
-        Fitting the whole series, plateau included, is the error the audit
-        caught; the transient-only estimator is the fix.
-        """
+        """Fitting the plateau measures the noise, not the contraction — the
+        error the audit caught."""
         rate = 0.4
         values = [100.0 * rate**k for k in range(8)] + [0.05] * 20
         assert contraction_transient(values) == pytest.approx(rate, rel=1e-3)
@@ -161,6 +296,9 @@ class TestDecayEstimators:
             contraction_transient([1.0, 0.5])
 
     def test_drift_recovers_alpha_and_beta(self):
+        """Global decrease-in-expectation is false; drift outside a ball is
+        what survives, and the ball radius is a reportable measure of how
+        erratic the agents are."""
         alpha, beta = 0.3, 4.0
         values = [200.0]
         for _ in range(40):
@@ -169,31 +307,3 @@ class TestDecayEstimators:
         assert fit["alpha"] == pytest.approx(alpha, rel=1e-6)
         assert fit["beta"] == pytest.approx(beta, rel=1e-6)
         assert fit["ball_radius"] == pytest.approx(beta / alpha, rel=1e-6)
-
-
-class TestLiveness:
-    def test_a_certified_bound_inside_t_max_is_honoured(self):
-        cert = time_to_contract(g_initial=100.0, contraction=0.3, t_max=20)
-        assert cert.certified_round_pairs == pytest.approx(
-            np.log(100.0 / 1e-3) / np.log(1 / 0.3)
-        )
-        assert cert.certified_rounds == pytest.approx(2 * cert.certified_round_pairs)
-        assert cert.honoured
-
-    def test_a_bound_exceeding_t_max_is_not_honoured(self):
-        cert = time_to_contract(g_initial=1e6, contraction=0.95, t_max=12)
-        assert not cert.honoured
-        assert cert.certified_rounds > 12
-
-    def test_non_contracting_dynamics_yield_no_certificate(self):
-        """The honest output is 'no bound', not a large number."""
-        cert = time_to_contract(g_initial=100.0, contraction=1.02, t_max=12)
-        assert cert.certified_rounds is None
-        assert not cert.honoured
-        assert "not in (0, 1)" in cert.reason
-
-    def test_realised_length_is_compared_against_the_bound(self):
-        cert = time_to_contract(
-            g_initial=100.0, contraction=0.3, t_max=40, realised_rounds=6
-        )
-        assert cert.realised_within_bound is True

@@ -44,6 +44,23 @@ build-backend = "hatchling.build"
 [tool.ruff]
 line-length = 88
 target-version = "py313"
+# The prototype experiments are kept byte-identical to the run that produced
+# the numbers quoted in docs/formulation.md. Reformatting them would break the
+# claim that those tables reproduce from the committed source, which is worth
+# more than tidy imports. New work in that directory (e13_dcbf.py) is linted
+# via an explicit path.
+extend-exclude = [
+    "experiments/certificates/audit.py",
+    "experiments/certificates/dcbf_negotiation.py",
+    "experiments/certificates/farstart_experiment.py",
+    "experiments/certificates/gne_shadow_price.py",
+    "experiments/certificates/lyapunov_layer.py",
+    "experiments/certificates/netgain_energy.py",
+    "experiments/certificates/payoff_dynamics.py",
+    "experiments/certificates/payoff_model.py",
+    "experiments/certificates/payoff_validation2.py",
+    "experiments/certificates/payoff_validation3.py",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]

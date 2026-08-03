@@ -31,6 +31,13 @@ does not do, each closing a gap the audit found or the formulation flagged:
      makes "zero violations of the true h" hold by construction rather than
      by luck.
 
+"Minimally invasive" is measured in the unit metric M = diag(sigma)^-1 with
+sigma = (1, 10, 5), not in raw Euclidean norm. The three terms are priced in
+pounds, units and days, so a raw norm would silently declare that shifting the
+deadline by one day is as intrusive as moving the price by one pound. The
+objective is therefore ||(u - u_prop) / sigma||^2, which is the same metric
+the certificates and every reported distance use.
+
 Sign convention for duals: OSQP's y is negative on active lower bounds
 (l <= Az), so shadow prices are reported as lambda = max(-y, 0).
 """
@@ -44,6 +51,7 @@ import osqp
 import scipy.sparse as sp
 
 from ..contract import N_ROWS, ROW_LABELS, Contract
+from ..payoffs import SCALE
 
 # OSQP status codes we are willing to act on.
 _OK_STATUS = {1, 2}  # OSQP_SOLVED, OSQP_SOLVED_INACCURATE
@@ -69,18 +77,15 @@ class FilterResult:
 
     @property
     def interventions(self) -> np.ndarray:
-        """Per-pair ||u_safe - u_prop||."""
+        """Per-pair ||u_safe - u_prop||_M, in scaled units."""
         n = self.u.size // 3
-        return np.array(
-            [float(np.linalg.norm(self.u[3 * i : 3 * i + 3] -
-                                  self.u_prop[3 * i : 3 * i + 3]))
-             for i in range(n)]
-        )
+        delta = (self.u - self.u_prop).reshape(n, 3) / SCALE
+        return np.linalg.norm(delta, axis=1)
 
     @property
     def intervention(self) -> float:
-        """Joint ||u_safe - u_prop||."""
-        return float(np.linalg.norm(self.u - self.u_prop))
+        """Joint ||u_safe - u_prop||_M, in scaled units."""
+        return float(np.linalg.norm(self.interventions))
 
     def dual(self, label: str) -> float:
         """Shadow price of a named row, 0.0 if the row was not present."""
@@ -341,6 +346,33 @@ class DCBFFilter:
             return self._solve_osqp(gmat, h0, labels, u_prop, rho)
         return self._solve_slsqp(gmat, h0, labels, u_prop, rho)
 
+    @staticmethod
+    def _row_scales(gmat: np.ndarray) -> np.ndarray:
+        """s_i = ||grad h_i||_M, the natural scale of each constraint row.
+
+        Used to precondition the QP by the change of variables
+        delta_i = s_i * delta_bar_i. The rows carry very different magnitudes —
+        the budget row's gradient is (-q, -p, 0), two to three orders larger
+        than the unit-coefficient rows — and that spread costs OSQP its
+        convergence at the default slack penalty (measured: the same QP hits
+        max-iter at rho = 1e4 unpreconditioned and solves in 4850 iterations
+        with it).
+
+        This is preconditioning ONLY. The objective weight on the substituted
+        variable is rho * s_i^2, so the optimisation problem is bit-for-bit the
+        one that was there before, and the filter's behaviour is unchanged.
+        Dropping the s_i^2 and penalising delta_bar directly would look like a
+        tidier "relative violation" weighting and would in fact be a different
+        filter: slack on the budget row would become ~10^6 times cheaper, and
+        the trajectory drifts out of C(theta) through it.
+
+        Rows with a vanishing gradient are left alone: dividing by ~0 would
+        manufacture the conditioning problem this removes.
+        """
+        n_u = gmat.shape[1]
+        scales = np.linalg.norm(gmat * np.tile(SCALE, n_u // 3), axis=1)
+        return np.where(scales > 1e-12, scales, 1.0)
+
     def _solve_osqp(
         self,
         gmat: np.ndarray,
@@ -351,21 +383,31 @@ class DCBFFilter:
     ) -> FilterResult:
         m, n_u = gmat.shape
 
-        # z = [u (n_u); delta (m)]
-        p_diag = np.concatenate([2.0 * np.ones(n_u), 2.0 * rho * np.ones(m)])
-        pmat = sp.diags(p_diag, format="csc")
-        qvec = np.concatenate([-2.0 * u_prop, np.zeros(m)])
+        # Precondition by delta = s * delta_bar. The objective weight becomes
+        # rho * s^2, so this is a change of variables and not a re-weighting.
+        scales = self._row_scales(gmat)
+        gmat_n = gmat / scales[:, None]
+        h0_n = h0 / scales
 
-        # DCBF rows:  G u + delta >= -gamma h0
-        # slack rows:       delta >= 0
+        # z = [u (n_u); delta_bar (m)]
+        # Objective ||(u - u_prop)/sigma||^2 + rho ||delta||^2, so the u block
+        # of P is 2/sigma^2 rather than 2. Without the metric the QP would
+        # trade a day of deadline against a pound of price one for one.
+        inv_var = 1.0 / np.tile(SCALE, n_u // 3) ** 2
+        p_diag = np.concatenate([2.0 * inv_var, 2.0 * rho * scales**2])
+        pmat = sp.diags(p_diag, format="csc")
+        qvec = np.concatenate([-2.0 * inv_var * u_prop, np.zeros(m)])
+
+        # DCBF rows:  G_n u + delta_bar >= -gamma h0_n
+        # slack rows:       delta_bar >= 0
         amat = sp.bmat(
             [
-                [sp.csc_matrix(gmat), sp.eye(m, format="csc")],
+                [sp.csc_matrix(gmat_n), sp.eye(m, format="csc")],
                 [None, sp.eye(m, format="csc")],
             ],
             format="csc",
         )
-        lvec = np.concatenate([-self.gamma * h0, np.zeros(m)])
+        lvec = np.concatenate([-self.gamma * h0_n, np.zeros(m)])
         uvec = np.full(2 * m, np.inf)
 
         prob = osqp.OSQP()
@@ -400,9 +442,12 @@ class DCBFFilter:
             )
 
         u = np.asarray(res.x[:n_u], dtype=float)
-        slack = np.maximum(np.asarray(res.x[n_u:], dtype=float), 0.0)
+        # Undo the substitution so slack and duals are reported in the original
+        # constraint units: delta = s * delta_bar, and the multiplier on the raw
+        # row is y_bar / s (since y_bar * (a/s) = (y_bar/s) * a).
+        slack = np.maximum(np.asarray(res.x[n_u:], dtype=float), 0.0) * scales
         # OSQP's y is negative on active lower bounds; the shadow price is -y.
-        duals = np.maximum(-np.asarray(res.y[:m], dtype=float), 0.0)
+        duals = np.maximum(-np.asarray(res.y[:m], dtype=float), 0.0) / scales
 
         return FilterResult(
             u=u,
@@ -432,13 +477,26 @@ class DCBFFilter:
 
         m, n_u = gmat.shape
 
+        inv_var = 1.0 / np.tile(SCALE, n_u // 3) ** 2
+        # Same preconditioning as the OSQP path, so the two solvers optimise
+        # the same problem and the audit's A/B compares like with like.
+        scales = self._row_scales(gmat)
+        gmat_n = gmat / scales[:, None]
+        h0_n = h0 / scales
+        slack_weight = rho * scales**2
+
         def obj(z: np.ndarray) -> float:
             u, delta = z[:n_u], z[n_u:]
-            return float(np.sum((u - u_prop) ** 2) + rho * np.sum(delta**2))
+            return float(
+                np.sum(inv_var * (u - u_prop) ** 2)
+                + np.sum(slack_weight * delta**2)
+            )
 
         def obj_grad(z: np.ndarray) -> np.ndarray:
             u, delta = z[:n_u], z[n_u:]
-            return np.concatenate([2 * (u - u_prop), 2 * rho * delta])
+            return np.concatenate(
+                [2 * inv_var * (u - u_prop), 2 * slack_weight * delta]
+            )
 
         eye = np.eye(m)
         cons = []
@@ -447,11 +505,11 @@ class DCBFFilter:
                 {
                     "type": "ineq",
                     "fun": (
-                        lambda z, i=i: gmat[i] @ z[:n_u]
-                        + self.gamma * h0[i]
+                        lambda z, i=i: gmat_n[i] @ z[:n_u]
+                        + self.gamma * h0_n[i]
                         + z[n_u + i]
                     ),
-                    "jac": (lambda z, i=i: np.concatenate([gmat[i], eye[i]])),
+                    "jac": (lambda z, i=i: np.concatenate([gmat_n[i], eye[i]])),
                 }
             )
             cons.append(
@@ -474,7 +532,7 @@ class DCBFFilter:
         return FilterResult(
             u=np.asarray(res.x[:n_u], dtype=float),
             u_prop=u_prop,
-            slack=np.maximum(np.asarray(res.x[n_u:], dtype=float), 0.0),
+            slack=np.maximum(np.asarray(res.x[n_u:], dtype=float), 0.0) * scales,
             duals=np.zeros(m),
             row_labels=labels,
             status=str(res.message),

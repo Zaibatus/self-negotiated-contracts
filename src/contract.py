@@ -1,11 +1,13 @@
 """Contract schema and validators for bilateral agent negotiation.
 
-A contract is the parameter vector of a fixed constraint template
+A contract is C = (theta, gamma, tau):
 
-    theta = (B, c, q_min, q_max, d_min, d_max, T_max) in R^7
+    theta = (B, c, q_min, q_max, d_min, d_max) in R^6   constraint parameters
+    gamma in (0, 1]                                     enforcement rate
+    tau   = (T_max, epsilon)                            liveness specification
 
 over the term vector x = (p, q, d) — mean unit price, total quantity,
-delivery deadline in days.  The first six parameters define the safe set
+delivery deadline in days.  theta defines the safe set
 
     C(theta) = { x : h_i(x; theta) >= 0, i = 1..6 }
 
@@ -16,9 +18,16 @@ delivery deadline in days.  The first six parameters define the safe set
     h5 = d - d_min    deadline floor
     h6 = d_max - d    deadline ceiling
 
-T_max is *not* a constraint on x.  It is a liveness obligation, discharged by
-the convergence certificate in ``certificates.metrics`` — see formulation.md
-section 5.4.  Making it a seventh row of h would be a category error.
+gamma and tau are controller parameters, not constraints on x: gamma sets how
+fast the filter lets the draft approach the boundary, and tau is the liveness
+obligation discharged by the termination certificate (``certificates.energy``,
+formulation.md section 6). Making either a row of h would be a category error —
+neither is a property a set of terms can satisfy or violate.
+
+They live in ``ControllerSpec``. Keeping them out of theta also keeps the
+refinement order meaningful: C' refines C iff C(theta') is a subset of
+C(theta), which is a statement about sets of terms and says nothing about how
+fast a filter enforces them.
 
 Rows may be deactivated (``active_mask``) when the corresponding term is not
 observable in a given testbed — in Magentic ``estimated_delivery`` is a free
@@ -68,16 +77,47 @@ class ContractSpec:
     d_max: float = 7.0
     # Whether the deadline rows (h5, h6) participate at all.
     deadline_active: bool = False
-    # Liveness obligation: rounds allowed to reach agreement.
-    t_max: int = 12
     # Budget headroom: B = (1 + budget_slack) * sum(customer reservation prices).
     # 0.0 means the customer's stated reservation IS the hard budget.
     budget_slack: float = 0.0
 
 
 @dataclass(frozen=True)
+class ControllerSpec:
+    """The (gamma, tau) half of the contract: how theta is enforced.
+
+    Separated from theta because these are properties of the controller, not
+    of the agreement. Two parties can agree the same safe set and be governed
+    at different enforcement rates, and gamma is an economic policy parameter
+    as much as a safety one — a cautious filter parks the negotiation short of
+    the limits and inflates the shadow prices by a conservatism premium.
+    """
+
+    gamma: float = 0.4  # DCBF enforcement rate
+    t_max: int = 12  # liveness: round-pairs allowed to reach agreement
+    epsilon: float = 1e-3  # liveness: tolerance the certificate must reach
+    # Friction schedule for the termination certificate. Constant friction is
+    # provably insufficient (formulation.md Prop. 2), so kappa escalates.
+    kappa0: float = 2.0
+    rho: float = 0.5  # per-round step budget, in scaled units
+
+    def kappa(self, k: int) -> float:
+        """Escalating friction kappa_k = kappa_0 / (1 - k / T_max).
+
+        Deadline pressure, modelled as friction that grows without bound as
+        T_max approaches. This is what turns termination from an assumption
+        into a theorem: whatever residual incentive remains, friction
+        eventually exceeds it.
+        """
+        if self.t_max <= 0:
+            return float("inf")
+        fraction = min(k / self.t_max, 0.999)
+        return self.kappa0 / (1.0 - fraction)
+
+
+@dataclass(frozen=True)
 class Contract:
-    """theta = (B, c, q_min, q_max, d_min, d_max, T_max)."""
+    """theta = (B, c, q_min, q_max, d_min, d_max)."""
 
     budget: float
     cost_floor: float
@@ -85,7 +125,6 @@ class Contract:
     q_max: float
     d_min: float = 0.0
     d_max: float = 7.0
-    t_max: int = 12
     deadline_active: bool = True
 
     # Provenance, for audit trails. Not part of theta.
@@ -105,9 +144,28 @@ class Contract:
                 self.q_max,
                 self.d_min,
                 self.d_max,
-                float(self.t_max),
             ]
         )
+
+    def refines(self, other: Contract, tol: float = 1e-9) -> bool:
+        """C(self) is a subset of C(other): a stricter contract.
+
+        The refinement order of formulation.md section 1. For this template it
+        is componentwise: a tighter budget, a higher cost floor, and narrower
+        bands all shrink the safe set.
+        """
+        checks = [
+            self.budget <= other.budget + tol,
+            self.cost_floor >= other.cost_floor - tol,
+            self.q_min >= other.q_min - tol,
+            self.q_max <= other.q_max + tol,
+        ]
+        if self.deadline_active and other.deadline_active:
+            checks += [
+                self.d_min >= other.d_min - tol,
+                self.d_max <= other.d_max + tol,
+            ]
+        return all(checks)
 
     def active_mask(self) -> np.ndarray:
         """Boolean mask over ROW_LABELS of which rows are enforced."""
@@ -265,7 +323,6 @@ class Contract:
             q_max=float(math.ceil(total_qty * spec.q_max_factor)),
             d_min=spec.d_min,
             d_max=spec.d_max,
-            t_max=spec.t_max,
             deadline_active=spec.deadline_active,
             pair_id=f"{business.id}|{customer.id}",
             notes={

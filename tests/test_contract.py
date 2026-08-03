@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from magentic_marketplace.marketplace.shared.models import Business, Customer
 
-from src.contract import N_ROWS, Contract, ContractSpec
+from src.contract import N_ROWS, Contract, ContractSpec, ControllerSpec
 
 
 def make_business(**overrides) -> Business:
@@ -170,20 +170,57 @@ class TestFromScenario:
     def test_spec_knobs_flow_through(self):
         spec = ContractSpec(
             q_max_factor=3.0,
-            t_max=20,
             deadline_active=True,
             d_max=14.0,
             budget_slack=0.1,
         )
         contract = Contract.from_scenario(make_business(), make_customer(), spec)
         assert contract.q_max == pytest.approx(6.0)
-        assert contract.t_max == 20
         assert contract.d_max == pytest.approx(14.0)
         assert contract.budget == pytest.approx(12.5 * 1.1)
         assert contract.deadline_active
 
-    def test_theta_is_seven_dimensional_but_h_is_six_rows(self):
+    def test_theta_is_six_dimensional_and_carries_no_controller_state(self):
+        """theta is the agreement; gamma and tau are how it is enforced.
+
+        Putting T_max in theta would make two contracts with the same safe set
+        and different deadlines incomparable under the refinement order, which
+        is a statement about sets of terms.
+        """
         contract = Contract.from_scenario(make_business(), make_customer())
-        assert contract.theta.shape == (7,)
-        # T_max rides in theta but is a liveness obligation, not a constraint.
+        assert contract.theta.shape == (6,)
         assert contract.h(np.array([5.0, 2.0, 0.0])).shape == (N_ROWS,)
+
+
+class TestControllerSpec:
+    """(gamma, tau) — the controller half of C = (theta, gamma, tau)."""
+
+    def test_friction_escalates_without_bound_as_t_max_approaches(self):
+        """Prop. 2: no constant friction works, so kappa must grow.
+
+        This is what turns termination from an assumption into a theorem —
+        whatever residual incentive remains, friction eventually exceeds it.
+        """
+        spec = ControllerSpec(t_max=10, kappa0=2.0)
+        schedule = [spec.kappa(k) for k in range(11)]
+        assert schedule[0] == pytest.approx(2.0)
+        assert all(b >= a for a, b in zip(schedule, schedule[1:]))
+        assert schedule[-1] > 100 * schedule[0]
+
+    def test_a_zero_deadline_admits_no_motion_at_all(self):
+        assert ControllerSpec(t_max=0).kappa(0) == float("inf")
+
+    def test_refinement_order_is_subset_of_safe_sets(self):
+        loose = Contract(budget=1000.0, cost_floor=5.0, q_min=10.0, q_max=100.0)
+        strict = Contract(budget=900.0, cost_floor=6.0, q_min=20.0, q_max=90.0)
+        assert strict.refines(loose)
+        assert not loose.refines(strict)
+
+    def test_refinement_agrees_with_set_containment(self):
+        loose = Contract(budget=1000.0, cost_floor=5.0, q_min=10.0, q_max=100.0)
+        strict = Contract(budget=900.0, cost_floor=6.0, q_min=20.0, q_max=90.0)
+        rng = np.random.default_rng(1)
+        for _ in range(2000):
+            x = np.array([rng.uniform(0, 20), rng.uniform(5, 120), 0.0])
+            if strict.is_safe(x):
+                assert loose.is_safe(x)

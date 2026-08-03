@@ -46,7 +46,9 @@ class CustomerTrial:
 
     @property
     def first_proposer(self) -> str | None:
-        return self.proposals_in_order[0].from_agent if self.proposals_in_order else None
+        if not self.proposals_in_order:
+            return None
+        return self.proposals_in_order[0].from_agent
 
     @property
     def first_proposer_won(self) -> bool | None:
@@ -74,8 +76,7 @@ async def query_schema(conn: asyncpg.Connection, schema: str) -> list[CustomerTr
 
     # Build per-customer trial objects
     trials: dict[str, CustomerTrial] = {
-        cid: CustomerTrial(schema=schema, customer_id=cid)
-        for cid in CUSTOMER_NAMES
+        cid: CustomerTrial(schema=schema, customer_id=cid) for cid in CUSTOMER_NAMES
     }
 
     for r in rows:
@@ -102,7 +103,9 @@ async def query_schema(conn: asyncpg.Connection, schema: str) -> list[CustomerTr
         if msg_type == "payment" and from_agent in trials:
             msg = json.loads(r["msg_json"])
             trials[from_agent].payment_to = to_agent
-            trials[from_agent].payment_amount = msg.get("amount") or msg.get("total_price")
+            trials[from_agent].payment_amount = msg.get("amount") or msg.get(
+                "total_price"
+            )
 
     return list(trials.values())
 
@@ -164,7 +167,8 @@ async def main() -> None:
                     first_won += 1
 
         if total > 0:
-            print(f"  First-proposer win rate: {first_won}/{total} ({100*first_won/total:.0f}%)")
+            pct = 100 * first_won / total
+            print(f"  First-proposer win rate: {first_won}/{total} ({pct:.0f}%)")
 
     # ── Aggregate summary ─────────────────────────────────────────────────────
     print("\n" + "=" * 72)
