@@ -4,12 +4,12 @@ Identical theta and identical bookkeeping to arm B, with one difference: the
 regulator never rewrites a proposal. It sees the breach, records it, and lets
 it through.
 
-The comparison B vs D is the one that isolates *projecting* from *flagging*.
-An AgentSpec-style runtime monitor can tell you a contract was broken; the
-question this arm answers is how much of the safety result comes from
-detection and how much from the minimally-invasive correction. Any welfare
-difference between B and D is the price of the correction, not of the
-contract, since both arms carry the same contract.
+B against D is what isolates *projecting* from *flagging*. An AgentSpec-style
+runtime monitor can tell you a contract was broken; what this arm answers is
+how much of the safety result comes from detection and how much from the
+minimally-invasive correction. Because both arms carry the same theta, any
+welfare difference between them is the price of the correction, not the price
+of the contract.
 
     uv run python experiments/arm_d_monitored.py --experiment arm_d_v1
 """

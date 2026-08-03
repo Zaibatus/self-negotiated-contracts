@@ -43,7 +43,15 @@ def replay(args) -> None:
 
     load_dotenv()
     registry = ContractRegistry.from_data_dir(args.data, spec=contract_spec(args))
-    print(f"Contract registry: {registry.summary()}\n")
+    print(f"Contract registry: {registry.summary()}")
+    if registry.unsatisfiable:
+        print(
+            f"  {len(registry.unsatisfiable)} pairs have an empty safe set "
+            "(the seller's cost floor sits above the buyer's budget). Those are "
+            "deals that should never close, so a breach there is the correct "
+            "outcome rather than a governance failure."
+        )
+    print()
 
     dsn = _dsn_from_env()
     out_dir = Path(args.results) / "arm_a_replay"
@@ -71,7 +79,10 @@ def replay(args) -> None:
         )
 
     if not summaries:
-        raise SystemExit("no schemas found; nothing to report")
+        raise SystemExit(
+            "no schemas found. Is Postgres up, and were these experiments run "
+            "against this database?"
+        )
 
     rates = [s.get("breach_rate", 0.0) for s in summaries.values()]
     sd = float(np.std(rates, ddof=1)) if len(rates) > 1 else 0.0
@@ -79,10 +90,15 @@ def replay(args) -> None:
         f"\nUNGOVERNED BREACH RATE over {len(rates)} runs: "
         f"{np.mean(rates):.3f} +/- {sd:.3f}"
     )
+    print(
+        "This is the number arm B has to drive to zero. If it is already zero "
+        "the scenario never puts the agents under enough pressure to breach, "
+        "and the safety result has nothing to show — use data/bargain_3_9."
+    )
     (out_dir / "summary.json").write_text(
         json.dumps(summaries, indent=2), encoding="utf-8"
     )
-    print(f"Wrote {out_dir / 'summary.json'}")
+    print(f"\nWrote {out_dir / 'summary.json'}")
 
 
 def main() -> None:
@@ -90,8 +106,7 @@ def main() -> None:
     parser.add_argument(
         "--replay",
         nargs="+",
-        default=["baseline_v1", "baseline_v2", "baseline_v3",
-                 "baseline_v4", "baseline_v5"],
+        default=[f"baseline_v{i}" for i in range(1, 6)],
         help="finished experiment schemas to evaluate theta against",
     )
     parser.add_argument(
