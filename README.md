@@ -80,7 +80,7 @@ docs/                        formulation, supervision docs, integration notes
 
 | arm | contract | regulator | status |
 |---|---|---|---|
-| **A** no contract | — | `off` | measured: 59.3% of proposals and 40% of settled deals breach θ ([note](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md)) |
+| **A** no contract | — | `off` | measured on both scenarios ([mexican](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md), [bargain](docs/notes/2026-08-05-arm-a-bargain-scenario.md)) |
 | **B** imposed | θ from scenario data | `filter` | runnable |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
 | **D** monitored | θ from scenario data | `monitor` | runnable |
@@ -129,12 +129,29 @@ uv run python experiments/arm_a_no_contract.py \
     --data ../multi-agent-marketplace/data/mexican_3_9
 ```
 
-Arm A reports three numbers and they do not say the same thing: **59.3% of
-proposals offered** breach θ, **40% of deals settled** do, and the overspend is
-**0.52% of value transacted**. The first gap is the buyer declining bad offers
-unaided; the second is magnitude — four of six settled breaches are a
-three-pence overspend. Quoting any one of them alone misrepresents the
-marketplace.
+Arm A reports three numbers and they do not say the same thing:
+
+| | `mexican_3_9` (stock) | `bargain_3_9` (authored) |
+|---|---|---|
+| proposals **offered** breaching θ | 0.593 ± 0.029 | 0.858 ± 0.050 |
+| deals **settled** breaching θ | 0.400 (6/15) | 0.083 (1/12) |
+| overspend / value transacted | 0.52% | 0.00% |
+
+The gap between the first two rows is the customer agent declining bad offers
+unaided. The third row is magnitude: most settled breaches are a few pence.
+
+`bargain_3_9` was authored to make the budget bind and **inverted the deal-side
+result** — offers got much worse, deals got much cleaner. Every settled deal
+lands exactly on the budget, because the edit that makes the budget bind also
+tells the customer what it is, and the customer then polices it. Benefit of the
+safety layer and buyer diligence are substitutes; the
+[note](docs/notes/2026-08-05-arm-a-bargain-scenario.md) works through what
+survives.
+
+**Read the ± as seed variance, not sampling error.** Both scenarios have 3
+customers, so 5 seeds are 5 draws of the same 3 situations — not 15 or 37
+independent observations. Nothing here speaks to generalisation across baskets
+or price levels.
 
 The first live governed run:
 

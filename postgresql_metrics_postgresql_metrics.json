@@ -1,0 +1,7 @@
+{
+  "read_requests": 813,
+  "write_requests": 581,
+  "connection_timeouts": 0,
+  "db_errors": 0,
+  "successful_requests": 1394
+}

@@ -32,6 +32,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np  # noqa: E402
 
 from experiments._common import build_parser, contract_spec, run_arm  # noqa: E402
+from src.marketplace_integration.replay import (  # noqa: E402
+    TRIVIAL_BREACH_FRACTION,
+)
 from src.marketplace_integration.theta import ContractRegistry  # noqa: E402
 
 
@@ -57,6 +60,13 @@ def replay(args) -> None:
     out_dir = Path(args.results) / "arm_a_replay"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    header = (
+        f"{'run':<18}{'props':>7}{'breach':>9}{'deals':>8}{'infeas':>7}"
+        f"{'trivial':>9}{'meaningful':>12}{'overspend':>11}"
+    )
+    print(header)
+    print("-" * len(header))
+
     summaries: dict[str, dict[str, float]] = {}
     deals: list = []
     for schema in args.replay:
@@ -75,11 +85,13 @@ def replay(args) -> None:
         summaries[schema] = summary
         deals.extend(result.deals)
         print(
-            f"{schema:<16} proposals={summary['proposals_seen']:.0f} "
-            f"breach_rate={summary.get('breach_rate', 0.0):.3f}   "
-            f"deals={summary['deals_settled']:.0f} "
-            f"breached={summary['deals_breached']:.0f} "
-            f"overspend=${summary['total_overspend']:.2f}"
+            f"{schema:<18}{summary['proposals_seen']:>7.0f}"
+            f"{summary.get('breach_rate', 0.0):>9.3f}"
+            f"{summary['deals_settled']:>8.0f}"
+            f"{summary['deals_infeasible']:>7.0f}"
+            f"{summary['deals_trivial']:>9.0f}"
+            f"{summary['deals_meaningful']:>12.0f}"
+            f"{summary['total_overspend']:>11.2f}"
         )
 
     if not summaries:
@@ -91,43 +103,51 @@ def replay(args) -> None:
     rates = [s.get("breach_rate", 0.0) for s in summaries.values()]
     sd = float(np.std(rates, ddof=1)) if len(rates) > 1 else 0.0
     breached = [d for d in deals if d.breached]
+    spend = sum(d.spend for d in deals)
+    over = sum(d.overspend for d in deals)
+    classes = {c: sum(1 for d in deals if d.classification == c)
+               for c in ("within", "infeasible", "trivial", "meaningful")}
 
-    print(f"\n{'=' * 70}")
+    print(f"\n{'=' * 74}")
     print(f"UNGOVERNED BREACH RATE over {len(rates)} runs")
-    print("=" * 70)
-    print(f"  of proposals OFFERED:  {np.mean(rates):.3f} +/- {sd:.3f}")
+    print("=" * 74)
+    print(f"  of proposals OFFERED:   {np.mean(rates):.3f} +/- {sd:.3f}")
     if deals:
         print(
-            f"  of deals SETTLED:      {len(breached) / len(deals):.3f}  "
+            f"  of deals SETTLED:       {len(breached) / len(deals):.3f}  "
             f"({len(breached)}/{len(deals)})"
         )
-        print(
-            f"  total overspend:       ${sum(d.overspend for d in deals):.2f} "
-            f"across {len(deals)} deals; worst single deal "
-            f"${max((d.overspend for d in deals), default=0.0):.2f}"
-        )
+        print(f"  overspend / value:      {100 * over / spend:.2f}%  "
+              f"(${over:.2f} of ${spend:.2f})")
+        print(f"\n  settled deals by class ({TRIVIAL_BREACH_FRACTION:.0%} "
+              "trivial threshold):")
+        print(f"    within theta          {classes['within']:>4}")
+        print(f"    structurally infeasible {classes['infeasible']:>2}   "
+              "empty safe set: no deal could have complied")
+        print(f"    trivial breach        {classes['trivial']:>4}   "
+              f"< {TRIVIAL_BREACH_FRACTION:.0%} of budget")
+        print(f"    MEANINGFUL breach     {classes['meaningful']:>4}   "
+              "<- what a filter would have to prevent")
 
     print(
-        "\n  Read the two rates together. The first counts contract-violating "
-        "offers\n  put on the table; the second counts the ones a buyer "
-        "actually accepted.\n  A large gap between them means the customer "
-        "agent is already declining most\n  bad offers on its own, and the "
-        "safety layer is partly redundant with its\n  judgement in this "
-        "scenario — which is a finding, not a failure."
+        "\n  Read the rates together. The first counts contract-violating "
+        "offers put on\n  the table; the second counts the ones a buyer "
+        "actually accepted. A large gap\n  means the customer agent is "
+        "already declining most bad offers unaided, and\n  the safety layer "
+        "is partly redundant with its judgement here — a finding,\n  not a "
+        "failure.\n"
+        "\n  Structurally infeasible deals are NOT a governance failure: no "
+        "terms could\n  have satisfied those contracts, so a filter cannot "
+        "improve them and must not\n  be credited for them."
     )
-    if breached:
-        trivial = sum(1 for d in breached if d.overspend < 0.10)
-        if trivial:
-            print(
-                f"\n  Of the {len(breached)} settled breaches, {trivial} are "
-                f"under 10p. Report the magnitude\n  alongside the count, or "
-                "the headline rate will carry more weight than it earns."
-            )
+    n_customers = len({d.pair_id.split("|")[1] for d in deals}) or 1
     print(
-        "\n  This is the number arm B has to drive to zero. If it is already "
-        "zero the\n  scenario never puts the agents under enough pressure to "
-        "breach and the safety\n  result has nothing to show — use "
-        "data/bargain_3_9."
+        f"\n  SAMPLE SIZE. {len(rates)} seeds x {n_customers} customers. These "
+        f"are {len(rates)} draws of the same\n  {n_customers} situations, not "
+        f"{len(deals)} independent observations. The +/- above is seed\n  "
+        "variance under a fixed scenario, not sampling error over pairs, and "
+        "says\n  nothing about how these figures would generalise to other "
+        "baskets."
     )
     (out_dir / "summary.json").write_text(
         json.dumps(summaries, indent=2), encoding="utf-8"
