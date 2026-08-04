@@ -48,6 +48,33 @@ ORDER BY row_index ASC
 
 
 @dataclass
+class SettledDeal:
+    """A proposal that was actually paid for, and whether it broke theta.
+
+    Distinct from a breaching *proposal*, and the distinction is the whole
+    point. A seller can put an impossible offer on the table and a competent
+    buyer can decline it; the contract was strained but nobody was harmed.
+    What matters for welfare is whether money changed hands outside C(theta).
+    """
+
+    pair_id: str
+    proposal_id: str
+    terms: list[float]
+    spend: float
+    budget: float
+    breached_rows: list[str]
+
+    @property
+    def breached(self) -> bool:
+        return bool(self.breached_rows)
+
+    @property
+    def overspend(self) -> float:
+        """How far over budget, in currency. Zero when within."""
+        return max(self.spend - self.budget, 0.0)
+
+
+@dataclass
 class ReplayResult:
     """What one finished schema looked like through the contract layer."""
 
@@ -56,6 +83,7 @@ class ReplayResult:
     trajectories: dict[str, list[list[float]]] = field(default_factory=dict)
     proposals_seen: int = 0
     proposals_governed: int = 0
+    deals: list[SettledDeal] = field(default_factory=list)
     ungoverned: list[dict[str, str]] = field(default_factory=list)
 
     def summary(self) -> dict[str, float]:
@@ -63,6 +91,18 @@ class ReplayResult:
         out["proposals_seen"] = float(self.proposals_seen)
         out["proposals_governed"] = float(self.proposals_governed)
         out["proposals_ungoverned"] = float(len(self.ungoverned))
+
+        breached = [d for d in self.deals if d.breached]
+        out["deals_settled"] = float(len(self.deals))
+        out["deals_breached"] = float(len(breached))
+        if self.deals:
+            out["deal_breach_rate"] = len(breached) / len(self.deals)
+        # Magnitude, not just count. Four three-cent overspends and one 22%
+        # overspend are the same number of breaches and not the same event, so
+        # a rate reported without a magnitude invites the wrong conclusion.
+        out["total_overspend"] = float(sum(d.overspend for d in self.deals))
+        overspends = [d.overspend for d in self.deals]
+        out["max_overspend"] = float(max(overspends, default=0.0))
         return out
 
 
@@ -85,6 +125,8 @@ def replay_messages(
     result = ReplayResult(schema="")
     states: dict[str, list[np.ndarray]] = {}
     rounds: dict[str, int] = {}
+    # proposal id -> everything needed to judge it if it is later paid for.
+    offered: dict[str, tuple[str, np.ndarray, object]] = {}
 
     for row in rows:
         msg_type = row.get("msg_type")
@@ -147,6 +189,25 @@ def replay_messages(
                 )
             )
             traj.append(x)
+            offered[proposal.id] = (key, x, effective)
+
+        elif msg_type == "payment":
+            # A payment names the proposal it accepts, so the settled terms are
+            # exactly the terms of that proposal — no inference needed.
+            proposal_id = payload.get("proposal_message_id")
+            if proposal_id not in offered:
+                continue
+            key, x, effective = offered[proposal_id]
+            result.deals.append(
+                SettledDeal(
+                    pair_id=key,
+                    proposal_id=str(proposal_id),
+                    terms=[float(v) for v in x],
+                    spend=float(x[0] * x[1]),
+                    budget=float(effective.budget),
+                    breached_rows=effective.violations(x),
+                )
+            )
 
         elif msg_type == "text":
             customer_id = str(row["from_agent"])

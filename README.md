@@ -80,7 +80,7 @@ docs/                        formulation, supervision docs, integration notes
 
 | arm | contract | regulator | status |
 |---|---|---|---|
-| **A** no contract | — | `off` | 5 baseline runs collected; `replay` evaluates θ against them for free |
+| **A** no contract | — | `off` | measured: 59.3% of proposals and 40% of settled deals breach θ ([note](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md)) |
 | **B** imposed | θ from scenario data | `filter` | runnable |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
 | **D** monitored | θ from scenario data | `monitor` | runnable |
@@ -114,7 +114,7 @@ Corrected claims and scope: `docs/formulation.md` §10.
 
 ```bash
 uv sync --extra dev          # Python 3.13; magentic-marketplace as a path dep
-uv run pytest -q             # 149 tests, no API calls, no database
+uv run pytest -q             # 154 tests, no API calls, no database
 ```
 
 Offline, no API spend:
@@ -128,6 +128,13 @@ uv run python experiments/certificates/e13_dcbf.py
 uv run python experiments/arm_a_no_contract.py \
     --data ../multi-agent-marketplace/data/mexican_3_9
 ```
+
+Arm A reports three numbers and they do not say the same thing: **59.3% of
+proposals offered** breach θ, **40% of deals settled** do, and the overspend is
+**0.52% of value transacted**. The first gap is the buyer declining bad offers
+unaided; the second is magnitude — four of six settled breaches are a
+three-pence overspend. Quoting any one of them alone misrepresents the
+marketplace.
 
 The first live governed run:
 
