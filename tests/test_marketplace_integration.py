@@ -9,7 +9,6 @@ rather than a parallel implementation that could drift from it.
 from __future__ import annotations
 
 from datetime import UTC, datetime
-from typing import Any
 
 import numpy as np
 import pytest
@@ -114,13 +113,20 @@ def envelope(message, sender: str, recipient: str) -> ActionExecutionRequest:
 
 
 async def send(protocol, message, sender="business_0001", recipient="customer_0001"):
-    """Push one message through the real interception path."""
+    """Push one message through the real interception path.
+
+    Returns what the caller is left holding, NOT what the protocol returned.
+    The server route persists the request object it was handed and the
+    recipient reads the message back from the database, so the request is the
+    surface that decides what actually reaches the counterparty. Asserting on
+    ``result.content`` instead is what let a regulator that filtered nothing
+    pass its whole test suite.
+    """
     request = envelope(message, sender, recipient)
-    result = await protocol.execute_action(
+    await protocol.execute_action(
         agent=AgentProfile(id=sender), action=request, database=StubDatabase()
     )
-    forwarded: dict[str, Any] = result.content
-    return SendMessage.model_validate(forwarded)
+    return SendMessage.model_validate(request.parameters)
 
 
 # --------------------------------------------------------------------------
@@ -177,6 +183,63 @@ class TestFilterMode:
         assert report["breach_rate"] == 0.0
         assert report["solver_solver_failure_rate"] == 0.0
         assert report["certificate_gap_rate"] == 0.0
+
+
+class TestTheRewriteReachesTheWire:
+    """The regulator has to modify what the SERVER persists, not a copy.
+
+    platform/server/routes/actions.py builds its database row from the request
+    object it was handed, and the recipient fetches messages out of that
+    database. A regulator that rewrites a copy computes a correction, logs it,
+    and lets the original terms through — which is exactly what the first arm B
+    run on bargain_3_9 did for five seeds before this was caught.
+    """
+
+    async def test_the_caller_request_carries_the_filtered_terms(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        request = envelope(
+            proposal(total=30.0, quantity=2), "business_0001", "customer_0001"
+        )
+        await protocol.execute_action(
+            agent=AgentProfile(id="business_0001"),
+            action=request,
+            database=StubDatabase(),
+        )
+        persisted = SendMessage.model_validate(request.parameters)
+        assert persisted.message.total_price < 30.0, (
+            "the request the server will persist still holds the unfiltered "
+            "terms, so the customer would receive them"
+        )
+
+    async def test_the_returned_result_and_the_request_agree(self):
+        """If these ever diverge, one of the two surfaces is lying."""
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter")
+        request = envelope(
+            proposal(total=40.0, quantity=2), "business_0001", "customer_0001"
+        )
+        result = await protocol.execute_action(
+            agent=AgentProfile(id="business_0001"),
+            action=request,
+            database=StubDatabase(),
+        )
+        returned = SendMessage.model_validate(result.content)
+        persisted = SendMessage.model_validate(request.parameters)
+        assert returned.message.total_price == pytest.approx(
+            persisted.message.total_price
+        )
+
+    async def test_monitor_mode_leaves_the_request_untouched(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="monitor")
+        request = envelope(
+            proposal(total=30.0, quantity=2), "business_0001", "customer_0001"
+        )
+        before = dict(request.parameters)
+        await protocol.execute_action(
+            agent=AgentProfile(id="business_0001"),
+            action=request,
+            database=StubDatabase(),
+        )
+        assert request.parameters == before
 
 
 class TestMonitorMode:

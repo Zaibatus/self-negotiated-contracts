@@ -291,6 +291,23 @@ A third, subtler point. Preconditioning the QP by dividing each constraint row b
     x\*_NBS degrades as more constraints bind, and by an amount this note does
     not yet quantify.
 
+16. **A protocol-side regulator must mutate the request it is given, not a
+    copy.** The marketplace server persists the request object it hands to the
+    protocol, and recipients read messages back out of that store, so a
+    regulator that rewrites a copy computes a correction and lets the original
+    terms through. The first arm B runs did exactly that for five seeds and
+    enforced nothing — while passing a 32-test suite, because the tests
+    asserted on the value the protocol *returned* rather than on what the
+    caller was left holding. The enforcement point is the caller's object.
+
+17. **Money is quantised and the safe set is not.** Prices round to the cent;
+    the filter's QP solution does not land on a cent boundary. Rounding to
+    nearest put the realised terms outside C(θ) by exactly one penny on ten of
+    ten governed rounds of one pair — systematic, not noise. Any claim of the
+    form "zero breaches" has to say whether it holds after the terms are
+    written back in the currency's own precision. Ours does now, because the
+    rewrite quantises *into* the safe set; it did not before.
+
 ## A.6 Still open
 
 Unchanged from the closing note above: asymmetric bargaining weights; a formal derivation of the drift constants (α, β); and a sufficient condition on θ guaranteeing C(θ) ⊆ the monotone region. On the last, the integration adds a *checkable* version — the worst-case corner of the box bounding C(θ), against the measured stability radius — which is conservative and sufficient but not a condition on θ in closed form.

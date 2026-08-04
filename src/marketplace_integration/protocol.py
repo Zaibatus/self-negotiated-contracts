@@ -124,15 +124,34 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         action: ActionExecutionRequest,
         database: BaseDatabaseController,
     ) -> ActionExecutionResult:
-        """Govern the message, then hand it to the stock protocol."""
+        """Govern the message, then hand it to the stock protocol.
+
+        The rewrite is an **in-place mutation of the caller's request**, and it
+        has to be. The server route persists the request object it was handed
+        (``platform/server/routes/actions.py``: ``ActionRowData(request=request,
+        ...)``) and the recipient reads the message back out of the database, so
+        anything the regulator does to a *copy* is computed, logged and then
+        discarded — the counterparty still receives the original terms.
+
+        That is not hypothetical. The first arm B run on bargain_3_9 used
+        ``action.model_copy(...)`` here, and every filtered proposal reached the
+        customer unfiltered: the certificate log recorded corrections to 11.58
+        and 11.40 while the database, the buyer and the seller's confirmation
+        all showed 13.76 and 11.12. The arm measured nothing. Worse, the
+        integration tests passed throughout, because they asserted on
+        ``result.content`` — which does carry the rewrite — rather than on what
+        the caller was left holding.
+
+        Mutating in place is therefore the enforcement point, not a shortcut
+        around one. ``tests/test_marketplace_integration.py`` now asserts on the
+        request object after the call for exactly this reason.
+        """
         parsed = ActionAdapter.validate_python(action.parameters)
 
         if isinstance(parsed, SendMessage):
             replacement = self._govern(parsed)
             if replacement is not None:
-                action = action.model_copy(
-                    update={"parameters": replacement.model_dump(mode="json")}
-                )
+                action.parameters = replacement.model_dump(mode="json")
 
         return await super().execute_action(
             agent=agent, action=action, database=database
@@ -217,7 +236,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
 
         replacement = None
         if self.mode == "filter" and not np.allclose(x_applied, x_proposed):
-            new_proposal = rewrite_proposal(proposal, x_applied)
+            new_proposal = rewrite_proposal(proposal, x_applied, contract)
             # Re-read the terms actually sent: rounding to cents means the
             # recorded trajectory must come from the message, not the intent.
             x_applied = from_order_proposal(new_proposal).vector
@@ -265,7 +284,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         if self.mode == "filter":
             x_filtered = x_prev + result.u[:3]
             if not np.allclose(x_filtered, x_proposed):
-                new_proposal = rewrite_proposal(proposal, x_filtered)
+                new_proposal = rewrite_proposal(proposal, x_filtered, contract)
                 x_applied = from_order_proposal(new_proposal).vector
                 replacement = envelope.model_copy(update={"message": new_proposal})
             else:

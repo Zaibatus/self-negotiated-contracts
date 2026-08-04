@@ -1,0 +1,8 @@
+{
+  "total_requests": 425,
+  "total_retries": 0,
+  "fatal_errors": 1,
+  "successful_requests": 424,
+  "retries_by_status": {},
+  "retries_by_exception": {}
+}

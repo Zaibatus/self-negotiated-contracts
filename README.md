@@ -81,7 +81,7 @@ docs/                        formulation, supervision docs, integration notes
 | arm | contract | regulator | status |
 |---|---|---|---|
 | **A** no contract | — | `off` | measured on both scenarios ([mexican](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md), [bargain](docs/notes/2026-08-05-arm-a-bargain-scenario.md)) |
-| **B** imposed | θ from scenario data | `filter` | runnable |
+| **B** imposed | θ from scenario data | `filter` | measured: **0/27 breaching rounds** on governed pairs, no detectable feasibility cost ([note](docs/notes/2026-08-05-arm-b-imposed-contract.md)) |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
 | **D** monitored | θ from scenario data | `monitor` | runnable |
 | **E** RL-AR | θ from scenario data | learned β(s) | **deferred** — π_reg *is* the filter output, β(s) a state-dependent γ |
@@ -114,7 +114,7 @@ Corrected claims and scope: `docs/formulation.md` §10.
 
 ```bash
 uv sync --extra dev          # Python 3.13; magentic-marketplace as a path dep
-uv run pytest -q             # 154 tests, no API calls, no database
+uv run pytest -q             # 179 tests, no API calls, no database
 ```
 
 Offline, no API spend:

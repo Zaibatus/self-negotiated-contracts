@@ -217,6 +217,10 @@ class DCBFFilter:
         self.n_fallbacks = 0
         self.n_certificate_gaps = 0
         self.n_backtracked = 0
+        # Per tier, because they are not interchangeable: a stiffened retry is
+        # a solved QP, holding is a refusal to move, and an unverified hold is
+        # a step taken with no guarantee at all. One aggregate rate hides which.
+        self.fallback_tiers: dict[str, int] = {}
 
     # ----------------------------------------------------------------- API --
 
@@ -254,6 +258,9 @@ class DCBFFilter:
 
         if result.fallback is not None:
             self.n_fallbacks += 1
+            self.fallback_tiers[result.fallback] = (
+                self.fallback_tiers.get(result.fallback, 0) + 1
+            )
         if result.certificate_gap:
             self.n_certificate_gaps += 1
         if result.backtracks:
@@ -263,13 +270,16 @@ class DCBFFilter:
     def reliability(self) -> dict[str, float]:
         """Solver reliability profile — reported alongside every experiment."""
         calls = max(self.n_calls, 1)
-        return {
+        out = {
             "calls": float(self.n_calls),
             "solver_failure_rate": self.n_solver_failures / calls,
             "fallback_rate": self.n_fallbacks / calls,
             "certificate_gap_rate": self.n_certificate_gaps / calls,
             "backtrack_rate": self.n_backtracked / calls,
         }
+        for tier, count in sorted(self.fallback_tiers.items()):
+            out[f"fallback_{tier}_rate"] = count / calls
+        return out
 
     # ------------------------------------------------------------ internals --
 

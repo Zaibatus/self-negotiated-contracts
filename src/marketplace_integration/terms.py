@@ -33,6 +33,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
 
 import numpy as np
 from magentic_marketplace.marketplace.actions.messaging import (
@@ -40,6 +41,9 @@ from magentic_marketplace.marketplace.actions.messaging import (
     OrderProposal,
     TextMessage,
 )
+
+if TYPE_CHECKING:  # pragma: no cover - typing only
+    from ..contract import Contract
 
 # --------------------------------------------------------------------------
 # Deadline parsing
@@ -220,7 +224,12 @@ def from_text(
 # --------------------------------------------------------------------------
 
 
-def rewrite_proposal(proposal: OrderProposal, x: np.ndarray) -> OrderProposal:
+def rewrite_proposal(
+    proposal: OrderProposal,
+    x: np.ndarray,
+    contract: Contract | None = None,
+    max_cent_steps: int = 40,
+) -> OrderProposal:
     """Project a proposal onto filtered terms, keeping it internally consistent.
 
     The marketplace validates ``total_price == sum(unit_price * quantity)``
@@ -233,6 +242,20 @@ def rewrite_proposal(proposal: OrderProposal, x: np.ndarray) -> OrderProposal:
     common factor that makes the line items sum to the filtered total. The
     proposal id is preserved: this is the same proposal, adjusted, and
     breaking the id would break payment matching.
+
+    **Quantisation is repaired toward the interior when a contract is given.**
+    Prices are money, so they round to the cent, and the QP's exact solution
+    does not generally land on a cent boundary. Rounding to nearest then puts
+    the realised total marginally outside C(theta) about half the time it
+    matters. Measured before this repair existed: every governed round on one
+    bargain_3_9 pair breached the budget row by exactly one penny, ten rounds
+    out of ten — not noise but a systematic bias, and enough to make "zero
+    breaches" false as stated. A safety filter that must quantise should
+    quantise *into* the safe set, so the cents are nudged until the true h is
+    satisfied.
+
+    Only price-adjustable rows can be repaired this way. A quantity or deadline
+    breach survives, and is left visible rather than papered over.
     """
     price, quantity = float(x[0]), float(x[1])
     target_total = price * quantity
@@ -261,7 +284,48 @@ def rewrite_proposal(proposal: OrderProposal, x: np.ndarray) -> OrderProposal:
         )
 
     total = round(sum(i.unit_price * i.quantity for i in items), 2)
-    return proposal.model_copy(update={"items": items, "total_price": total})
+    rebuilt = proposal.model_copy(update={"items": items, "total_price": total})
+    if contract is None:
+        return rebuilt
+    return _repair_quantisation(rebuilt, contract, max_cent_steps)
+
+
+def _repair_quantisation(
+    proposal: OrderProposal, contract: Contract, max_cent_steps: int
+) -> OrderProposal:
+    """Nudge unit prices by whole cents until the true h is satisfied.
+
+    Moves the *largest* line item, so the fewest cents shift the total the
+    furthest, and gives up rather than looping if the breach is on a row price
+    cannot fix.
+    """
+    mask = contract.active_mask()
+    for _ in range(max_cent_steps):
+        values = contract.h(from_order_proposal(proposal).vector)
+        if bool(np.all(values[mask] >= 0.0)):
+            return proposal
+        if mask[0] and values[0] < 0:
+            step = -0.01  # over budget: come down
+        elif mask[1] and values[1] < 0:
+            step = 0.01  # under the cost floor: come up
+        else:
+            return proposal  # quantity or deadline: not a price problem
+
+        items = list(proposal.items)
+        target = max(range(len(items)), key=lambda i: items[i].unit_price)
+        new_price = round(items[target].unit_price + step, 2)
+        if new_price <= 0:
+            return proposal
+        items[target] = items[target].model_copy(update={"unit_price": new_price})
+        proposal = proposal.model_copy(
+            update={
+                "items": items,
+                "total_price": round(
+                    sum(i.unit_price * i.quantity for i in items), 2
+                ),
+            }
+        )
+    return proposal
 
 
 def _distribute(target: int, weights: list[int]) -> list[int]:

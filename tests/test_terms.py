@@ -199,3 +199,91 @@ class TestRewrite:
         assert back.price * back.quantity == pytest.approx(
             target[0] * target[1], abs=0.02
         )
+
+
+class TestQuantisationRepair:
+    """Prices round to the cent; the safe set does not.
+
+    Rounding the QP's exact solution to nearest lands marginally outside
+    C(theta) about half the time it matters. Measured before this existed:
+    ten out of ten governed rounds on one bargain_3_9 pair breached the budget
+    by exactly one penny — systematic, not noise, and enough to make a "zero
+    breaches" claim false as stated.
+    """
+
+    def test_a_penny_of_rounding_no_longer_escapes_the_budget(self):
+        from src.contract import Contract
+
+        contract = Contract(
+            budget=31.38, cost_floor=5.0, q_min=3.0, q_max=6.0,
+            deadline_active=False,
+        )
+        original = OrderProposal(
+            id="p1",
+            items=[
+                OrderItem(id="I1", item_name="a", quantity=1, unit_price=13.49),
+                OrderItem(id="I2", item_name="b", quantity=1, unit_price=6.99),
+                OrderItem(id="I3", item_name="c", quantity=1, unit_price=15.99),
+            ],
+            total_price=36.47,
+        )
+        # Target exactly the budget: 3 units at 10.46 = 31.38.
+        target = np.array([31.38 / 3.0, 3.0, 0.0])
+
+        unrepaired = rewrite_proposal(original, target)
+        repaired = rewrite_proposal(original, target, contract)
+
+        assert contract.is_safe(from_order_proposal(repaired).vector)
+        # And the repair costs at most a few pence.
+        assert repaired.total_price <= 31.38 + 1e-9
+        assert repaired.total_price > 31.38 - 0.10
+        # The unrepaired version is what the arm B runs were sending.
+        assert unrepaired.total_price >= repaired.total_price
+
+    def test_it_repairs_upward_off_the_cost_floor_too(self):
+        from src.contract import Contract
+
+        contract = Contract(
+            budget=1000.0, cost_floor=10.0, q_min=2.0, q_max=4.0,
+            deadline_active=False,
+        )
+        original = OrderProposal(
+            id="p1",
+            items=[
+                OrderItem(id="I1", item_name="a", quantity=1, unit_price=10.0),
+                OrderItem(id="I2", item_name="b", quantity=1, unit_price=10.0),
+            ],
+            total_price=20.0,
+        )
+        # Just under the cost floor, where rounding down would keep it under.
+        target = np.array([9.995, 2.0, 0.0])
+        repaired = rewrite_proposal(original, target, contract)
+        assert contract.is_safe(from_order_proposal(repaired).vector)
+
+    def test_a_quantity_breach_is_left_visible_not_papered_over(self):
+        """Price cannot fix a quantity row, so the repair must not pretend."""
+        from src.contract import Contract
+
+        contract = Contract(
+            budget=1000.0, cost_floor=0.0, q_min=10.0, q_max=20.0,
+            deadline_active=False,
+        )
+        original = OrderProposal(
+            id="p1",
+            items=[OrderItem(id="I1", item_name="a", quantity=2, unit_price=5.0)],
+            total_price=10.0,
+        )
+        repaired = rewrite_proposal(original, np.array([5.0, 2.0, 0.0]), contract)
+        assert "q_min" in contract.violations(from_order_proposal(repaired).vector)
+
+    def test_without_a_contract_the_behaviour_is_unchanged(self):
+        original = OrderProposal(
+            id="p1",
+            items=[OrderItem(id="I1", item_name="a", quantity=2, unit_price=5.0)],
+            total_price=10.0,
+        )
+        target = np.array([4.0, 2.0, 0.0])
+        assert (
+            rewrite_proposal(original, target).total_price
+            == rewrite_proposal(original, target, None).total_price
+        )
