@@ -34,6 +34,7 @@ the payoff model cannot be identified from a transcript.
 
 from __future__ import annotations
 
+import itertools
 from dataclasses import dataclass
 
 import numpy as np
@@ -57,6 +58,74 @@ def phi(model: PayoffModel, x: np.ndarray) -> float:
     return norm_M(model.concession_field(x))
 
 
+def project_onto_tangent_cone(
+    field_s: np.ndarray, grads_s: np.ndarray, tol: float = 1e-9
+) -> np.ndarray:
+    """Exact Euclidean projection of a field onto { w : g_i . w >= 0 for all i }.
+
+    All arguments are already in scaled coordinates.
+
+    Why exact rather than a sequential pass. Projecting onto one half-space at
+    a time is exact for a single row and wrong at a corner: the projection onto
+    row 2 can push the result back out of row 1. Measured on this contract
+    template, a sequential pass leaves the cone on 6.3% of realisable two-row
+    corners, and when it does the error is not small — 33.7 against a true
+    answer of 2.0 in the worst case observed, and there are configurations
+    where the exact projection is 0.0 while the sequential pass returns a large
+    number. That is a converged negotiation reported as unconverged, which for
+    a convergence certificate is the one error that must not happen.
+
+    Why active-set enumeration rather than Dykstra or a QP. The problem is
+    three-dimensional with at most six rows, so there are at most 64 candidate
+    active sets: for each, project onto null(A_S) by least squares and keep the
+    feasible candidate closest to the field. That is exact to floating point,
+    deterministic and free of any convergence tolerance — and a certificate
+    whose value depends on a solver's stopping rule has that stopping rule
+    inside its claim. Dykstra would need one; OSQP has primal tolerances and
+    per-call setup. At this size enumeration is also simply faster.
+
+    The rule "a constraint the field already points away from is not binding,
+    so leave it alone" is preserved, and now holds automatically: such a row is
+    inactive at the optimum, so the projection does not move along it.
+    """
+    if grads_s.size == 0:
+        return field_s
+
+    # Drop degenerate rows: a vanishing gradient constrains nothing, and
+    # normalising by it would manufacture the conditioning problem.
+    keep = np.linalg.norm(grads_s, axis=1) > tol
+    grads_s = grads_s[keep]
+    if grads_s.size == 0:
+        return field_s
+
+    n_rows = len(grads_s)
+    best, best_distance = None, np.inf
+
+    for size in range(n_rows + 1):
+        for active in itertools.combinations(range(n_rows), size):
+            if active:
+                rows = grads_s[list(active)]
+                # Project onto null(rows): w = F - rows^T lambda, choosing
+                # lambda by least squares so that rows @ w = 0.
+                lam, *_ = np.linalg.lstsq(rows.T, field_s, rcond=None)
+                candidate = field_s - rows.T @ lam
+            else:
+                candidate = field_s.copy()
+
+            if not np.all(np.isfinite(candidate)):
+                continue
+            if np.any(grads_s @ candidate < -1e-7):
+                continue
+            distance = float(np.linalg.norm(candidate - field_s))
+            if distance < best_distance:
+                best_distance, best = distance, candidate
+
+    # The full active set always yields a feasible candidate (rows @ w = 0), so
+    # this is unreachable; falling back to the origin would be the only safe
+    # answer if it ever were.
+    return best if best is not None else np.zeros_like(field_s)
+
+
 def phi_projected(
     model: PayoffModel,
     x: np.ndarray,
@@ -71,12 +140,17 @@ def phi_projected(
     constraint absorbs, and what remains is the incentive that could still be
     acted on.
 
-    A constraint that is active but whose gradient the field points *away*
-    from is not binding on this motion, so it is left in place — projecting it
-    out would discard a real component of the field.
+    The projection is exact at corners as well as at a single face — see
+    ``project_onto_tangent_cone`` — and is taken in scaled coordinates, so it
+    is consistent with the metric every other norm here uses.
 
-    The projection is taken in scaled coordinates, so it is consistent with the
-    metric every other norm here uses.
+    Caveat on reading a zero. Proposition 1 identifies the field zero with the
+    Nash bargaining solution *in the interior*. On a face the two separate
+    slightly (measured at 0.029 scaled units for a binding budget); at a corner
+    the separation is unmeasured. So Phi_proj = 0 certifies that no admissible
+    direction of improvement remains, which is what convergence means here —
+    but it is a weaker identification with the bargaining solution than the
+    interior case.
     """
     field = model.concession_field(x)
     if contract is None:
@@ -86,19 +160,8 @@ def phi_projected(
     if not rows.size:
         return norm_M(field)
 
-    field_s = field * SCALE
-    for grad in rows:
-        grad_s = grad * SCALE
-        denom = float(grad_s @ grad_s)
-        if denom <= tol:
-            continue
-        overlap = float(grad_s @ field_s)
-        # h_i >= 0 is the safe side, so grad h_i . F >= 0 means the field
-        # points back into the set: not binding on this motion.
-        if overlap >= 0:
-            continue
-        field_s = field_s - (overlap / denom) * grad_s
-    return float(np.linalg.norm(field_s))
+    projected = project_onto_tangent_cone(field * SCALE, rows * SCALE)
+    return float(np.linalg.norm(projected))
 
 
 def _active_rows(contract: Contract, x: np.ndarray, tol: float) -> np.ndarray:

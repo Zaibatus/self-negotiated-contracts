@@ -263,6 +263,34 @@ A third, subtler point. Preconditioning the QP by dividing each constraint row b
 
 13. **Reproducibility is against a pinned environment, not only pinned seeds.** The prototype files are byte-identical and their seeds fixed, yet `audit.py`'s SLSQP probe now reports 7/60 status failures where §7 quotes 6.7% (4/60). scipy changed, not the code. This strengthens rather than weakens §7's implementation standard, but the claim should read "reproducible against a pinned environment", and the environment is not currently pinned.
 
+14. **Φ_proj is exact at corners as of 2026-08-05; it was not before.** The
+    implementation projected the field onto one active constraint at a time,
+    which is exact for a single face and wrong at a corner — projecting onto
+    the second row can push the result back out of the first. Two figures,
+    because they measure different things: on *random* gradient
+    configurations a sequential pass leaves the tangent cone 36% of the time,
+    but on **realisable corners of this contract template only 6.3%**, because
+    `cost_floor`, `q_min`, `q_max`, `d_min` and `d_max` have axis-aligned,
+    mutually orthogonal gradients and sequential projection among orthogonal
+    half-spaces is already exact. Only pairs involving the bilinear budget row
+    can fail. When one does the error is not small: 33.7 against a true value
+    of 2.0 in the worst case observed, and there are corners where the exact
+    projection is 0.0 while the sequential pass returns a large number — a
+    converged negotiation reported as unconverged. This was latent under the
+    DCBF, where §A.1 shows the constraint is never active at the settled
+    point, but arms B and D attain boundaries and would have hit it.
+    `project_onto_tangent_cone` now enumerates active sets, which is exact to
+    floating point and free of any solver tolerance.
+
+15. **Reading Φ_proj = 0 at a corner is weaker than in the interior.**
+    Proposition 1 identifies the field zero with the Nash bargaining solution
+    under interiority. §8 measures the separation at 0.029 scaled units when
+    one constraint binds; at a corner it is unmeasured. So Φ_proj = 0
+    certifies that no admissible direction of improvement remains — which is
+    what convergence means operationally — but the identification with
+    x\*_NBS degrades as more constraints bind, and by an amount this note does
+    not yet quantify.
+
 ## A.6 Still open
 
 Unchanged from the closing note above: asymmetric bargaining weights; a formal derivation of the drift constants (α, β); and a sufficient condition on θ guaranteeing C(θ) ⊆ the monotone region. On the last, the integration adds a *checkable* version — the worst-case corner of the box bounding C(θ), against the measured stability radius — which is conservative and sufficient but not a condition on θ in closed form.

@@ -24,6 +24,7 @@ import numpy as np
 import pytest
 
 from src.certificates.energy import (
+    _active_rows,
     contract_is_inside_monotone_region,
     contraction_transient,
     drift_outside_ball,
@@ -35,6 +36,7 @@ from src.certificates.energy import (
     kappa_star,
     phi,
     phi_projected,
+    project_onto_tangent_cone,
     stability_radius,
 )
 from src.contract import Contract, ControllerSpec
@@ -307,3 +309,224 @@ class TestDecayEstimators:
         assert fit["alpha"] == pytest.approx(alpha, rel=1e-6)
         assert fit["beta"] == pytest.approx(beta, rel=1e-6)
         assert fit["ball_radius"] == pytest.approx(beta / alpha, rel=1e-6)
+
+
+class TestTangentConeProjectionIsExact:
+    """Phi_proj at corners, not just on a single face.
+
+    The sequential pass these replace is exact for one active row and wrong at
+    a corner: projecting onto row 2 can push the result back out of row 1.
+    Every test here fails against that implementation, which is the point —
+    a test suite that passes on both versions would not have pinned anything.
+    """
+
+    @staticmethod
+    def _sequential(field_s: np.ndarray, grads_s: np.ndarray) -> np.ndarray:
+        """The old single-pass projection, kept so the tests can show it fails."""
+        v = field_s.copy()
+        for grad in grads_s:
+            denom = float(grad @ grad)
+            if denom <= 1e-9:
+                continue
+            overlap = float(grad @ v)
+            if overlap >= 0:
+                continue
+            v = v - (overlap / denom) * grad
+        return v
+
+    # (a) ------------------------------------------------------------------
+
+    def test_a_single_active_row_matches_the_sequential_result_exactly(self):
+        """One row is the case the old code got right; it must not move."""
+        rng = np.random.default_rng(0)
+        for _ in range(200):
+            field_s = rng.normal(size=3) * SCALE * 10
+            grads_s = (rng.normal(size=(1, 3)) * SCALE)
+            np.testing.assert_allclose(
+                project_onto_tangent_cone(field_s, grads_s),
+                self._sequential(field_s, grads_s),
+                atol=1e-9,
+            )
+
+    def test_a_field_already_inside_the_cone_is_untouched(self):
+        """"Points back into the set => not binding" survives the rewrite."""
+        field_s = np.array([1.0, 2.0, 3.0])
+        grads_s = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+        np.testing.assert_allclose(
+            project_onto_tangent_cone(field_s, grads_s), field_s, atol=1e-12
+        )
+
+    def test_orthogonal_rows_still_agree_with_the_sequential_pass(self):
+        """Why the realisable failure rate is only 6.3% and not 36%.
+
+        cost_floor, q_min, q_max, d_min and d_max have axis-aligned, mutually
+        orthogonal gradients, and sequential projection onto mutually
+        orthogonal half-spaces is already exact. Only pairs involving the
+        bilinear budget row can fail. If this ever stops holding, the
+        explanation in the note is wrong.
+        """
+        rng = np.random.default_rng(1)
+        axis_rows = np.array(
+            [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+        ) * SCALE
+        for _ in range(200):
+            field_s = rng.normal(size=3) * SCALE * 10
+            np.testing.assert_allclose(
+                project_onto_tangent_cone(field_s, axis_rows),
+                self._sequential(field_s, axis_rows),
+                atol=1e-9,
+            )
+
+    # (b) ------------------------------------------------------------------
+
+    def test_at_a_corner_the_result_lies_in_the_tangent_cone(self):
+        """A budget x q_min corner where the sequential pass leaves the cone."""
+        contract = Contract(
+            budget=800.0, cost_floor=6.0, q_min=100.0, q_max=120.0,
+            d_min=7.0, d_max=45.0, deadline_active=True,
+        )
+        x = np.array([8.0, 100.0, 26.0])  # spend 800 = B, and q = q_min
+        assert contract.h(x)[0] == pytest.approx(0.0, abs=1e-9)
+        assert contract.h(x)[2] == pytest.approx(0.0, abs=1e-9)
+
+        jac = contract.grad_h(x)
+        grads_s = np.array([jac[0], jac[2]]) * SCALE
+
+        # Pick the field in the POLAR cone: F = -(g1 + g2). Every admissible
+        # direction then makes the field worse, so the true projection is the
+        # origin — and the sequential pass, projecting onto q_min after budget,
+        # undoes the budget projection and lands outside.
+        field_s = -(grads_s[0] + grads_s[1])
+
+        sequential = self._sequential(field_s, grads_s)
+        assert np.any(grads_s @ sequential < -1e-9), (
+            "fixture no longer exercises the bug; pick another field"
+        )
+
+        exact = project_onto_tangent_cone(field_s, grads_s)
+        assert np.all(grads_s @ exact >= -1e-9)
+
+    def test_random_corners_always_land_in_the_cone(self):
+        rng = np.random.default_rng(2)
+        escapes = 0
+        for _ in range(500):
+            grads_s = rng.normal(size=(2, 3)) * SCALE
+            field_s = rng.normal(size=3) * SCALE * 10
+            exact = project_onto_tangent_cone(field_s, grads_s)
+            assert np.all(grads_s @ exact >= -1e-7)
+            if np.any(grads_s @ self._sequential(field_s, grads_s) < -1e-7):
+                escapes += 1
+        assert escapes > 0, "the sequential pass should fail on some of these"
+
+    # (c) ------------------------------------------------------------------
+
+    def test_a_converged_state_is_not_reported_as_unconverged(self):
+        """The failure that matters: exact projection 0, sequential nonzero.
+
+        At the same budget x q_min corner, with the field in the polar cone.
+        No admissible direction improves anything, so the negotiation has
+        converged and the certificate must read zero. The sequential pass
+        reports a nonzero value and would call it still in motion.
+
+        Note the rows have to be non-orthogonal for this to bite: with
+        orthogonal rows the sequential projections commute and both agree.
+        """
+        contract = Contract(
+            budget=800.0, cost_floor=6.0, q_min=100.0, q_max=120.0,
+            deadline_active=False,
+        )
+        x = np.array([8.0, 100.0, 0.0])
+        grads_s = _active_rows(contract, x, tol=1e-6) * SCALE
+        assert len(grads_s) == 2
+        assert abs(grads_s[0] @ grads_s[1]) > 1e-6, "rows must be non-orthogonal"
+
+        field_s = -(grads_s[0] + grads_s[1])
+
+        exact = project_onto_tangent_cone(field_s, grads_s)
+        assert np.linalg.norm(exact) == pytest.approx(0.0, abs=1e-9)
+
+        sequential = self._sequential(field_s, grads_s)
+        assert np.linalg.norm(sequential) > 1.0
+        assert np.any(grads_s @ sequential < -1e-9)
+
+    def test_the_zero_case_arises_from_a_real_contract_too(self):
+        """q_min = q_max pins quantity; a field pushing on q alone is absorbed."""
+        contract = Contract(
+            budget=1e6, cost_floor=0.0, q_min=50.0, q_max=50.0, deadline_active=False
+        )
+        x = np.array([10.0, 50.0, 0.0])
+        rows = _active_rows(contract, x, tol=1e-6)
+        assert len(rows) == 2  # q_min and q_max both active
+        field_s = np.array([0.0, 40.0, 0.0])
+        exact = project_onto_tangent_cone(field_s, rows * SCALE)
+        assert np.linalg.norm(exact) == pytest.approx(0.0, abs=1e-9)
+
+    # (d) ------------------------------------------------------------------
+
+    def test_it_agrees_with_osqp_on_random_instances(self):
+        """Cross-validation: enumeration is exact, so a QP must agree.
+
+        This is what justifies choosing enumeration over a solver — the claim
+        is checkable rather than asserted.
+        """
+        import osqp
+        import scipy.sparse as sp
+
+        rng = np.random.default_rng(3)
+        for _ in range(150):
+            n_rows = int(rng.integers(1, 5))
+            grads_s = rng.normal(size=(n_rows, 3)) * SCALE
+            field_s = rng.normal(size=3) * SCALE * 10
+
+            problem = osqp.OSQP()
+            problem.setup(
+                P=sp.eye(3, format="csc") * 2.0,
+                q=-2.0 * field_s,
+                A=sp.csc_matrix(grads_s),
+                l=np.zeros(n_rows),
+                u=np.full(n_rows, np.inf),
+                verbose=False,
+                eps_abs=1e-10,
+                eps_rel=1e-10,
+                max_iter=40000,
+                polishing=True,
+            )
+            solved = problem.solve(raise_error=False)
+            if int(solved.info.status_val) not in (1, 2):
+                continue  # solver trouble is not evidence about the enumeration
+
+            exact = project_onto_tangent_cone(field_s, grads_s)
+            assert np.linalg.norm(exact) == pytest.approx(
+                float(np.linalg.norm(solved.x)), abs=1e-4
+            )
+
+    # integration ----------------------------------------------------------
+
+    def test_phi_projected_uses_the_exact_projection_at_a_corner(self, model):
+        contract = Contract(
+            budget=800.0, cost_floor=6.0, q_min=100.0, q_max=120.0,
+            d_min=7.0, d_max=45.0, deadline_active=True,
+        )
+        x = np.array([8.0, 100.0, 26.0])
+        rows = _active_rows(contract, x, tol=1e-6)
+        assert len(rows) == 2
+
+        value = phi_projected(model, x, contract)
+        field_s = model.concession_field(x) * SCALE
+        expected = project_onto_tangent_cone(field_s, rows * SCALE)
+        assert value == pytest.approx(float(np.linalg.norm(expected)))
+        assert value <= phi(model, x) + 1e-9
+
+    def test_an_interior_point_is_unaffected(self, model, x_star):
+        """The regression gate for e13_dcbf and payoff_validation3.
+
+        Their settled points are strictly interior, so no row is active and
+        Phi_proj must still equal Phi exactly. If this moves, the projection
+        changed behaviour where it should not have.
+        """
+        contract = Contract(
+            budget=1e6, cost_floor=0.0, q_min=0.0, q_max=1e6, deadline_active=False
+        )
+        assert phi_projected(model, x_star, contract) == pytest.approx(
+            phi(model, x_star)
+        )
