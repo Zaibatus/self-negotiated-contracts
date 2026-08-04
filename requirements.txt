@@ -1,0 +1,21 @@
+# Minimal dependencies for the standalone prototype experiments in
+# experiments/certificates/. Those files are self-contained: they import only
+# numpy, scipy and matplotlib, and none of them touch the marketplace, the
+# database or an LLM. So the F1-F6 and E1-E13 tables can be reproduced with a
+# plain pip install, without uv and without the magentic-marketplace stack.
+#
+#     pip install -r requirements.txt
+#     cd experiments/certificates && python payoff_validation3.py
+#
+# Everything else — the certificate library, the Magentic integration, the arms
+# and the test suite — needs the full environment:
+#
+#     uv sync --extra dev
+#
+# Kept because docs/negotiation-certificates-README.md points here, and because
+# an examiner reproducing the theory tables should not have to install a
+# marketplace to do it.
+
+numpy>=1.26
+scipy>=1.11
+matplotlib>=3.8
