@@ -26,8 +26,19 @@ from magentic_marketplace.platform.database import connect_to_postgresql_databas
 from magentic_marketplace.platform.launcher import AgentLauncher, MarketplaceLauncher
 
 from ..certificates.metrics import write_jsonl
+from .agents import ReconcilingAgentMixin
 from .protocol import GovernedMarketplaceProtocol, Mode
 from .theta import ContractRegistry
+
+
+class GovernedBusinessAgent(ReconcilingAgentMixin, BusinessAgent):
+    """The stock business agent, with its books kept in sync with the server.
+
+    The mixin adds no negotiation logic — it only records what the marketplace
+    accepted instead of what the agent asked for. Without it, a filtered
+    proposal leaves the seller reasoning from, and invoicing, a price the buyer
+    never saw.
+    """
 
 
 async def run_governed_experiment(
@@ -135,7 +146,7 @@ async def run_governed_experiment(
         )
 
         business_agents = [
-            BusinessAgent(business, marketplace_launcher.server_url)
+            GovernedBusinessAgent(business, marketplace_launcher.server_url)
             for business in businesses
         ]
         customer_agents = [

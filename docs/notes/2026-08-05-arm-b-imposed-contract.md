@@ -161,12 +161,34 @@ so the liveness column would carry signal rather than pass vacuously — the
 
 - **Termination is measured, not enforced.** G_κ is computed from a friction
   schedule the agents never experience. Formulation §A.5 item 1.
-- **The seller's own books desync under filtering.** `BusinessAgent` calls
-  `add_proposal()` before `send_message()`, so its local storage keeps the
-  pre-filter proposal. Welfare analytics reads DB payments and is unaffected,
-  but the seller's confirmation text quotes the unfiltered price — in
-  deployment that means invoicing the wrong amount. The enforcement point
-  rewrites the message without telling the sender.
+- **The seller's own books desync under filtering — FIXED, and the original
+  characterisation below was wrong.**
+
+  *As first written:* "cosmetic; welfare analytics reads DB payments and is
+  unaffected, but the seller's confirmation text quotes the unfiltered price."
+
+  *Corrected:* it is not cosmetic. `BusinessAgent` appends its own message to
+  `customer_histories` before the send completes, and that history is fed
+  straight into the prompt that generates its next response
+  (`business/agent.py`: `generate_response_to_inquiry(customer_id,
+  self.customer_histories[customer_id])`). So under a filter **the seller
+  reasons from a price it never actually offered** — it believed it had offered
+  13.76 when the buyer saw 11.58 — and concedes from there. The welfare
+  accounting is computed from database payments and is genuinely unaffected,
+  but the *trajectories* are not.
+
+  Fixed by `ReconcilingAgentMixin` (`src/marketplace_integration/agents.py`),
+  which records what the server accepted rather than what the agent asked for.
+  The guarantee remains agent-agnostic: enforcement happens at the protocol, so
+  a seller that ignores the response still cannot breach — only its own books
+  go wrong. In deployment the unfixed version would invoice the pre-filter
+  amount.
+
+  **Consequence for the numbers above:** these five runs predate the fix, so
+  they were produced under a seller with corrupted memory of its own offers.
+  The breach and closure results are outcome measurements from the database and
+  stand; the negotiation *paths* are not the ones a correctly-informed seller
+  would have taken.
 - **λ is unidentified** at this transcript length; the payoff model falls back
   to the scenario prior throughout.
 - **n = 5 seeds × 3 customers.** Five draws of the same three situations. Every

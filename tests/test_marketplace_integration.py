@@ -625,3 +625,124 @@ class TestBreachClassification:
             for c in ("within", "infeasible", "trivial", "meaningful")
         )
         assert classes == summary["deals_settled"]
+
+
+class TestSellerReconciliation:
+    """The sender has to learn what the server accepted.
+
+    BusinessAgent stores the proposal it intends to send and appends it to the
+    conversation history, then ignores result.content on success. Under a
+    filter that leaves the seller's books AND its memory holding terms nobody
+    received — and the memory is fed straight back into the prompt that
+    generates its next offer, so it concedes from a price it never made.
+    """
+
+    @staticmethod
+    def _agent():
+        """A minimal stand-in with the two pieces of state that go stale."""
+        from magentic_marketplace.marketplace.agents.proposal_storage import (
+            OrderProposalStorage,
+        )
+
+        from src.marketplace_integration.agents import ReconcilingAgentMixin
+
+        class Base:
+            def __init__(self):
+                self.id = "business_0001"
+                self.proposal_storage = OrderProposalStorage()
+                self.history: list = []
+                self.sent: list = []
+                self.server_accepts = None
+
+            async def send_message(self, to_agent_id, message):
+                self.sent.append(message)
+                from magentic_marketplace.platform.shared.models import (
+                    ActionExecutionResult,
+                )
+
+                accepted = self.server_accepts or message
+                envelope_msg = SendMessage(
+                    from_agent_id=self.id,
+                    to_agent_id=to_agent_id,
+                    created_at=datetime.now(UTC),
+                    message=accepted,
+                )
+                return ActionExecutionResult(
+                    content=envelope_msg.model_dump(mode="json"), is_error=False
+                )
+
+            def add_to_history(self, customer_id, message, role):
+                self.history.append(message)
+
+        class Agent(ReconcilingAgentMixin, Base):
+            pass
+
+        return Agent()
+
+    async def test_storage_and_history_match_what_the_server_accepted(self):
+        """The test that fails against the unreconciled agent."""
+        agent = self._agent()
+        proposed = proposal(total=30.0, quantity=2, pid="p1")
+        accepted = proposal(total=11.0, quantity=2, pid="p1")
+        agent.server_accepts = accepted
+
+        # The agent stores optimistically before sending, as BusinessAgent does.
+        agent.proposal_storage.add_proposal(proposed, agent.id, "customer_0001")
+        await agent.send_message("customer_0001", proposed)
+        agent.add_to_history("customer_0001", proposed, "business")
+
+        stored = agent.proposal_storage.get_proposal("p1")
+        assert stored is not None
+        assert stored.proposal.total_price == pytest.approx(11.0), (
+            "the seller's books still hold the pre-filter price, so a "
+            "confirmation or invoice would charge the wrong amount"
+        )
+        assert agent.history[-1].total_price == pytest.approx(11.0), (
+            "the seller's memory still holds the pre-filter price, and that "
+            "memory is what its next offer is generated from"
+        )
+
+    async def test_an_unmodified_message_is_left_entirely_alone(self):
+        agent = self._agent()
+        sent = proposal(total=10.0, quantity=2, pid="p1")
+        agent.proposal_storage.add_proposal(sent, agent.id, "customer_0001")
+        await agent.send_message("customer_0001", sent)
+        agent.add_to_history("customer_0001", sent, "business")
+
+        assert agent.proposal_storage.get_proposal("p1").proposal is sent
+        assert agent.history[-1] is sent
+
+    async def test_a_text_message_needs_no_storage_reconciliation(self):
+        agent = self._agent()
+        sent = TextMessage(content="hello")
+        await agent.send_message("customer_0001", sent)
+        agent.add_to_history("customer_0001", sent, "business")
+        assert agent.history[-1] is sent
+
+    async def test_a_send_error_is_not_reconciled(self):
+        """A failed send did not deliver anything, so nothing to sync."""
+        from magentic_marketplace.platform.shared.models import ActionExecutionResult
+
+        agent = self._agent()
+        sent = proposal(total=30.0, quantity=2, pid="p1")
+        agent.proposal_storage.add_proposal(sent, agent.id, "customer_0001")
+
+        async def failing(to_agent_id, message):
+            return ActionExecutionResult(content={"error": "nope"}, is_error=True)
+
+        type(agent).__mro__[1].send_message = staticmethod(failing)
+        await agent.send_message("customer_0001", sent)
+        assert agent.proposal_storage.get_proposal("p1").proposal.total_price == 30.0
+
+    async def test_a_malformed_response_does_not_break_the_negotiation(self):
+        """Reconciliation is bookkeeping; it must never take a run down."""
+        from magentic_marketplace.platform.shared.models import ActionExecutionResult
+
+        agent = self._agent()
+        sent = proposal(total=30.0, quantity=2, pid="p1")
+
+        async def odd(to_agent_id, message):
+            return ActionExecutionResult(content="not a dict", is_error=False)
+
+        type(agent).__mro__[1].send_message = staticmethod(odd)
+        await agent.send_message("customer_0001", sent)  # must not raise
