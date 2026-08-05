@@ -83,13 +83,21 @@ docs/                        formulation, supervision docs, integration notes
 | **A** no contract | — | `off` | measured on both scenarios ([mexican](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md), [bargain](docs/notes/2026-08-05-arm-a-bargain-scenario.md)) |
 | **B** imposed | θ from scenario data | `filter` | measured: **0/27 breaching rounds** on governed pairs, no detectable feasibility cost ([note](docs/notes/2026-08-05-arm-b-imposed-contract.md)) |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
-| **D** monitored | θ from scenario data | `monitor` | runnable |
+| **D** monitored | θ from scenario data | `monitor` | measured: **96% of governed rounds flagged** when nothing is enforced; the noise floor for A/B ([note](docs/notes/2026-08-05-arm-d-monitoring-vs-enforcement.md)) |
 | **E** RL-AR | θ from scenario data | learned β(s) | **deferred** — π_reg *is* the filter output, β(s) a state-dependent γ |
 
-B against D is what isolates *projecting* from *flagging*: same θ, same
-bookkeeping, and the only difference is whether the regulator rewrites the
-proposal. Any welfare gap between them is the price of the correction, not of
-the contract.
+B against D isolates *projecting* from *flagging*: same θ, same bookkeeping,
+and the only difference is whether the regulator rewrites the proposal.
+
+Measured, the answer is that **enforcement is mostly prevention**. Arm D flags
+96% of governed rounds when nothing is corrected; arm B corrects 11%, because a
+filtered trajectory starts compliant and never wanders out. The two are not a
+before/after on the same rounds — a monitor sits on a path a filter would never
+have produced.
+
+Arm D doubles as the **noise floor**: it is behaviourally identical to arm A, so
+every A/D difference is seed variance. The safety effect clears it by ~12×; the
+closure and surplus differences do not, and are not claimed.
 
 ## Experiments → findings
 
@@ -114,7 +122,7 @@ Corrected claims and scope: `docs/formulation.md` §10.
 
 ```bash
 uv sync --extra dev          # Python 3.13; magentic-marketplace as a path dep
-uv run pytest -q             # 179 tests, no API calls, no database
+uv run pytest -q             # 184 tests, no API calls, no database
 ```
 
 Offline, no API spend:

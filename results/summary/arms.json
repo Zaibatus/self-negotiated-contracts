@@ -1,6 +1,6 @@
 {
   "arms": {
-    "arm_a": {
+    "arm A": {
       "closures_by_pair": {
         "business_0001|customer_0001": 3,
         "business_0002|customer_0001": 2,
@@ -45,7 +45,7 @@
         "value_transacted": 143.75
       }
     },
-    "arm_b": {
+    "arm B": {
       "closures_by_pair": {
         "business_0001|customer_0001": 3,
         "business_0002|customer_0001": 2,
@@ -88,6 +88,51 @@
         "seeds": 5.0,
         "settled_breach_rate": 0.0,
         "value_transacted": 259.45
+      }
+    },
+    "arm D": {
+      "closures_by_pair": {
+        "business_0001|customer_0001": 1,
+        "business_0002|customer_0001": 4,
+        "business_0004|customer_0002": 2,
+        "business_0005|customer_0002": 3,
+        "business_0008|customer_0003": 2
+      },
+      "filter_telemetry": {
+        "backtracks": 0.0,
+        "certificate_gaps": 0.0,
+        "correction_nonzero": 25.0,
+        "correction_rate": 0.49019607843137253,
+        "flag_rate": 0.9607843137254902,
+        "flagged": 49.0,
+        "governed_rounds": 51.0,
+        "intervention_max": 0.5770622937706229,
+        "intervention_mean": 0.2985021868560838,
+        "solver_failures": 0.0
+      },
+      "governed_split": {
+        "governed_breach_rate": 0.7254901960784313,
+        "governed_breaches": 37.0,
+        "governed_rounds": 51.0,
+        "infeasible_breach_rate": 1.0,
+        "infeasible_breaches": 29.0,
+        "infeasible_rounds": 29.0
+      },
+      "headline": {
+        "deals_breached": 1.0,
+        "deals_infeasible": 0.0,
+        "deals_meaningful": 1.0,
+        "deals_settled": 12.0,
+        "deals_trivial": 0.0,
+        "deals_within": 11.0,
+        "offered_breach_rate": 0.8218853695324284,
+        "offered_breach_sd": 0.03889079655494659,
+        "overspend_share": 2.2734457533758884e-17,
+        "overspend_total": 3.552713678800501e-15,
+        "proposals": 80.0,
+        "seeds": 5.0,
+        "settled_breach_rate": 0.08333333333333333,
+        "value_transacted": 156.27
       }
     }
   },

@@ -363,3 +363,79 @@ def print_comparison(
         print(f"  {pair:<34}{base:>12}{treat:>12}   {note}")
 
     print(f"\n  {cost.describe()}")
+
+
+def print_three_way(
+    arms: dict[str, ArmSummary],
+    infeasible_pairs: set[str],
+    experiments: dict[str, list[str]] | None = None,
+    results_dir: str | Path = "results",
+    notes: dict[str, str] | None = None,
+) -> None:
+    """A / B / D side by side.
+
+    Arm D is behaviourally identical to arm A — both pass every message through
+    untouched and the agents never see the flags — so any A-vs-D difference is
+    seed noise *by construction*. That makes it the yardstick: an A-vs-B
+    difference is only interesting if it exceeds the A-vs-D one.
+    """
+    order = list(arms)
+    experiments = experiments or {}
+    notes = notes or {}
+
+    rows = [
+        ("proposals offered", "proposals", "{:.0f}"),
+        ("  breaching theta", "offered_breach_rate", "{:.3f}"),
+        ("deals settled", "deals_settled", "{:.0f}"),
+        ("  breaching theta", "settled_breach_rate", "{:.3f}"),
+        ("  meaningful breaches", "deals_meaningful", "{:.0f}"),
+        ("overspend / value", "overspend_share", "{:.4f}"),
+        ("value transacted", "value_transacted", "{:.2f}"),
+    ]
+
+    print("\n" + "=" * 78)
+    print("THREE-WAY: " + "  vs  ".join(a.upper() for a in order))
+    print("=" * 78)
+    head = f"  {'':<26}" + "".join(f"{arms[a].name:>15}" for a in order)
+    print(head)
+    print("  " + "-" * (len(head) - 2))
+    for label, key, fmt in rows:
+        line = f"  {label:<26}"
+        for name in order:
+            line += f"{fmt.format(arms[name].headline().get(key, 0.0)):>15}"
+        print(line)
+
+    print("\n  per-round breaches, split by whether the pair was governed")
+    print("  " + "-" * 68)
+    print(f"  {'':<26}" + "".join(f"{arms[a].name:>15}" for a in order))
+    for label, keys in (
+        ("governed pairs", ("governed_breaches", "governed_rounds")),
+        ("infeasible pairs", ("infeasible_breaches", "infeasible_rounds")),
+    ):
+        line = f"  {label:<26}"
+        for name in order:
+            split = arms[name].governed_split(infeasible_pairs)
+            line += f"{split[keys[0]]:.0f}/{split[keys[1]]:.0f}".rjust(15)
+        print(line)
+
+    print("\n  what the filter computed (applied under B, counterfactual elsewhere)")
+    print("  " + "-" * 68)
+    print(f"  {'':<26}" + "".join(f"{arms[a].name:>15}" for a in order))
+    for label, key, fmt in (
+        ("flagged rounds", "flagged", "{:.0f}"),
+        ("  of governed rounds", "governed_rounds", "{:.0f}"),
+        ("non-zero correction", "correction_nonzero", "{:.0f}"),
+        ("mean correction (scaled)", "intervention_mean", "{:.3f}"),
+    ):
+        line = f"  {label:<26}"
+        for name in order:
+            tel = filter_telemetry(
+                experiments.get(name, []), infeasible_pairs, results_dir
+            )
+            line += (fmt.format(tel[key]) if key in tel else "n/a").rjust(15)
+        print(line)
+
+    if notes:
+        print()
+        for name, text in notes.items():
+            print(f"  [{arms[name].name}] {text}")
