@@ -171,7 +171,7 @@ This is the payoff-based version of v1's headline: anchored certificates stall a
 
 ## 10. Assumptions and limitations (single source of truth)
 
-1. Quantitative terms only; qualitative clauses ("good faith") are out of scope. Contrast: CBF-LLM (LLM-judged textual constraints — flexibility without guarantees); *re-verify its current content before finalising related work.*
+1. Quantitative terms only; qualitative clauses ("good faith") are out of scope. Contrast: CBF-LLM — **[corrected 2026-08-05, see `docs/dissertation/60-related-work.md`]**. The re-verification this item asked for has been done, and the earlier characterisation ("flexibility without guarantees") was wrong: CBF-LLM *does* prove forward invariance (Theorem 1). What fails is the antecedent, not the theorem — their barrier is a RoBERTa classifier score and the authors state it "may not accurately evaluate" its input. The sharpened contrast is that a CBF is only as good as its barrier, and our contribution is a class where h is exact by construction. That makes the restriction to quantitative terms a deliberate design choice rather than a shortcoming.
 2. Utilities are quadratic/quasi-linear with symmetric logistic acceptance. Proposition 1 depends on transferable utility, symmetry and interiority; it degrades gracefully (0.029 units) when the transfer is capped, and needs restating for asymmetric bargaining weights.
 3. Convergence is **local**: monotone within ≈1 scaled unit, not globally (18% globally) [E9].
 4. Termination is achieved by escalating friction, not by convergence of the frictionless dynamics; the two guarantees are separate (§5).

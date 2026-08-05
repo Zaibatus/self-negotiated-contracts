@@ -191,6 +191,14 @@ cannot identify an acceptance temperature — and saying so is the point. Items
 (i) breach rate and (vi) shadow prices need no payoff model and survive
 transcripts the model cannot be fitted to.
 
+## Dissertation
+
+`docs/dissertation/` holds the chapter skeleton, with every section marked
+DONE / RERUN / OPEN / DECISION. It points at its sources rather than copying
+them, so a correction to `formulation.md` cannot leave a stale duplicate.
+[`00-outline.md`](docs/dissertation/00-outline.md) lists the seven argument
+gaps the exercise surfaced, ordered by how much they threaten the thesis.
+
 ## Known scope limits
 
 - **Quantitative terms only.** Clauses with no numeric template ("good faith")
