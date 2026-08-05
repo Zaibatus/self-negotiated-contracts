@@ -22,7 +22,9 @@ free. Both are available here separately.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import numpy as np
 
@@ -56,6 +58,47 @@ class ArmSummary:
         for deal in self.deals:
             counts[deal.pair_id] = counts.get(deal.pair_id, 0) + 1
         return counts
+
+    def governed_split(self, infeasible_pairs: set[str]) -> dict[str, float]:
+        """Per-round breaches, split by whether the pair was governed at all.
+
+        This is the single most load-bearing number in the arm B note — 0 of 27
+        breaching rounds on governed pairs. It has to be split, because pairs
+        with an empty safe set are deliberately never filtered (projecting into
+        an empty set is not a safety operation), so their proposals breach and
+        cannot be made not to. An unsplit rate mixes a guarantee with a
+        scenario property and reads as though the filter failed.
+
+        These are **outcome** numbers: replay reads the database, so under a
+        filtered arm it sees the terms that actually reached the counterparty.
+        That is the right surface for a safety claim. What the filter *did* to
+        get there is a different question and is not visible here — see
+        ``filter_telemetry``.
+        """
+        governed = {"rounds": 0, "breaches": 0}
+        infeasible = {"rounds": 0, "breaches": 0}
+
+        for result in self.results:
+            for record in result.records:
+                bucket = (
+                    infeasible if record.pair_id in infeasible_pairs else governed
+                )
+                bucket["rounds"] += 1
+                bucket["breaches"] += int(record.breach)
+
+        out = {
+            "governed_rounds": float(governed["rounds"]),
+            "governed_breaches": float(governed["breaches"]),
+            "infeasible_rounds": float(infeasible["rounds"]),
+            "infeasible_breaches": float(infeasible["breaches"]),
+        }
+        if governed["rounds"]:
+            out["governed_breach_rate"] = governed["breaches"] / governed["rounds"]
+        if infeasible["rounds"]:
+            out["infeasible_breach_rate"] = (
+                infeasible["breaches"] / infeasible["rounds"]
+            )
+        return out
 
     def headline(self) -> dict[str, float]:
         summaries = [r.summary() for r in self.results]
@@ -139,6 +182,135 @@ def cost_of_guarantee(
             out.closed_in_neither.append(pair)
         elif base > 0 and treat == 0:
             out.lost_to_the_filter.append(pair)
+    return out
+
+
+def filter_telemetry(
+    experiments: list[str],
+    infeasible_pairs: set[str],
+    results_dir: str | Path = "results",
+) -> dict[str, float]:
+    """What the regulator DID, read from the live protocol's own records.
+
+    Replay cannot answer this. It reconstructs rounds from the database, which
+    under a filtered arm already holds the corrected terms — so intervention is
+    always zero there and the filter appears never to have acted. The mechanism
+    lives in results/<run>/certificates.jsonl, written by the protocol as it
+    ran.
+
+    Those files stay gitignored as raw per-round data, so the numbers are
+    folded into results/summary/arms.json here. Otherwise every mechanism claim
+    in docs/notes/ would be reproducible from nothing in the repository.
+
+    One subtlety that changes how these read. The protocol computes the filter
+    step in *every* mode and only applies it when mode == "filter", so the
+    recorded intervention is the correction the filter *computed*: actually
+    applied under arm B, purely counterfactual under arms A and D. That is why
+    the key is ``correction_nonzero`` rather than ``corrected`` — calling it
+    "corrected" on an unfiltered arm would claim an intervention that never
+    happened.
+
+    It is also what makes arm D worth running: on an ungoverned trajectory it
+    measures exactly what enforcement would have had to do.
+
+    Note ``flagged`` counts *rate* violations too, not only breaches. The DCBF
+    condition h(x_{k+1}) >= (1-gamma) h(x_k) can be violated while the terms are
+    still inside C(theta) — approaching the boundary too fast is a flag without
+    being a breach — so flagged exceeds the breach count.
+
+    Returns an empty dict when no certificate files are present, rather than
+    zeros — absent evidence and measured zero are not the same reading.
+    """
+    root = Path(results_dir)
+    rounds = flagged = correction_nonzero = 0
+    interventions: list[float] = []
+    out: dict[str, float] = {}
+
+    found = False
+    for experiment in experiments:
+        path = root / experiment / "certificates.jsonl"
+        if not path.exists():
+            continue
+        found = True
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            if record["pair_id"] in infeasible_pairs:
+                continue
+            rounds += 1
+            has_correction = record["intervention"] > 1e-6
+            # "Flagged" = the proposal was not admissible. Under monitor the
+            # applied terms ARE the proposed terms, so breached_rows says it;
+            # under filter breached_rows is evaluated after the correction and
+            # is empty precisely when the filter worked, so a non-zero
+            # intervention is the signal. The union covers both arms.
+            flagged += int(bool(record["breached_rows"]) or has_correction)
+            if has_correction:
+                correction_nonzero += 1
+                interventions.append(record["intervention"])
+            out["solver_failures"] = out.get("solver_failures", 0.0) + float(
+                not record["solved"]
+            )
+            out["certificate_gaps"] = out.get("certificate_gaps", 0.0) + float(
+                record["certificate_gap"]
+            )
+            out["backtracks"] = out.get("backtracks", 0.0) + float(
+                record["backtracks"] > 0
+            )
+            if record["fallback"]:
+                key = f"fallback_{record['fallback']}"
+                out[key] = out.get(key, 0.0) + 1.0
+
+    if not found:
+        return {}
+
+    out.update(
+        {
+            "governed_rounds": float(rounds),
+            "flagged": float(flagged),
+            "correction_nonzero": float(correction_nonzero),
+        }
+    )
+    if rounds:
+        out["flag_rate"] = flagged / rounds
+        out["correction_rate"] = correction_nonzero / rounds
+    if interventions:
+        out["intervention_mean"] = float(np.mean(interventions))
+        out["intervention_max"] = float(np.max(interventions))
+    return out
+
+
+def write_summary(
+    arms: dict[str, ArmSummary],
+    infeasible_pairs: set[str],
+    experiments: dict[str, list[str]] | None = None,
+    path: str | Path = "results/summary/arms.json",
+    results_dir: str | Path = "results",
+) -> Path:
+    """Emit every number the notes quote, to one tracked file.
+
+    results/*/certificates.jsonl stays gitignored as raw data, so without this
+    the per-round claims in docs/notes/ are reproducible from nothing in the
+    repository.
+    """
+    payload = {
+        "infeasible_pairs": sorted(infeasible_pairs),
+        "arms": {
+            name: {
+                "headline": arm.headline(),
+                "governed_split": arm.governed_split(infeasible_pairs),
+                "filter_telemetry": filter_telemetry(
+                    (experiments or {}).get(name, []), infeasible_pairs, results_dir
+                ),
+                "closures_by_pair": arm.closures_by_pair(),
+            }
+            for name, arm in arms.items()
+        },
+    }
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
     return out
 
 

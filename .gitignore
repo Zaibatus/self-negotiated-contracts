@@ -4,8 +4,26 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .pytest_cache/
-results/*
-!results/.gitkeep
 *.log
 .DS_Store
 .env
+
+# Runtime telemetry the marketplace writes into the working directory. Local
+# port numbers, churns on every run, says nothing about the experiment.
+client_metrics_*.json
+postgresql_metrics_*.json
+
+# Experiment output: track the SUMMARIES, not the raw per-round records.
+# Every number quoted in docs/notes/ has to trace to a tracked file, or the
+# tables are unverifiable from the repo alone. certificates.jsonl is the
+# exception: it is per-round raw data, it churns on every rerun, and it grows
+# with every future arm.
+results/*
+!results/.gitkeep
+!results/*/
+results/*/*
+!results/*/section_11.json
+!results/*/report.json
+!results/*/comparison.json
+!results/summary/
+!results/summary/*.json

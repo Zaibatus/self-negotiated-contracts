@@ -1,0 +1,40 @@
+{
+  "experiment": "arm_b_bargain_v4",
+  "mode": "filter",
+  "gamma": 0.4,
+  "capacity_factor": null,
+  "solver": "osqp",
+  "registry": {
+    "businesses": 9.0,
+    "customers": 3.0,
+    "pairs_total": 27.0,
+    "pairs_defined": 9.0,
+    "pairs_undefinable": 18.0,
+    "pairs_unsatisfiable": 4.0,
+    "pairs_tradeable": 5.0,
+    "coupled_businesses": 0.0
+  },
+  "report": {
+    "rounds": 11.0,
+    "pairs": 8.0,
+    "breach_rate": 0.5454545454545454,
+    "breach_rounds": 6.0,
+    "mean_intervention": 0.02966058406542454,
+    "max_intervention": 0.32626642471966993,
+    "intervention_rate": 0.09090909090909091,
+    "slack_total": 0.00012463365290905665,
+    "solver_failure_rate": 0.0,
+    "fallback_rate": 0.0,
+    "certificate_gap_rate": 0.0,
+    "backtrack_rate": 0.0,
+    "solver_calls": 1.0,
+    "solver_solver_failure_rate": 0.0,
+    "solver_fallback_rate": 0.0,
+    "solver_certificate_gap_rate": 0.0,
+    "solver_backtrack_rate": 0.0,
+    "pairs_opened_outside_C": 4.0,
+    "pairs_unsatisfiable": 4.0,
+    "ungoverned_messages": 0.0
+  },
+  "ungoverned": []
+}
