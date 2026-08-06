@@ -238,16 +238,32 @@ def _one_negotiation(
 
     # (ii) Phi and Phi_proj along the observed trajectory.
     phis = [phi(model, x) for x in trajectory]
+    # Phi_proj is NaN wherever the state is outside C(theta) — the tangent
+    # cone is not defined there, and most ungoverned openings breach. Those
+    # points are reported as null and excluded from the statistics rather than
+    # being folded in, which would average a defined quantity with an
+    # undefined one.
     phis_proj = [phi_projected(model, x, contract) for x in trajectory]
+    defined = [v for v in phis_proj if np.isfinite(v)]
+
     out["phi"] = {
         "series": phis,
         "final": phis[-1],
         "fraction_decreasing": float(np.mean(np.diff(phis) <= 1e-9)),
     }
     out["phi_projected"] = {
-        "series": phis_proj,
-        "final": phis_proj[-1],
-        "fraction_decreasing": float(np.mean(np.diff(phis_proj) <= 1e-9)),
+        "series": [None if not np.isfinite(v) else v for v in phis_proj],
+        "defined_at": len(defined),
+        "of_rounds": len(phis_proj),
+        "final": defined[-1] if defined else None,
+        "fraction_decreasing": (
+            float(np.mean(np.diff(defined) <= 1e-9)) if len(defined) >= 2 else None
+        ),
+        "note": (
+            "null where the state is outside C(theta): the projected "
+            "certificate is undefined in breach, and a state in breach needs "
+            "recovery rather than convergence"
+        ),
     }
 
     # (iii) G_kappa under the escalating schedule, and where motion stopped.
@@ -415,11 +431,18 @@ def print_report(safety: dict[str, float], section11: dict[str, Any]) -> None:
             f"{negotiation['phi']['final']:<9.3f} "
             f"decreasing on {negotiation['phi']['fraction_decreasing']:.0%}"
         )
-        print(
-            f"    Phi_proj {negotiation['phi_projected']['series'][0]:>9.3f} -> "
-            f"{negotiation['phi_projected']['final']:<9.3f} "
-            f"decreasing on {negotiation['phi_projected']['fraction_decreasing']:.0%}"
-        )
+        proj = negotiation["phi_projected"]
+        if proj["fraction_decreasing"] is None:
+            print(
+                f"    Phi_proj defined at {proj['defined_at']}/{proj['of_rounds']} "
+                "rounds — too few in C(theta) to report a trend"
+            )
+        else:
+            print(
+                f"    Phi_proj -> {proj['final']:<9.3f} "
+                f"decreasing on {proj['fraction_decreasing']:.0%} "
+                f"(defined at {proj['defined_at']}/{proj['of_rounds']} rounds)"
+            )
         stop = negotiation["g_kappa"]["stopping_round"]
         print(
             f"    G_kappa stops at round {stop} (T_max "

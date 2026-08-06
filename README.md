@@ -83,15 +83,17 @@ docs/                        formulation, supervision docs, integration notes
 | **A** no contract | — | `off` | measured on both scenarios ([mexican](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md), [bargain](docs/notes/2026-08-05-arm-a-bargain-scenario.md)) |
 | **B** imposed | θ from scenario data | `filter` | measured: **0/27 breaching rounds** on governed pairs, no detectable feasibility cost ([note](docs/notes/2026-08-05-arm-b-imposed-contract.md)) |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
-| **D** monitored | θ from scenario data | `monitor` | measured: **96% of governed rounds flagged** when nothing is enforced; the noise floor for A/B ([note](docs/notes/2026-08-05-arm-d-monitoring-vs-enforcement.md)) |
+| **D** monitored | θ from scenario data | `monitor` | measured: **96% of governed rounds flagged** — breaches *and* DCBF rate violations — when nothing is enforced; also the noise floor for A/B ([note](docs/notes/2026-08-05-arm-d-monitoring-vs-enforcement.md)) |
 | **E** RL-AR | θ from scenario data | learned β(s) | **deferred** — π_reg *is* the filter output, β(s) a state-dependent γ |
 
 B against D isolates *projecting* from *flagging*: same θ, same bookkeeping,
 and the only difference is whether the regulator rewrites the proposal.
 
 Measured, the answer is that **enforcement is mostly prevention**. Arm D flags
-96% of governed rounds when nothing is corrected; arm B corrects 11%, because a
-filtered trajectory starts compliant and never wanders out. The two are not a
+96% of governed rounds when nothing is corrected — counting DCBF *rate*
+violations, approaching the boundary too fast, as well as outright breaches —
+while arm B corrects 11%, because a filtered trajectory starts compliant and
+never wanders out. The two are not a
 before/after on the same rounds — a monitor sits on a path a filter would never
 have produced.
 
@@ -122,7 +124,7 @@ Corrected claims and scope: `docs/formulation.md` §10.
 
 ```bash
 uv sync --extra dev          # Python 3.13; magentic-marketplace as a path dep
-uv run pytest -q             # 184 tests, no API calls, no database
+uv run pytest -q             # 188 tests, no API calls, no database
 ```
 
 Offline, no API spend:
@@ -190,6 +192,12 @@ one. On short transcripts most of them will not — a five-round negotiation
 cannot identify an acceptance temperature — and saying so is the point. Items
 (i) breach rate and (vi) shadow prices need no payoff model and survive
 transcripts the model cannot be fitted to.
+
+**Does the contract funnel outcomes?** Yes — it collapses them. Settled-term
+dispersion goes 0.384 (ungoverned) → **0.000** (filtered), against an A/D noise
+floor of 0.002, and every settled price is exactly θ's budget boundary to the
+cent. The contract, not the interaction, picks the result
+([note](docs/notes/2026-08-06-drift-and-funnelling.md)).
 
 ## Dissertation
 

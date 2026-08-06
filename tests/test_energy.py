@@ -107,7 +107,12 @@ class TestProjectedCertificateUnderCoupling:
         )
 
     def test_projection_is_inert_when_nothing_is_active(self, model, x_star):
-        loose = Contract(budget=1e6, cost_floor=0.0, q_min=0.0, q_max=1e6)
+        # deadline_active=False matters: the default band is d in [0, 7] and
+        # x_star has d = 26, so a contract that left it on would put x_star
+        # OUTSIDE C and Phi_proj would (correctly) be undefined there.
+        loose = Contract(
+            budget=1e6, cost_floor=0.0, q_min=0.0, q_max=1e6, deadline_active=False
+        )
         assert phi_projected(model, x_star, loose) == pytest.approx(
             phi(model, x_star)
         )
@@ -131,13 +136,67 @@ class TestProjectedCertificateUnderCoupling:
         """Active but not binding on this motion — projecting it out would
         discard a real component of the field."""
         contract = Contract(
-            budget=1e6, cost_floor=6.0, q_min=20.0, q_max=120.0
+            budget=1e6, cost_floor=6.0, q_min=20.0, q_max=120.0, deadline_active=False
         )
         # Sit on q_min, where the field wants to increase q (into the set).
         x = np.array([8.5, 20.0, 26.0])
         assert contract.h(x)[2] == pytest.approx(0.0, abs=1e-9)
         assert model.concession_field(x)[1] > 0
         assert phi_projected(model, x, contract) == pytest.approx(phi(model, x))
+
+
+class TestPhiProjectedIsUndefinedOutsideC:
+    """The tangent cone exists only on the set.
+
+    ``_active_rows`` used to select rows with h_i <= tol, which includes rows
+    the state has already VIOLATED. Projecting onto the tangent cone of a
+    constraint you are outside is meaningless, and it made Phi_proj return a
+    confident number at breaching states — which is where most ungoverned
+    opening proposals sit. It read 0.00 at the opening of nearly every
+    ungoverned negotiation on bargain_3_9, which looked like instant
+    convergence and was an artefact.
+    """
+
+    @staticmethod
+    def _contract() -> Contract:
+        return Contract(
+            budget=11.58, cost_floor=5.269, q_min=2.0, q_max=4.0,
+            deadline_active=False,
+        )
+
+    def test_a_violated_row_is_not_active(self):
+        contract = self._contract()
+        breaching = np.array([6.88, 2.0, 0.0])  # spend 13.76 against B = 11.58
+        assert contract.h(breaching)[0] < 0
+        rows = _active_rows(contract, breaching, tol=1e-6)
+        # q_min is genuinely on the boundary; the violated budget row is not.
+        assert len(rows) == 1
+        np.testing.assert_allclose(rows[0], contract.grad_h(breaching)[2])
+
+    def test_a_row_on_the_boundary_is_active(self):
+        contract = self._contract()
+        on_boundary = np.array([11.58 / 2.0, 2.0, 0.0])
+        assert contract.h(on_boundary)[0] == pytest.approx(0.0, abs=1e-9)
+        assert len(_active_rows(contract, on_boundary, tol=1e-6)) == 2
+
+    def test_phi_projected_is_nan_outside_C(self, model):
+        """NaN rather than a number, because the question does not apply.
+
+        A state in breach needs recovery, which is the safety layer's job.
+        NaN propagates loudly through any aggregate that forgets to exclude
+        it, which is the intended failure mode.
+        """
+        contract = self._contract()
+        breaching = np.array([6.88, 2.0, 0.0])
+        assert np.isnan(phi_projected(model, breaching, contract))
+        # Phi itself is defined everywhere and must still be finite.
+        assert np.isfinite(phi(model, breaching))
+
+    def test_phi_projected_is_finite_inside_C(self, model):
+        contract = self._contract()
+        inside = np.array([5.5, 2.0, 0.0])
+        assert contract.is_safe(inside)
+        assert np.isfinite(phi_projected(model, inside, contract))
 
 
 class TestTerminationAndProposition2:

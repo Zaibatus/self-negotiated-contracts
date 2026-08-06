@@ -144,6 +144,19 @@ def phi_projected(
     ``project_onto_tangent_cone`` — and is taken in scaled coordinates, so it
     is consistent with the metric every other norm here uses.
 
+    **Returns NaN outside C(theta), and that is deliberate.** The tangent cone
+    T_C(x) is defined for x in C; at a breaching state there is no cone to
+    project onto, and the question the certificate answers — "does any
+    admissible direction of improvement remain?" — is not the relevant one. A
+    state in breach needs *recovery*, which is the safety layer's job, not
+    convergence.
+
+    Returning a number there would be worse than useless, and was: before this
+    was fixed, ``_active_rows`` selected violated rows as active, so Phi_proj
+    reported a confident value at exactly the states where it means nothing.
+    Most ungoverned opening proposals are such states. NaN propagates loudly
+    through any aggregate that forgets to exclude it, which is the point.
+
     Caveat on reading a zero. Proposition 1 identifies the field zero with the
     Nash bargaining solution *in the interior*. On a face the two separate
     slightly (measured at 0.029 scaled units for a binding budget); at a corner
@@ -156,6 +169,9 @@ def phi_projected(
     if contract is None:
         return norm_M(field)
 
+    if not contract.is_safe(x, tol=tol):
+        return float("nan")
+
     rows = _active_rows(contract, x, tol)
     if not rows.size:
         return norm_M(field)
@@ -165,14 +181,22 @@ def phi_projected(
 
 
 def _active_rows(contract: Contract, x: np.ndarray, tol: float) -> np.ndarray:
-    """Gradients of the constraints that are active (h_i ~ 0) at x."""
+    """Gradients of the constraints that are active at x, i.e. h_i(x) ~ 0.
+
+    Active means *on the boundary*, so the test is |h_i| <= tol and not
+    h_i <= tol. The difference is not pedantic: the loose version also selects
+    rows the state has already **violated**, and the tangent cone of a
+    constraint you are outside is not a meaningful object. It made Phi_proj
+    return a confident number at breaching points, which is where most
+    ungoverned openings sit.
+    """
     values = contract.h(x)
     jac = contract.grad_h(x)
     mask = contract.active_mask()
     rows = [
         jac[i]
         for i in range(len(values))
-        if mask[i] and values[i] <= tol
+        if mask[i] and abs(values[i]) <= tol
     ]
     return np.array(rows) if rows else np.empty((0, 3))
 

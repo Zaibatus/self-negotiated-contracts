@@ -1,0 +1,1267 @@
+{
+  "a": {
+    "arm": "a",
+    "trajectories": 22,
+    "lengths": [
+      3,
+      7,
+      6,
+      3,
+      2,
+      2,
+      2,
+      3,
+      3,
+      2,
+      3,
+      4,
+      1,
+      3,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      3,
+      2
+    ],
+    "classes": {
+      "monotone": 9,
+      "non-convergent": 1,
+      "too-short": 12
+    },
+    "steps": 36,
+    "steps_down": 35,
+    "per_trajectory": [
+      {
+        "run": "arm_a_bargain_v1",
+        "pair": "business_0004|customer_0002",
+        "points": 3,
+        "distances": [
+          0.9674000000000005,
+          0.47740000000000027,
+          0.10740000000000016
+        ],
+        "class": "monotone",
+        "phi": [
+          6.494011379843525e-05,
+          0.062475539480151124,
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v1",
+        "pair": "business_0002|customer_0001",
+        "points": 7,
+        "distances": [
+          1.1242999999999999,
+          0.9793000000000003,
+          0.9793000000000003,
+          0.9793000000000003,
+          0.9793000000000003,
+          0.3292999999999999,
+          0.20429999999999993
+        ],
+        "class": "monotone",
+        "phi": [
+          2.3543260903065714e-11,
+          1.0169256808809702e-09,
+          1.0169256808809702e-09,
+          1.0169256808809702e-09,
+          1.0169256808809702e-09,
+          0.014861261869539795,
+          0.2985969004136702
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v1",
+        "pair": "business_0001|customer_0001",
+        "points": 6,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004,
+          1.0752750000000004,
+          1.0752750000000004,
+          0.18527500000000074,
+          0.11027500000000057
+        ],
+        "class": "monotone",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102,
+          0.0001775085442832102,
+          0.0001775085442832102,
+          1.964176281050642,
+          1.6604874060549555
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v1",
+        "pair": "business_0008|customer_0003",
+        "points": 3,
+        "distances": [
+          0.5368000000000013,
+          0.19346666666666756,
+          1.3768363156163468
+        ],
+        "class": "non-convergent",
+        "phi": [
+          0.002627653754792951,
+          1.4168301980042886,
+          1.9762369657093867e-06
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v1",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v2",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v2",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.5368000000000013,
+          0.08346666666666636
+        ],
+        "class": "too-short",
+        "phi": [
+          0.002627653754792951,
+          2.7502322282127185
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v2",
+        "pair": "business_0002|customer_0001",
+        "points": 3,
+        "distances": [
+          1.1242999999999999,
+          0.6093000000000002,
+          0.18069999999999986
+        ],
+        "class": "monotone",
+        "phi": [
+          2.3543260903065714e-11,
+          1.3558721496855927e-05,
+          0.5982964486450534
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v2",
+        "pair": "business_0001|customer_0001",
+        "points": 3,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004,
+          0.12527500000000025
+        ],
+        "class": "monotone",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102,
+          1.7890260436188905
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v3",
+        "pair": "business_0004|customer_0002",
+        "points": 2,
+        "distances": [
+          0.9674000000000005,
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          6.494011379843525e-05,
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v3",
+        "pair": "business_0008|customer_0003",
+        "points": 3,
+        "distances": [
+          0.5368000000000013,
+          0.5368000000000013,
+          0.19346666666666756
+        ],
+        "class": "monotone",
+        "phi": [
+          0.002627653754792951,
+          0.002627653754792951,
+          1.4168301980042886
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v3",
+        "pair": "business_0001|customer_0001",
+        "points": 4,
+        "distances": [
+          1.0752750000000004,
+          0.6852750000000007,
+          0.37527500000000025,
+          0.10972499999999918
+        ],
+        "class": "monotone",
+        "phi": [
+          0.0001775085442832102,
+          0.019656871103878617,
+          0.6018048554310947,
+          2.460634649628301
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v3",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          1.1242999999999999
+        ],
+        "class": "too-short",
+        "phi": [
+          2.3543260903065714e-11
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v4",
+        "pair": "business_0008|customer_0003",
+        "points": 3,
+        "distances": [
+          0.5368000000000013,
+          0.5368000000000013,
+          0.19346666666666756
+        ],
+        "class": "monotone",
+        "phi": [
+          0.002627653754792951,
+          0.002627653754792951,
+          1.4168301980042886
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v4",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v4",
+        "pair": "business_0001|customer_0001",
+        "points": 1,
+        "distances": [
+          0.11027500000000057
+        ],
+        "class": "too-short",
+        "phi": [
+          1.6604874060549555
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v4",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          0.10930000000000017
+        ],
+        "class": "too-short",
+        "phi": [
+          1.6951503554809295
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v5",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v5",
+        "pair": "business_0004|customer_0002",
+        "points": 2,
+        "distances": [
+          0.9674000000000005,
+          0.6574
+        ],
+        "class": "too-short",
+        "phi": [
+          6.494011379843525e-05,
+          0.005442901736939151
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v5",
+        "pair": "business_0001|customer_0001",
+        "points": 2,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_a_bargain_v5",
+        "pair": "business_0008|customer_0003",
+        "points": 3,
+        "distances": [
+          0.5368000000000013,
+          0.19346666666666756,
+          0.0367999999999995
+        ],
+        "class": "monotone",
+        "phi": [
+          0.002627653754792951,
+          1.4168301980042886,
+          1.4440234701165733
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_a_bargain_v5",
+        "pair": "business_0002|customer_0001",
+        "points": 2,
+        "distances": [
+          1.1242999999999999,
+          0.029300000000000104
+        ],
+        "class": "too-short",
+        "phi": [
+          2.3543260903065714e-11,
+          0.9964135045924701
+        ],
+        "phi_proj_defined": 1
+      }
+    ],
+    "phi_binding": {
+      "steps": 36,
+      "fraction_decreasing": 0.3611111111111111,
+      "fraction_net_down": 0.05555555555555555,
+      "phi_proj_defined_rounds": 12,
+      "phi_proj_total_rounds": 58
+    },
+    "dispersion": {
+      "pairs_contributing": 5,
+      "sd_price": 0.3838411501897567,
+      "sd_quantity": 0.00894427190999916,
+      "sd_deadline": 0.0,
+      "sd_overall": 0.3839453458228076,
+      "sd_distance_to_nbs": 0.34354252101612276
+    },
+    "proposal_dispersion": {
+      "pairs_contributing": 5,
+      "sd_price": 0.5034921798856663,
+      "sd_quantity": 0.005345224838248497,
+      "sd_overall": 0.5035205523457723
+    },
+    "phi": {
+      "phi": {
+        "trajectories": 18,
+        "usable": 18,
+        "steps": 73,
+        "fraction_decreasing": 0.6712328767123288,
+        "fraction_net_down": 0.05555555555555555
+      },
+      "phi_projected": {
+        "trajectories": 18,
+        "usable": 18,
+        "steps": 73,
+        "fraction_decreasing": 0.6712328767123288,
+        "fraction_net_down": 0.05555555555555555
+      }
+    }
+  },
+  "b": {
+    "arm": "b",
+    "trajectories": 23,
+    "lengths": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "classes": {
+      "too-short": 23
+    },
+    "steps": 4,
+    "steps_down": 4,
+    "per_trajectory": [
+      {
+        "run": "arm_b_bargain_v1",
+        "pair": "business_0008|customer_0003",
+        "points": 1,
+        "distances": [
+          0.0367999999999995
+        ],
+        "class": "too-short",
+        "phi": [
+          1.4440234701165733
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v1",
+        "pair": "business_0001|customer_0001",
+        "points": 1,
+        "distances": [
+          0.10527500000000067
+        ],
+        "class": "too-short",
+        "phi": [
+          1.6110981672367366
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v1",
+        "pair": "business_0005|customer_0002",
+        "points": 1,
+        "distances": [
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v1",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v1",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          0.029300000000000104
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9964135045924701
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v2",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          0.18545000000000034,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9222988959013341,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 2
+      },
+      {
+        "run": "arm_b_bargain_v2",
+        "pair": "business_0008|customer_0003",
+        "points": 1,
+        "distances": [
+          0.0367999999999995
+        ],
+        "class": "too-short",
+        "phi": [
+          1.4440234701165733
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v2",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v2",
+        "pair": "business_0001|customer_0001",
+        "points": 1,
+        "distances": [
+          0.10527500000000067
+        ],
+        "class": "too-short",
+        "phi": [
+          1.6110981672367366
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v2",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          0.029300000000000104
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9964135045924701
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v3",
+        "pair": "business_0002|customer_0001",
+        "points": 2,
+        "distances": [
+          0.029300000000000104,
+          0.029300000000000104
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9964135045924701,
+          0.9964135045924701
+        ],
+        "phi_proj_defined": 2
+      },
+      {
+        "run": "arm_b_bargain_v3",
+        "pair": "business_0008|customer_0003",
+        "points": 1,
+        "distances": [
+          0.0367999999999995
+        ],
+        "class": "too-short",
+        "phi": [
+          1.4440234701165733
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v3",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v3",
+        "pair": "business_0001|customer_0001",
+        "points": 2,
+        "distances": [
+          0.10527500000000067,
+          0.10527500000000067
+        ],
+        "class": "too-short",
+        "phi": [
+          1.6110981672367366,
+          1.6110981672367366
+        ],
+        "phi_proj_defined": 2
+      },
+      {
+        "run": "arm_b_bargain_v3",
+        "pair": "business_0005|customer_0002",
+        "points": 1,
+        "distances": [
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v4",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v4",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.0367999999999995,
+          0.0367999999999995
+        ],
+        "class": "too-short",
+        "phi": [
+          1.4440234701165733,
+          1.4440234701165733
+        ],
+        "phi_proj_defined": 2
+      },
+      {
+        "run": "arm_b_bargain_v4",
+        "pair": "business_0001|customer_0001",
+        "points": 1,
+        "distances": [
+          0.10527500000000067
+        ],
+        "class": "too-short",
+        "phi": [
+          1.6110981672367366
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v4",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          0.029300000000000104
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9964135045924701
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v5",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v5",
+        "pair": "business_0008|customer_0003",
+        "points": 1,
+        "distances": [
+          0.0367999999999995
+        ],
+        "class": "too-short",
+        "phi": [
+          1.4440234701165733
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v5",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          0.029300000000000104
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9964135045924701
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_b_bargain_v5",
+        "pair": "business_0005|customer_0002",
+        "points": 1,
+        "distances": [
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      }
+    ],
+    "phi_binding": {
+      "steps": 4,
+      "fraction_decreasing": 1.0,
+      "fraction_net_down": 0.0,
+      "phi_proj_defined_rounds": 27,
+      "phi_proj_total_rounds": 27
+    },
+    "dispersion": {
+      "pairs_contributing": 5,
+      "sd_price": 0.0,
+      "sd_quantity": 0.0,
+      "sd_deadline": 0.0,
+      "sd_overall": 0.0,
+      "sd_distance_to_nbs": 0.0
+    },
+    "proposal_dispersion": {
+      "pairs_contributing": 5,
+      "sd_price": 0.0,
+      "sd_quantity": 6.080941944488117e-18,
+      "sd_overall": 6.080941944488117e-18
+    },
+    "phi": {
+      "phi": {
+        "trajectories": 4,
+        "usable": 4,
+        "steps": 8,
+        "fraction_decreasing": 0.75,
+        "fraction_net_down": 0.0
+      },
+      "phi_projected": {
+        "trajectories": 4,
+        "usable": 4,
+        "steps": 8,
+        "fraction_decreasing": 0.75,
+        "fraction_net_down": 0.0
+      }
+    }
+  },
+  "d": {
+    "arm": "d",
+    "trajectories": 25,
+    "lengths": [
+      2,
+      3,
+      2,
+      2,
+      2,
+      3,
+      2,
+      2,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      3,
+      2,
+      3,
+      2,
+      2,
+      2,
+      2,
+      3,
+      2,
+      1,
+      1
+    ],
+    "classes": {
+      "too-short": 20,
+      "monotone": 5
+    },
+    "steps": 26,
+    "steps_down": 26,
+    "per_trajectory": [
+      {
+        "run": "arm_d_bargain_v1",
+        "pair": "business_0001|customer_0001",
+        "points": 2,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v1",
+        "pair": "business_0004|customer_0002",
+        "points": 3,
+        "distances": [
+          0.9674000000000005,
+          0.47740000000000027,
+          0.10740000000000016
+        ],
+        "class": "monotone",
+        "phi": [
+          6.494011379843525e-05,
+          0.062475539480151124,
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v1",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.5368000000000013,
+          0.17319999999999958
+        ],
+        "class": "too-short",
+        "phi": [
+          0.002627653754792951,
+          2.0593185955784516
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v1",
+        "pair": "business_0002|customer_0001",
+        "points": 2,
+        "distances": [
+          1.1242999999999999,
+          0.02430000000000021
+        ],
+        "class": "too-short",
+        "phi": [
+          2.3543260903065714e-11,
+          0.8360765510963851
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v1",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          1.3954500000000003
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.0004521744231407809
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v2",
+        "pair": "business_0002|customer_0001",
+        "points": 3,
+        "distances": [
+          1.1242999999999999,
+          0.2892999999999999,
+          0.0343
+        ],
+        "class": "monotone",
+        "phi": [
+          2.3543260903065714e-11,
+          0.039498884234938914,
+          1.1501452112341186
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v2",
+        "pair": "business_0001|customer_0001",
+        "points": 2,
+        "distances": [
+          1.0752750000000004,
+          0.13027500000000014
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0001775085442832102,
+          1.8249161574701558
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v2",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.5368000000000013,
+          0.0968
+        ],
+        "class": "too-short",
+        "phi": [
+          0.002627653754792951,
+          2.89630949410834
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v2",
+        "pair": "business_0005|customer_0002",
+        "points": 1,
+        "distances": [
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v2",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v3",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.5368000000000013,
+          0.19346666666666756
+        ],
+        "class": "too-short",
+        "phi": [
+          0.002627653754792951,
+          1.4168301980042886
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v3",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v3",
+        "pair": "business_0004|customer_0002",
+        "points": 2,
+        "distances": [
+          0.9674000000000005,
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          6.494011379843525e-05,
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v3",
+        "pair": "business_0001|customer_0001",
+        "points": 2,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v3",
+        "pair": "business_0002|customer_0001",
+        "points": 3,
+        "distances": [
+          1.1242999999999999,
+          0.5792999999999999,
+          0.18569999999999975
+        ],
+        "class": "monotone",
+        "phi": [
+          2.3543260903065714e-11,
+          2.8992835784059094e-05,
+          0.5369288671957874
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v4",
+        "pair": "business_0001|customer_0001",
+        "points": 2,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v4",
+        "pair": "business_0002|customer_0001",
+        "points": 3,
+        "distances": [
+          1.1242999999999999,
+          0.49929999999999986,
+          0.18069999999999986
+        ],
+        "class": "monotone",
+        "phi": [
+          2.3543260903065714e-11,
+          0.0002177637656387044,
+          0.5982964486450534
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v4",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v4",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.5368000000000013,
+          0.19346666666666756
+        ],
+        "class": "too-short",
+        "phi": [
+          0.002627653754792951,
+          1.4168301980042886
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v4",
+        "pair": "business_0004|customer_0002",
+        "points": 2,
+        "distances": [
+          0.9674000000000005,
+          0.10740000000000016
+        ],
+        "class": "too-short",
+        "phi": [
+          6.494011379843525e-05,
+          0.8967391909460095
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v5",
+        "pair": "business_0005|customer_0002",
+        "points": 2,
+        "distances": [
+          1.3954500000000003,
+          0.18545000000000034
+        ],
+        "class": "too-short",
+        "phi": [
+          0.0004521744231407809,
+          0.9222988959013341
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v5",
+        "pair": "business_0001|customer_0001",
+        "points": 3,
+        "distances": [
+          1.0752750000000004,
+          1.0752750000000004,
+          0.11027500000000057
+        ],
+        "class": "monotone",
+        "phi": [
+          0.0001775085442832102,
+          0.0001775085442832102,
+          1.6604874060549555
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v5",
+        "pair": "business_0008|customer_0003",
+        "points": 2,
+        "distances": [
+          0.5368000000000013,
+          0.0031999999999996476
+        ],
+        "class": "too-short",
+        "phi": [
+          0.002627653754792951,
+          0.13036904860989415
+        ],
+        "phi_proj_defined": 1
+      },
+      {
+        "run": "arm_d_bargain_v5",
+        "pair": "business_0004|customer_0002",
+        "points": 1,
+        "distances": [
+          0.47740000000000027
+        ],
+        "class": "too-short",
+        "phi": [
+          0.062475539480151124
+        ],
+        "phi_proj_defined": 0
+      },
+      {
+        "run": "arm_d_bargain_v5",
+        "pair": "business_0002|customer_0001",
+        "points": 1,
+        "distances": [
+          1.1242999999999999
+        ],
+        "class": "too-short",
+        "phi": [
+          2.3543260903065714e-11
+        ],
+        "phi_proj_defined": 0
+      }
+    ],
+    "phi_binding": {
+      "steps": 26,
+      "fraction_decreasing": 0.19230769230769232,
+      "fraction_net_down": 0.0,
+      "phi_proj_defined_rounds": 14,
+      "phi_proj_total_rounds": 51
+    },
+    "dispersion": {
+      "pairs_contributing": 5,
+      "sd_price": 0.38634948422661086,
+      "sd_quantity": 0.0,
+      "sd_deadline": 0.0,
+      "sd_overall": 0.38634948422661086,
+      "sd_distance_to_nbs": 0.3547526937427298
+    },
+    "proposal_dispersion": {
+      "pairs_contributing": 5,
+      "sd_price": 0.4487667429180583,
+      "sd_quantity": 2.921063425844239e-17,
+      "sd_overall": 0.4487667429180583
+    },
+    "phi": {
+      "phi": {
+        "trajectories": 21,
+        "usable": 19,
+        "steps": 50,
+        "fraction_decreasing": 0.58,
+        "fraction_net_down": 0.0
+      },
+      "phi_projected": {
+        "trajectories": 21,
+        "usable": 19,
+        "steps": 50,
+        "fraction_decreasing": 0.58,
+        "fraction_net_down": 0.0
+      }
+    }
+  }
+}
