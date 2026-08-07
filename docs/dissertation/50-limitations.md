@@ -65,7 +65,8 @@ Ours does, because the rewrite quantises *into* C(θ); it did not before.
 draws of three situations. The reported ± is seed variance under one fixed
 scenario, not sampling error over pairs, and says nothing about generalisation
 to other baskets or price levels. The safety result clears the A/D noise floor
-by ~12× and survives; the closure, surplus and settled-breach differences do
+by 4.4 SD on the offered-breach contrast and survives; the closure, surplus
+and settled-breach differences do
 not. *(all four arm notes)*
 
 **C2 — The benefit side is untested, because of how the scenario was built.**

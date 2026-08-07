@@ -58,8 +58,8 @@ A/B difference has to be read:
 
 | | A vs D (noise) | A vs B (treatment) | ratio |
 |---|---|---|---|
-| offered breach rate | 0.036 | 0.386 | ~11× |
-| governed per-round breach rate | 0.068 | 0.793 | ~12× |
+| offered breach rate | 0.036 | 0.386 | **4.4 SD** |
+| governed per-round breach rate | 0.068 | 0.793 | — |
 | deals settled | 0 | +4 | — |
 | settled breach rate | 0.000 | 0.083 | — |
 
@@ -70,32 +70,69 @@ Arms A and D also settled the same number of deals (12 each), had the same
 number of meaningful breaches (1 each) and lost no pair relative to each other
 — which is the sanity check that monitoring changes nothing, and it passes.
 
-## Enforcement is prevention, not just correction
+## Enforcement corrects; it does not prevent — [RETRACTED and rewritten 2026-08-07]
 
-The most interesting number in this note is the gap between what the filter
-*would* have had to do and what it *did*:
+**This section originally claimed the opposite, and the claim was an artefact
+of a logging bug.** It read:
 
-| | arm D (counterfactual) | arm B (applied) |
+> | | arm D (counterfactual) | arm B (applied) |
+> | flagged | 49 (96%) | 3 (**11%**) |
+>
+> "That is not the filter missing things. It is that **enforcement changes the
+> trajectory so that violations stop arising**… The filter earns its keep
+> mostly by prevention; the corrections it visibly applies are the residue."
+
+The 11% was wrong. Opening projections were recorded with `intervention = 0`,
+so almost every correction the filter made was invisible to the count. The
+whole prevention narrative rested on that number.
+
+Recomputed from the stored records — `u − u_prop = x_applied − x_proposed`, which
+is exact for every round including openings:
+
+| | governed rounds | openings | continuations | flag rate | correction rate |
+|---|---|---|---|---|---|
+| arm A | 58 | 22 | 36 | 0.79 | — |
+| arm D | 51 | 25 | 26 | 0.73 | — |
+| **arm B** | **27** | **23** | **4** | **0.89** | **0.89** |
+
+And on continuation rounds alone, which is what a "violations stop arising"
+claim is actually about:
+
+| arm A | arm D | arm B |
 |---|---|---|
-| governed rounds | 51 | 27 |
-| flagged | 49 (**96%**) | 3 (**11%**) |
-| non-zero correction | 25 | 3 |
-| mean correction (scaled units) | 0.299 | 0.795 |
+| 26/36 = 0.72 | 14/26 = 0.54 | **3/4 = 0.75** |
 
-Arm D says: on an ungoverned trajectory, 96% of governed rounds propose terms
-that violate θ or approach its boundary too fast. Arm B corrects 11%.
+**Arm B is not lower. It is the highest of the three.** The filter does not
+reduce the rate at which violations arise per round — it corrects them.
 
-That is not the filter missing things. It is that **enforcement changes the
-trajectory so that violations stop arising**. The opening proposal is projected
-into C(θ), every subsequent round starts from a compliant state, and the
-negotiation simply does not wander outside. The filter earns its keep mostly by
-prevention; the corrections it visibly applies are the residue.
+### What survives
 
-The corollary is that a monitor cannot be costed as "the filter minus the
-rewriting". A monitor sits on a trajectory that a filter would never have
-produced, so 49 flags and 3 corrections are not two measurements of the same
-thing — they are measurements on different paths. Reporting them as a
-before/after would imply a pairing that does not exist.
+Three things, all simpler than the claim they replace:
+
+1. **Enforcement shortens negotiations.** 27 governed rounds against 51 and 58;
+   median binding trajectory length 1 against 2. This is real and is the
+   funnelling result of the drift note seen from another angle.
+2. **The filter corrects nearly everything it sees** — 89% of governed rounds,
+   not 11%.
+3. **Its work is concentrated at the opening.** 23 of arm B's 27 governed
+   rounds *are* openings, because the projected opening lands on the buyer's
+   budget and the buyer accepts immediately.
+
+So the causal story is **"correct the opening and the negotiation ends"**, not
+"violations stop arising". That is a weaker and more mechanical claim, and it
+is the one the data supports.
+
+**And even the continuation comparison is underpowered.** Arm B has **four**
+continuation rounds in total across five seeds. Its 75% cannot be distinguished
+from arm A's 72% or arm D's 54% by anything.
+
+### The corollary still holds
+
+A monitor cannot be costed as "the filter minus the rewriting". It sits on a
+trajectory a filter would never have produced, so arm D's flags and arm B's
+corrections are measurements on different paths rather than a before/after.
+That was right for the wrong reason: the paths differ not because violations
+stop arising but because the negotiation ends sooner.
 
 ## Surplus
 

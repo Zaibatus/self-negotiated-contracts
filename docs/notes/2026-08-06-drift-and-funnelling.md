@@ -56,6 +56,12 @@ That is the honest content of "the pair moves toward the Nash equilibrium
 during the discussion": they approach it and stop near it, rather than
 conceding through it.
 
+**How much weight this carries. [added 2026-08-07]** Less than it first
+appears. With a median trajectory of two points, "did not overshoot" is also
+what you observe when the negotiation simply ends after one concession. The
+statistic cannot separate *stopping near the solution* from *running out of
+rounds near it*, and a longer-negotiation scenario is what would.
+
 ## Φ is unusable as a convergence diagnostic here, and here is why
 
 Measured on the same binding trajectories, Φ *rises*:
@@ -116,8 +122,13 @@ The corrected statistic is itself a clean expression of the safety result:
 
 # Question 2 — does the contract funnel outcomes?
 
-**Yes, decisively — and more strongly than "narrow". It collapses them to a
-single point.**
+**Yes, decisively — it collapses them to a single point.** With the caveat,
+which belongs here and not only in the limitations: under arm B the median
+trajectory is one round long, so the "settled" point usually *is* the projected
+opening, and projection onto a fixed boundary is deterministic given θ. SD =
+0.000 is therefore close to arithmetic. That does not make it untrue — it
+identifies the mechanism — but the finding is about projection, not about
+negotiation dynamics converging.
 
 Dispersion is computed **within pair across seeds**, never pooled across
 customers: the three customers buy different baskets at different price levels,
@@ -131,8 +142,15 @@ so a pooled spread would mostly measure the scenario.
 | D | 5 | 0.386 | 0.000 | 0.386 | 0.355 |
 | **B** | 5 | **0.000** | **0.000** | **0.000** | **0.000** |
 
-Arms A and D are behaviourally identical, so their difference — **0.002** — is
-the noise floor. Arm B's reduction is **0.384**, about 190× that.
+Arms A and D are behaviourally identical, so their difference — **0.002** —
+shows the two ungoverned arms agree closely. **[corrected 2026-08-07: this
+originally read "about 190× that", dividing by a single realisation of a
+difference. That is the same error flagged as O1 in the arm D note four days
+earlier and reproduced here.]** The honest contrast uses the spread across
+pairs: arm A's per-pair settled-price SDs are 0.275, 0.505, 0.465, 0.674, 0.000
+and arm D's are 0.523, 0.165, 0.154, 0.548, 0.541, while **every one of arm B's
+is exactly 0.000**. The effect is not a multiple of a noise estimate — it is
+categorical, and that is a stronger and simpler statement.
 
 Per-round proposals show the same thing: SD 0.504 (A), 0.449 (D), **0.000** (B).
 
@@ -190,9 +208,9 @@ there is no trajectory left to test for convergence.
 ## Limitations
 
 - **n = 5 seeds × 3 customers.** Everything here is five draws of three
-  situations. The funnel effect is ~190× the A/D noise floor and survives
-  easily; the drift result rests on 36 and 26 steps respectively and is
-  descriptive.
+  situations. The funnel effect is categorical — every arm B per-pair SD is
+  exactly 0.000 against 0.15–0.67 ungoverned — and survives easily; the drift
+  result rests on 36 and 26 steps respectively and is descriptive.
 - **The zero dispersion is partly definitional.** With arm B's median
   trajectory length of 1, the "settled" point often *is* the projected opening
   offer, and projection onto a fixed boundary from any starting point lands on

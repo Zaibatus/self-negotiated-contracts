@@ -60,8 +60,12 @@ the generator.
 
 The ungoverned numbers move by a lot:
 
-- offered breach rate spans **0.655 → 0.858**, a 0.20 range against a
-  within-model seed SD of ~0.03–0.05;
+- offered breach rate spans **0.655 → 0.858**, a 0.20 range. **[corrected
+  2026-08-07: this originally compared it to "a within-model seed SD of
+  ~0.03–0.05", which was the baseline model's SD reused —
+  `results/summary/models.json` stores only the mean per cell, so no per-model
+  SD was ever computed. The comparison is withdrawn; the range is reported
+  without a significance claim.]**
 - governed per-round breaching spans **49% (17/35) → 79% (46/58)**;
 - settled breaches: gemini-3.1-flash-lite settled **zero** bad deals in 15,
   where gemini-2.5-flash settled 1 in 12.

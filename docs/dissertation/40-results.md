@@ -51,30 +51,47 @@ Arm D — same detection, no correction:
 Arms A and D are behaviourally identical by construction, so **every A/D
 difference is the noise floor**:
 
-| | A vs D (noise) | A vs B (treatment) | ratio |
+| | A vs D (noise) | A vs B (treatment) | contrast |
 |---|---|---|---|
-| offered breach rate | 0.036 | 0.386 | ~11× |
-| governed per-round rate | 0.068 | 0.793 | ~12× |
+| offered breach rate | 0.036 | 0.386 | **4.4 SD** |
+| governed per-round rate | 0.068 | 0.793 | — |
 
-The safety effect clears the noise by an order of magnitude. The closure and
-surplus differences do not, and are not claimed.
+Expressed against the SD of a difference, √(0.050² + 0.073²) = 0.089 from the
+per-arm seed SDs — **not** as a ratio to the single observed A/D gap, which is
+one realisation and not an estimate of spread. The safety effect clears it
+comfortably; the closure and surplus differences do not, and are not claimed.
 
-### 4. Enforcement is mostly prevention, and that is the sharpest finding
+### 4. Enforcement corrects; it shortens; it does not prevent
 
-| | arm D (counterfactual) | arm B (applied) |
-|---|---|---|
-| governed rounds | 51 | 27 |
-| flagged | 49 (**96%**) | 3 (**11%**) |
-| non-zero correction | 25 | 3 |
+An earlier draft of this chapter claimed the filter worked mainly by
+*prevention* — that it changed the trajectory so violations stopped arising.
+That rested on a count of 3/27 corrections under arm B, which was wrong:
+opening projections were logged with `intervention = 0`, hiding almost every
+correction the filter made. Recomputed:
 
-The filter is not missing 46 violations. It changes the trajectory so they stop
-arising: the opening proposal is projected into C(θ), every later round starts
-compliant, and the negotiation does not wander out.
+| | governed rounds | openings | continuations | flag rate | correction rate |
+|---|---|---|---|---|---|
+| arm A | 58 | 22 | 36 | 0.79 | — |
+| arm D | 51 | 25 | 26 | 0.73 | — |
+| **arm B** | **27** | **23** | **4** | **0.89** | **0.89** |
 
-**Corollary that must be stated:** a monitor cannot be costed as "the filter
-minus the rewriting". It sits on a path a filter would never have produced, so
-49 flags and 3 corrections are measurements on *different trajectories*, not a
-before/after. Any figure putting them side by side needs that caption.
+On continuation rounds alone — 0.72 (A), 0.54 (D), **0.75 (B)** — arm B is the
+highest of the three. The filter does not lower the per-round rate at which
+violations arise.
+
+What survives is mechanical and worth stating plainly: **enforcement shortens
+the negotiation** (27 governed rounds against 51 and 58, median length 1 against
+2), **corrects nearly everything it sees** (89%), and **concentrates its work at
+the opening** (23 of 27 governed rounds are openings). The story is "correct the
+opening and the negotiation ends".
+
+Arm B has four continuation rounds in total, so even that comparison is
+underpowered and should be presented as such.
+
+**Corollary that still holds:** a monitor cannot be costed as "the filter minus
+the rewriting". It sits on a path a filter would never have produced — though
+the reason is that the negotiation ends sooner, not that violations stop
+arising. Any figure putting the two side by side needs that caption.
 
 ## The claim this supports, and the claim it does not
 
