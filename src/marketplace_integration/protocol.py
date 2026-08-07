@@ -54,6 +54,7 @@ from magentic_marketplace.platform.shared.models import (
 
 from ..certificates.dcbf import DCBFFilter, project_into_safe_set
 from ..certificates.metrics import RoundRecord, make_round_record, summarise
+from ..payoffs import dist_M
 from .terms import Terms, from_order_proposal, from_text, rewrite_proposal
 from .theta import ContractRegistry, pair_key
 
@@ -242,8 +243,17 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             x_applied = from_order_proposal(new_proposal).vector
             replacement = envelope.model_copy(update={"message": new_proposal})
 
+        # The opening projection IS an intervention even though it does not go
+        # through the barrier QP, so its magnitude is recorded explicitly.
         self._record(
-            state, contract, x_proposed, x_proposed, x_applied, None, terms
+            state,
+            contract,
+            x_proposed,
+            x_proposed,
+            x_applied,
+            None,
+            terms,
+            intervention=dist_M(x_applied, x_proposed),
         )
         state.binding.append(x_applied)
         state.observed.append(x_applied)
@@ -342,6 +352,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         x_applied: np.ndarray,
         result,
         terms: Terms,
+        intervention: float | None = None,
     ) -> None:
         record = make_round_record(
             pair_id=state.key,
@@ -360,6 +371,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                 "exact": str(terms.exact),
                 "deadline_observed": str(terms.deadline_observed),
             },
+            intervention_override=intervention,
         )
         self.records.append(record)
         state.rounds += 1

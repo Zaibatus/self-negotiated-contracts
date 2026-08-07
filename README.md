@@ -81,7 +81,7 @@ docs/                        formulation, supervision docs, integration notes
 | arm | contract | regulator | status |
 |---|---|---|---|
 | **A** no contract | — | `off` | measured on both scenarios ([mexican](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md), [bargain](docs/notes/2026-08-05-arm-a-bargain-scenario.md)) |
-| **B** imposed | θ from scenario data | `filter` | measured: **0/27 breaching rounds** on governed pairs, no detectable feasibility cost ([note](docs/notes/2026-08-05-arm-b-imposed-contract.md)) |
+| **B** imposed | θ from scenario data | `filter` | measured: **zero breaches on governed rounds, across three models** ([arm B](docs/notes/2026-08-05-arm-b-imposed-contract.md), [models](docs/notes/2026-08-07-model-dependence.md)) |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
 | **D** monitored | θ from scenario data | `monitor` | measured: **96% of governed rounds flagged** — breaches *and* DCBF rate violations — when nothing is enforced; also the noise floor for A/B ([note](docs/notes/2026-08-05-arm-d-monitoring-vs-enforcement.md)) |
 | **E** RL-AR | θ from scenario data | learned β(s) | **deferred** — π_reg *is* the filter output, β(s) a state-dependent γ |

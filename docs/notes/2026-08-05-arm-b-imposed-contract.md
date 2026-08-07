@@ -120,10 +120,32 @@ layer improving throughput.
 
 ## Filter behaviour
 
+**[corrected 2026-08-07 — the first two rows were wrong]**
+
 | | |
 |---|---|
-| rounds where the filter bound at all | 11.1% |
-| intervention when it bound (scaled units) | mean 0.795, max 1.092 |
+| rounds where the filter bound at all | **88.9% (24/27)**, ~~11.1%~~ |
+| of which opening projections | **21** |
+| intervention when it bound (scaled units) | **mean 0.874**, ~~0.795~~ |
+
+The opening projection — the correction applied to the first proposal of a
+negotiation — was recorded with `intervention = 0.0`, because it does not go
+through the barrier QP and arrived with `result=None`. It is unambiguously an
+intervention: the buyer receives different terms from the ones the seller sent.
+Counting it takes the rate from 11.1% to 88.9%, and 21 of the 24 corrections
+are openings.
+
+So the filter is not a light touch that occasionally nudges. It rewrites nearly
+every proposal it sees, and almost all of that work lands on the opening offer
+— which is also the mechanism behind arm D's "enforcement is prevention"
+finding, now visible rather than inferred.
+
+Separately, recorded interventions were computed in raw Euclidean norm while
+`FilterResult.intervention` used the scaled metric, so the old 0.795 was in
+mixed units. Both fixed; the figures above are scaled throughout. Recomputed
+from stored records rather than by re-running, since u - u_prop equals
+x_applied - x_proposed exactly and both are recorded. See
+`docs/notes/2026-08-07-model-dependence.md`.
 | OSQP solver failures | 0 |
 | fallback tiers fired | **none** — no `retry_stiff_rho`, `hold`, `conservative_recovery` or `hold_outside_unverified` |
 | certificate gaps | 0 |

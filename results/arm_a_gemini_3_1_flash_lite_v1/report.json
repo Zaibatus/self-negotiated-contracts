@@ -1,0 +1,40 @@
+{
+  "experiment": "arm_a_gemini_3_1_flash_lite_v1",
+  "mode": "off",
+  "gamma": 0.4,
+  "capacity_factor": null,
+  "solver": "osqp",
+  "registry": {
+    "businesses": 9.0,
+    "customers": 3.0,
+    "pairs_total": 27.0,
+    "pairs_defined": 9.0,
+    "pairs_undefinable": 18.0,
+    "pairs_unsatisfiable": 4.0,
+    "pairs_tradeable": 5.0,
+    "coupled_businesses": 0.0
+  },
+  "report": {
+    "rounds": 11.0,
+    "pairs": 8.0,
+    "breach_rate": 0.5454545454545454,
+    "breach_rounds": 6.0,
+    "mean_intervention": 0.1500577215005774,
+    "max_intervention": 0.89047095290471,
+    "intervention_rate": 0.2727272727272727,
+    "slack_total": 0.00016506349365063514,
+    "solver_failure_rate": 0.0,
+    "fallback_rate": 0.0,
+    "certificate_gap_rate": 0.0,
+    "backtrack_rate": 0.0,
+    "solver_calls": 3.0,
+    "solver_solver_failure_rate": 0.0,
+    "solver_fallback_rate": 0.0,
+    "solver_certificate_gap_rate": 0.0,
+    "solver_backtrack_rate": 0.0,
+    "pairs_opened_outside_C": 3.0,
+    "pairs_unsatisfiable": 3.0,
+    "ungoverned_messages": 0.0
+  },
+  "ungoverned": []
+}

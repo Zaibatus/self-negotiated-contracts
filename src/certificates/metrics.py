@@ -25,6 +25,7 @@ from pathlib import Path
 import numpy as np
 
 from ..contract import Contract
+from ..payoffs import SCALE
 from .dcbf import FilterResult
 
 
@@ -78,6 +79,7 @@ def make_round_record(
     business_id: str | None = None,
     customer_id: str | None = None,
     extraction: dict[str, str | float] | None = None,
+    intervention_override: float | None = None,
 ) -> RoundRecord:
     """Assemble a record from a filter step.
 
@@ -85,6 +87,13 @@ def make_round_record(
     labels are prefixed "<slot>:". Shared rows (the coupling clause) are
     attached to every pair they touch, since the shadow price of a shared
     constraint is a property of the coupling, not of one negotiation.
+
+    ``intervention_override`` exists for the opening projection, which corrects
+    the terms without going through the barrier QP and so arrives with
+    ``result=None``. Leaving it at zero understated the filter's activity
+    badly: 21 of 27 governed rounds in one arm B model cell were opening
+    projections, so a reported "the filter bound on 11% of rounds" was counting
+    only the minority of corrections that happened to come from the QP.
     """
     labels = contract.active_labels()
     h_prev = contract.h(np.asarray(x_prev, dtype=float))
@@ -114,12 +123,19 @@ def make_round_record(
         breached_rows=contract.violations(np.asarray(x_applied, dtype=float)),
         breach=not contract.is_safe(np.asarray(x_applied, dtype=float)),
         intervention=(
-            float(np.linalg.norm(
-                result.u[3 * pair_slot: 3 * pair_slot + 3]
-                - result.u_prop[3 * pair_slot: 3 * pair_slot + 3]
-            ))
-            if result is not None
-            else 0.0
+            intervention_override
+            if intervention_override is not None
+            else (
+                float(np.linalg.norm(
+                    (
+                        result.u[3 * pair_slot: 3 * pair_slot + 3]
+                        - result.u_prop[3 * pair_slot: 3 * pair_slot + 3]
+                    )
+                    / SCALE
+                ))
+                if result is not None
+                else 0.0
+            )
         ),
         slack_total=slack_total,
         duals=duals,

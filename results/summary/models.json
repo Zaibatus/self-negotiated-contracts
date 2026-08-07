@@ -1,0 +1,62 @@
+{
+  "gemini-2.5-flash|a": {
+    "offered": 0.8577124183006536,
+    "settled": 0.08333333333333333,
+    "gov": "46/58",
+    "deals": 12,
+    "corrected": "0/58",
+    "mean": 0.0,
+    "opens": 0,
+    "surplus": 0.9259259259258624
+  },
+  "gemini-2.5-flash|b": {
+    "offered": 0.47242424242424247,
+    "settled": 0.0,
+    "gov": "0/27",
+    "deals": 16,
+    "corrected": "24/27",
+    "mean": 0.8736111111111114,
+    "opens": 21,
+    "surplus": 2.637222552286015e-14
+  },
+  "gemini-3.5-flash|a": {
+    "offered": 0.6665367965367965,
+    "settled": 0.06666666666666667,
+    "gov": "28/49",
+    "deals": 15,
+    "corrected": "0/49",
+    "mean": 0.0,
+    "opens": 0,
+    "surplus": 3.9749662479487845e-14
+  },
+  "gemini-3.5-flash|b": {
+    "offered": 0.2990734755440637,
+    "settled": 0.0,
+    "gov": "0/52",
+    "deals": 15,
+    "corrected": "52/52",
+    "mean": 0.5635256410256411,
+    "opens": 25,
+    "surplus": 5.2964329842163157e-14
+  },
+  "gemini-3.1-flash-lite|a": {
+    "offered": 0.6546953046953046,
+    "settled": 0.0,
+    "gov": "17/35",
+    "deals": 15,
+    "corrected": "0/35",
+    "mean": 0.0,
+    "opens": 0,
+    "surplus": 3.976354180127145e-14
+  },
+  "gemini-3.1-flash-lite|b": {
+    "offered": 0.3772222222222222,
+    "settled": 0.0,
+    "gov": "0/21",
+    "deals": 15,
+    "corrected": "19/21",
+    "mean": 0.8873684210526321,
+    "opens": 19,
+    "surplus": 4.4163804481568686e-14
+  }
+}
