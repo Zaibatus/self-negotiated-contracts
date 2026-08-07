@@ -156,7 +156,11 @@ prevented much of it.
 - **n = 5 seeds × 3 customers**, twice over for the ungoverned condition (A and
   D). Fifteen draws of three situations, not 36 independent observations. Every
   difference here is seed variance under one fixed scenario.
-- **Arm B's trajectories predate `8696016`** — see above.
+- **Arm B's trajectories predate `8696016`** — see above. **[resolved
+  2026-08-07]** The γ = 0.4 cell of the γ sweep is arm B re-run under post-fix
+  code: 17 deals against 16, zero governed breaches in both. The
+  reconciliation fix did not move the outcome measurements. See
+  `2026-08-07-gamma-independence.md`.
 - **Termination is measured, not enforced.** G_κ comes from a friction schedule
   the agents never experience (formulation §A.5 item 1). T_max = 6 barely binds
   at observed lengths of median 3, p90 5, so the liveness column carries almost

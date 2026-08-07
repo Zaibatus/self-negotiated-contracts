@@ -308,6 +308,30 @@ A third, subtler point. Preconditioning the QP by dividing each constraint row b
     written back in the currency's own precision. Ours does now, because the
     rewrite quantises *into* the safe set; it did not before.
 
+18. **The boundary layer does not appear on live agents [corrected
+    2026-08-07].** A.1 predicts, and the simulation shows, that lower γ parks
+    deals further inside C(θ) — margin 3.19 → 0.34 as γ goes 0.2 → 0.7. Live,
+    the margin is 0.000 at every γ in {0.2, 0.4, 0.7, 1.0}. The cause is
+    structural: negotiations run 1.16–1.38 rounds per pair, 73–86% of governed
+    rounds *are* the opening, and the opening projection uses γ = 1 by
+    construction because it is a projection onto C(θ) rather than a barrier
+    step. So the step that decides the outcome never sees γ. The simulation
+    result stands; what is bounded is where it transfers. **The conservatism
+    premium is a property of sustained negotiation, and this testbed does not
+    sustain one** — which also means §8 and §9.4's "γ is an economic policy
+    parameter" is, so far, a claim about simulation only.
+
+19. **The safety guarantee is γ-independent, and that was tested.** Zero
+    governed-pair breaches at every γ across 126 rounds. Not trivial: γ
+    controls the approach *rate*, not whether the set is respected, so breaches
+    at high γ would have indicated the barrier condition being confused with
+    the constraint.
+
+20. **The safety guarantee is model-independent, and that was tested too.**
+    Zero governed breaches across three models and 100 governed rounds, while
+    the ungoverned breach rate those models produce spans 0.655–0.858. The
+    problem is model-dependent; the solution is not.
+
 ## A.6 Still open
 
 Unchanged from the closing note above: asymmetric bargaining weights; a formal derivation of the drift constants (α, β); and a sufficient condition on θ guaranteeing C(θ) ⊆ the monotone region. On the last, the integration adds a *checkable* version — the worst-case corner of the box bounding C(θ), against the measured stability radius — which is conservative and sufficient but not a condition on θ in closed form.

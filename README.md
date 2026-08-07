@@ -199,6 +199,13 @@ floor of 0.002, and every settled price is exactly θ's budget boundary to the
 cent. The contract, not the interaction, picks the result
 ([note](docs/notes/2026-08-06-drift-and-funnelling.md)).
 
+**Is it γ-dependent?** Safety, no — zero breaches at γ ∈ {0.2, 0.4, 0.7, 1.0}
+across 126 governed rounds. Outcomes, also no, but for a reason that *corrects*
+the formulation: the predicted boundary layer does not appear, because live
+negotiations run ~1.3 rounds and 73–86% of governed rounds are the opening
+projection, which uses γ = 1 by construction
+([note](docs/notes/2026-08-07-gamma-independence.md)).
+
 ## Dissertation
 
 `docs/dissertation/` holds the chapter skeleton, with every section marked
