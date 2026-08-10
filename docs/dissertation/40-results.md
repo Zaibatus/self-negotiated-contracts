@@ -34,8 +34,45 @@ tells the customer what it is, and the customer then polices it.
 
 **This is the most important negative result in the dissertation** and it
 should be presented as such rather than buried: an authored scenario changes
-more than the variable it was authored to change. It is also why the benefit
-side remains untested (G1).
+more than the variable it was authored to change.
+
+### 2b. Withhold the budget from the buyer and the benefit appears, in currency
+
+`undisclosed_3_9` drops the buyer clause and changes nothing else — same θ, same
+seller mandate, same basket. The buyer is no longer told its ceiling; the
+platform still knows it. That single variable decides the whole benefit side.
+
+| governable pairs, 5 seeds | arm A (off) | arm B (filter) |
+|---|---|---|
+| offered breaching θ | 1.000 | 0.294 *(infeasible pairs only)* |
+| deals settled | 15 | 13 |
+| deals breaching | **15/15** | **0/13** |
+| governed rounds breaching | 25/25 | **0/22** |
+| **transacted above the ceiling** | **£21.70 (7.93%)** | **£0.00** |
+
+Every ungoverned deal breaches in every seed; no governed deal breaches in any.
+Unlike every other contrast in this chapter, this one is categorical and needs
+no noise floor.
+
+The mechanism is **buyer passivity, not seller aggression**: with no budget to
+defend, the buyer accepts the seller's opening list price, so every proposal is
+an opening and every opening exceeds B. What the filter substitutes for is
+therefore *an informed counterparty*. Where one exists, it adds a bound and
+little else; where one does not, it is the only thing between the marketplace
+and a 7.9% overspend. Those two scenarios bracket the range, and real
+deployments sit between them.
+
+Two corrections this forced on earlier sections, both propagated:
+
+- **Zero settled dispersion is not diagnostic of enforcement.** On this scenario
+  *both* arms have per-pair settled-price SD = 0.000 — arm B at B/q_min, arm A
+  at list price. The funnel result survives as "the contract picks *which* point",
+  but not as "the contract collapses the spread".
+- **£6.15 of harm survives under arm B**, all of it on a pair whose safe set is
+  empty (c·q_min > B), which the filter detects and deliberately does not act on.
+  Marketplace-wide the reduction is £21.70 → £6.15, a 72% cut; on governable
+  pairs it is total. That gap is a design decision (G8), not a limit of the
+  theorem.
 
 ### 3. Detection alone shows how much the marketplace is straining
 
@@ -100,10 +137,16 @@ exposure goes to zero, on governed pairs, on live agents, with no agent forked
 and no fallback tier ever firing. That is the live replication of F1
 (9.9% → 0% in simulation).
 
-**Not supported:** that the filter prevents harm the buyer would otherwise have
-accepted. On `bargain_3_9` the buyer accepted one bad deal in twelve, and one
-event cannot carry a rate claim. Saying so is not a hedge — it is the honest
-reading, and G1 names the experiment that would settle it.
+**Also supported, as of the undisclosed scenario:** that the filter averts
+*realised* harm where the counterparty cannot police the constraint itself —
+£21.70 → £0.00 on governable pairs, 15/15 breaching deals → 0/13, in every seed.
+
+**Not supported:** that this magnitude transfers. The benefit is a function of
+how informed the counterparty is, and the two scenarios are the extremes of that
+axis rather than samples from it. On `bargain_3_9` the buyer accepted one bad
+deal in twelve and the filter averted nothing measurable; on `undisclosed_3_9`
+it averted everything. Neither number is a prediction for a marketplace in
+between.
 
 ## The cost of the guarantee
 

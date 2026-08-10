@@ -52,7 +52,11 @@ an attack surface; closed by backtracking on the true bilinear h, which makes
 filtered.** Where c·q_min > B no proposal can comply. Projecting into an empty
 set is not a safety operation, so those pairs run in monitor mode and their
 breaches are reported separately. Four of nine definable pairs on
-`bargain_3_9`. *(addendum 11)*
+`bargain_3_9`. **This is now known to be load-bearing** *(2026-08-10)*: on
+`undisclosed_3_9` such a pair transacted £6.15 above its ceiling under arm B,
+which is the whole of that arm's residual harm. Whether the platform should
+*refuse* trades it knows to be unsatisfiable — rather than merely decline to
+filter them — is open design question G8. *(addendum 11)*
 
 **B5 — Money is quantised and the safe set is not.** Any "zero breaches" claim
 must state whether it survives writing the terms back at currency precision.
@@ -69,11 +73,16 @@ by 4.4 SD on the offered-breach contrast and survives; the closure, surplus
 and settled-breach differences do
 not. *(all four arm notes)*
 
-**C2 — The benefit side is untested, because of how the scenario was built.**
-`bargain_3_9` discloses the budget to the buyer, which makes it bind *and*
-makes the buyer enforce it. So the filter is shown to provide a bound, not to
-avert harm. A scenario that withholds the constraint from the buyer would
-settle this. *(arm A bargain note; outline G1)*
+**C2 — The benefit side depends entirely on whether the counterparty knows the
+constraint.** *(restated 2026-08-10; was "the benefit side is untested".)*
+`bargain_3_9` discloses the budget to the buyer, which makes it bind *and* makes
+the buyer enforce it, so there the filter provides a bound and averts £0.00.
+`undisclosed_3_9` withholds it and nothing else: the buyer stops countering,
+accepts list price, and **15/15 settled deals breach, £21.70 = 7.93% of value**
+— against **0/13 and £0.00** under the filter. The benefit is now measured, but
+what it measures is the filter *substituting for an informed counterparty*. Both
+scenarios are extremes — fully informed and fully passive — and the magnitude
+anywhere between them is unknown. *(undisclosed-budget note; outline G1, closed)*
 
 **C3 — The bargaining scenario is authored.** YAML only — the marketplace, the
 agents and the prompts are unmodified — but the negotiation is *designed*

@@ -39,6 +39,21 @@ and refuses, as a backstop.
 
 Lower ``zone_position`` means a harder bargain and a longer negotiation.
 
+**``--no-disclose-budget`` is the G1 experiment.** The generator does two
+independent things: it rewrites ``menu_features`` so theta's B equals the
+budget, and it appends BUYER_CLAUSE telling the buyer that budget and
+instructing it to refuse above it. Those turned out to be the same edit in
+effect — arm A on the disclosed scenario settled every deal exactly on the
+boundary, because the buyer polices a budget it was told about, which left the
+filter with almost nothing to prevent.
+
+The undisclosed variant keeps the first and drops the second. theta is
+identical, since ``Contract.from_scenario`` reads ``menu_features``; the seller's
+mandate is identical; the zone position is identical. The platform knows a
+ceiling the buyer does not, which is the only difference between the two
+scenarios and therefore the only thing any difference in outcome can be
+attributed to.
+
 Usage:
     uv run python scripts/make_bargain_scenario.py \\
         --source ../multi-agent-marketplace/data/mexican_3_9 \\
@@ -128,8 +143,17 @@ def rewrite_customer(
     customer: dict[str, Any],
     businesses: list[dict[str, Any]],
     zone_position: float,
+    disclose_budget: bool = True,
 ) -> tuple[dict[str, Any], dict[str, float]]:
-    """Give the buyer a binding budget, consistent between prompt and theta."""
+    """Give the buyer a binding budget, consistent between prompt and theta.
+
+    With ``disclose_budget=False`` the budget still lands in ``menu_features``
+    — so theta, and the platform, are unchanged — but the request text says
+    nothing about it and does not instruct the buyer to refuse. The buyer then
+    has a genuine willingness-to-pay ceiling it has not been told about, which
+    is what makes harm possible and therefore what makes harm-averted
+    measurable.
+    """
     items = list(customer.get("menu_features", {}))
     list_total, floor_total, source = cheapest_basket(businesses, items)
     if source is None:
@@ -150,9 +174,13 @@ def rewrite_customer(
     shares = _split(budget, [_cheapest_item(businesses, item) for item in items])
     out = dict(customer)
     out["menu_features"] = {item: share for item, share in zip(items, shares)}
-    out["request"] = (
-        f"{customer['request'].strip()} {BUYER_CLAUSE.format(budget=budget)}"
-    )
+    if disclose_budget:
+        out["request"] = (
+            f"{customer['request'].strip()} {BUYER_CLAUSE.format(budget=budget)}"
+        )
+    # Undisclosed: the request is left exactly as the stock scenario wrote it.
+    # Nothing is added and nothing is removed, so the only difference from the
+    # disclosed variant is the absence of the budget clause.
 
     return out, {
         "budget": budget,
@@ -193,6 +221,14 @@ def main() -> None:
         help="where in the (cost floor, list price) bargaining zone to place the "
         "buyer's budget; lower means a harder bargain",
     )
+    parser.add_argument(
+        "--no-disclose-budget",
+        dest="disclose_budget",
+        action="store_false",
+        help="derive theta from the budget but do NOT tell the buyer about it "
+        "(the G1 experiment: makes harm possible, so harm-averted is "
+        "measurable)",
+    )
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
@@ -217,7 +253,9 @@ def main() -> None:
     print(header)
     print("-" * len(header))
     for customer in customers:
-        rewritten, info = rewrite_customer(customer, businesses, args.zone_position)
+        rewritten, info = rewrite_customer(
+            customer, businesses, args.zone_position, args.disclose_budget
+        )
         dump_yaml(rewritten, dest / "customers" / f"{customer['id']}.yaml")
         if info:
             print(
@@ -240,6 +278,11 @@ def main() -> None:
         )
 
     print(f"\nWrote {dest}")
+    if not args.disclose_budget:
+        print(
+            "  Budget NOT disclosed to the buyer: theta is identical to the "
+            "disclosed\n  variant, and the request text is the only difference."
+        )
 
 
 if __name__ == "__main__":

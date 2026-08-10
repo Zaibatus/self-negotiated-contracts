@@ -136,6 +136,16 @@ so a pooled spread would mostly measure the scenario.
 
 ## Settled outcomes
 
+**[qualified 2026-08-10 — dispersion is not diagnostic of enforcement.]** On
+`undisclosed_3_9` (`2026-08-10-undisclosed-budget.md`) **both** arms have
+per-pair settled-price SD = 0.000: arm B at B/q_min, arm A at the seller's list
+price, because a buyer who is not told its budget never counters. Zero
+dispersion is what you get whenever one side stops negotiating, for whatever
+reason. The finding below survives — the funnel point is θ's boundary, exact to
+the cent, and *chosen* rather than inherited — but the SD contrast is evidence
+about `bargain_3_9`'s buyer, not about the filter. **Which point** the outcomes
+collapse to is the result; **that** they collapse is not.
+
 | arm | pairs | SD price | SD quantity | SD overall | SD distance-to-NBS |
 |---|---|---|---|---|---|
 | A | 5 | 0.384 | 0.009 | 0.384 | 0.344 |

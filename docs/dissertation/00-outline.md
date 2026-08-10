@@ -48,13 +48,22 @@ time to run experiments that fill them. Every section carries one of:
 
 Ordered by how much they threaten the argument.
 
-**G1 — the benefit side is untested, and the scenario is why.** *(IN PROGRESS 2026-08-07 — the undisclosed-budget scenario)*
-`bargain_3_9` gives the filter almost nothing to prevent: the edit that makes
-the budget bind also tells the buyer what it is, and the buyer then polices it
-(arm A note). So step 3 above is demonstrated as a *bound*, not as harm
-averted. A scenario where the constraint is **not** disclosed to the buyer
-would test the benefit properly. This is the single most valuable experiment
-not yet run.
+**G1 — the benefit side is untested, and the scenario is why.** *(**CLOSED
+2026-08-10** — `2026-08-10-undisclosed-budget.md`)*
+`bargain_3_9` gave the filter almost nothing to prevent: the edit that makes the
+budget bind also tells the buyer what it is, and the buyer then polices it. So
+step 3 was demonstrated as a *bound*, not as harm averted. `undisclosed_3_9`
+drops the buyer clause and changes nothing else. Result: ungoverned, **15/15
+settled deals breach and £21.70 (7.93% of value) is transacted above a ceiling
+only the platform knows**; under the filter, on governable pairs, **0/13 and
+£0.00**. Categorical in every seed. That is the harm-averted number the thesis
+lacked.
+
+Two things it also produced, both propagated: **zero settled dispersion is not
+diagnostic of enforcement** (arm A funnels too, to list price — G-funnel caveat
+in the drift note), and **£6.15 of residual harm sits on an unsatisfiable pair
+the filter deliberately does not act on**, which is now open design question
+**G8**.
 
 **G2 — coupling is entirely unexercised on live agents.** *(RERUN)*
 §8's shared-capacity clause, the GNE displacement and the shadow prices — the
@@ -99,6 +108,15 @@ contract in it at all, which sat awkwardly with the repository's name. Now
 being built with θ **inferred from opening positions**, so no message type is
 added and the agent-agnostic claim survives. The T_max pre-phase question is
 handled as an explicit flag (default: counts) rather than an implicit choice.
+
+**G8 — unsatisfiable pairs are detected and then allowed to trade.** *(DECISION,
+new 2026-08-10)* Where c·q_min > B no compliant deal exists, so the filter
+declines to act (limitation B4) and the pair runs ungoverned. On
+`undisclosed_3_9` that is the entire £6.15 of residual harm under arm B, and it
+is the one case where the platform knows with certainty that no admissible deal
+exists. Refusing the trade would take marketplace-wide overspend to £0.00 and
+forbid nothing that should have been allowed. Not implemented, because blocking
+is a different intervention from filtering and would confound arm B.
 
 ## Not blocking, but worth a paragraph each
 
