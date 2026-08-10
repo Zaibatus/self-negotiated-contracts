@@ -1,6 +1,6 @@
 # Dissertation outline — status map
 
-**Started:** 2026-08-05. **Marks refreshed 2026-08-07** after the γ, model and drift/funnelling commits. Structure only; chapters point at their sources rather
+**Started:** 2026-08-05. **Marks refreshed 2026-08-10** after the undisclosed-budget and arm C commits (G1 and G7 closed; G8 and G9 opened). Structure only; chapters point at their sources rather
 than copying them, so a correction to `formulation.md` cannot silently diverge
 from a chapter.
 
@@ -23,8 +23,8 @@ time to run experiments that fill them. Every section carries one of:
 | 1 | `10-introduction.md` | new prose | **DONE** — leads with the G4 asymmetry |
 | 2 | `60-related-work.md` | new prose | **DONE**, CBF-LLM re-verified |
 | 3 | `30-theory.md` | → `formulation.md` §1–9 | mostly DONE, 3 OPEN |
-| 4 | `20-method.md` | new prose | **DONE** — includes the four integration bugs |
-| 5 | `40-results.md` | the seven arm notes | DONE for A/B/D + γ + models; **arm C in progress** |
+| 4 | `20-method.md` | new prose | **DONE** — needs the **fifth** bug (the buyer-counter echo) added |
+| 5 | `40-results.md` | the nine arm notes | **DONE** for A/B/C/D + γ + models + undisclosed |
 | 6 | `50-limitations.md` | dedup of 6 sources | DONE |
 | 7 | `70-conclusion.md` | new prose | **DONE** |
 
@@ -101,13 +101,28 @@ but λ is unidentified at 5–15 rounds, so it falls back to the scenario prior
 every time. Either accept it as untested or pool acceptance events across many
 more runs.
 
-**G7 — arm C and arm E do not exist.** *(arm C IN PROGRESS 2026-08-07; arm E
-still DECISION)* Arm C is the *central* treatment in the original design — θ
-negotiated rather than imposed — and the dissertation had no self-negotiated
-contract in it at all, which sat awkwardly with the repository's name. Now
-being built with θ **inferred from opening positions**, so no message type is
-added and the agent-agnostic claim survives. The T_max pre-phase question is
-handled as an explicit flag (default: counts) rather than an implicit choice.
+**G7 — arm C now exists; arm E does not.** *(arm C **CLOSED 2026-08-10** —
+`2026-08-10-arm-c-negotiated-contract.md`; arm E still DECISION)* θ is
+**inferred from opening positions** — the envelope of the seller's ask and the
+buyer's counter — so no message type is added and the agent-agnostic claim
+survives.
+
+Result, and it is not the one the design expected. **The guarantee transfers
+intact: 0 breaches of the agreed θ over 136 enforced rounds.** But **the
+negotiated θ refines the imposed one in 0 of 29 cases** — it is looser on the
+budget row by 1.21× on average — so arm C settles *more* breaching deals than
+arm A (0.143 vs 0.083) and is the only arm on `bargain_3_9` that overspends
+(£0.48). Enforcing what the parties agreed is not a substitute for governance.
+
+This turns the refinement order of §9 from a formal nicety into the arm's main
+finding, and points at the composition the thesis should propose: enforce
+**θ_negotiated ∧ θ_mandate**. Named as **G9**, not run.
+
+Two further results: arm C **does not compress** the negotiation (167 governed
+rounds against arm B's 27) and **14 of 29 agreed contracts run past T_max** —
+the sharpest liveness signal in the project, against a bound that has barely
+bound anywhere else. The pre-phase T_max convention was made an explicit flag
+(default: counts) and turns out to change nothing here, 14/29 either way.
 
 **G8 — unsatisfiable pairs are detected and then allowed to trade.** *(DECISION,
 new 2026-08-10)* Where c·q_min > B no compliant deal exists, so the filter
@@ -118,14 +133,26 @@ exists. Refusing the trade would take marketplace-wide overspend to £0.00 and
 forbid nothing that should have been allowed. Not implemented, because blocking
 is a different intervention from filtering and would confound arm B.
 
+**G9 — the negotiated and imposed contracts are never composed.** *(RERUN,
+new 2026-08-10)* Arm C shows θ_negotiated sitting *above* θ_mandate in the
+refinement order in every case, so enforcing it alone permits exactly what the
+mandate forbids. The fix is the meet, θ_negotiated ∧ θ_mandate — parties may
+agree their own terms, but only inside the platform's rules — which is one
+arm's work on machinery that already exists (`Contract.refines`; the meet is
+componentwise). Proposed, not tested.
+
 ## Not blocking, but worth a paragraph each
 
 - ~~Arm B's trajectories predate the reconciliation fix~~ — **resolved
   2026-08-07**: the γ = 0.4 cell of the γ sweep is arm B re-run post-fix.
-- **Four** integration bugs are methodological material for chapter 4, not two:
-  the wire copy, currency quantisation, the Φ_proj active-row test, and the
-  intervention-rate logging gap. All four passed a full test suite because the
-  tests asserted on the wrong surface, and the last one produced a *false
-  finding* ("enforcement is prevention") that stood for two days.
+- **Five** integration bugs are methodological material for chapter 4, not two:
+  the wire copy, currency quantisation, the Φ_proj active-row test, the
+  intervention-rate logging gap, and **the buyer-counter echo** (2026-08-10 —
+  `from_text` took the *first* money figure, which is the seller's quote the
+  buyer was restating in order to reject it; 88% of extracted buyer moves were
+  echoes). All five passed a full test suite because the tests asserted on the
+  wrong surface; one produced a *false finding* ("enforcement is prevention")
+  that stood for two days, and the echo stayed latent in every arm until arm C
+  became the first thing to *read* the buyer's position rather than log it.
 - The environment is not pinned, so "bit-reproducible" is currently false as
   stated (limitation 13).

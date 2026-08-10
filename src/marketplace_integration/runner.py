@@ -51,6 +51,8 @@ async def run_governed_experiment(
     capacity_factor: float | None = None,
     couple: bool = True,
     solver: str = "osqp",
+    theta_source: str = "scenario",
+    prephase_counts_against_tmax: bool = True,
     contract_spec=None,
     results_dir: str | Path = "results",
     search_algorithm: str = "simple",
@@ -78,6 +80,10 @@ async def run_governed_experiment(
             the pairs independent.
         couple: enforce the coupling clause when capacities are present.
         solver: "osqp" or "slsqp".
+        theta_source: "scenario" (imposed theta, arms B/D) or "inferred" (the
+            envelope of the agents' own opening positions, arm C).
+        prephase_counts_against_tmax: whether rounds spent agreeing theta count
+            against the liveness bound. Default True.
         contract_spec: ContractSpec overriding the modelling knobs.
         results_dir: where certificates.jsonl and the report are written.
 
@@ -110,6 +116,8 @@ async def run_governed_experiment(
         rho=rho,
         couple=couple,
         solver=solver,
+        theta_source=theta_source,
+        prephase_counts_against_tmax=prephase_counts_against_tmax,
     )
 
     def database_factory():

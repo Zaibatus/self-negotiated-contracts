@@ -1,17 +1,17 @@
-# Chapter 5 — Results: three arms on a live LLM marketplace
+# Chapter 5 — Results: four arms on a live LLM marketplace
 
-**Sources:** the four arm notes in `docs/notes/`. This file is the *argument*
-the arms make together, which none of the individual notes states; the numbers
-and their reproduction stay in the notes.
+**Sources:** the arm notes in `docs/notes/`. This file is the *argument* the
+arms make together, which none of the individual notes states; the numbers and
+their reproduction stay in the notes.
 
-**State: DONE for arms A, B and D.** Arm C does not exist (G7); arm E is
-deferred.
+**State: DONE for arms A, B, C and D**, on both `bargain_3_9` and
+`undisclosed_3_9`. Arm E is deferred.
 
 ---
 
 ## The narrative
 
-The chapter should be read as one argument in four steps, not as four
+The chapter should be read as one argument in five steps, not as a list of
 experiments.
 
 ### 1. Ungoverned marketplaces breach the contracts their own scenarios imply
@@ -130,6 +130,47 @@ the rewriting". It sits on a path a filter would never have produced — though
 the reason is that the negotiation ends sooner, not that violations stop
 arising. Any figure putting the two side by side needs that caption.
 
+### 5. A self-negotiated contract is enforced just as well — and governs less
+
+Arm C is the treatment the design was named for: θ agreed between the agents
+and only then enforced. It is *inferred* rather than exchanged — the envelope of
+the seller's opening ask and the buyer's first counter — so no message type is
+added and the agent-agnostic claim survives.
+
+| | arm A | arm D | arm B | **arm C** |
+|---|---|---|---|---|
+| proposals offered | 95 | 80 | 51 | **219** |
+| breaching the **scenario** θ | 0.858 | 0.822 | 0.472 | **0.922** |
+| settled breaching the scenario θ | 0.083 | 0.083 | **0.000** | **0.143** |
+| overspend | £0.00 | £0.00 | £0.00 | **£0.48** |
+| **breaches of the θ it enforced** | — | — | **0/27** | **0/136** |
+
+Both halves matter and they point opposite ways.
+
+**The guarantee transfers intact.** Zero breaches of the negotiated contract
+over 136 enforced rounds. The filter never inspects where θ came from — arms B
+and C share every line of that path and differ only in which `Contract` object
+is handed to it — so this is confirmation that the mechanism is indifferent to
+the contract's provenance, which is what "we certify the game, not the agents"
+should also mean for the contract.
+
+**Enforcing it is not governance.** The negotiated θ **refines the imposed one
+in 0 of 29 cases** — looser on the budget row by 1.21× on average — because the
+seller's opening ask sits above the customer's reservation. So arm C settles a
+*higher* fraction of breaching deals than doing nothing (0.143 against 0.083)
+and is the only arm on `bargain_3_9` that overspends.
+
+This makes §9's refinement order the load-bearing idea rather than a formal
+nicety, and names the composition the thesis should propose: enforce
+**θ_negotiated ∧ θ_mandate**, the meet — parties may agree their own terms, but
+only inside the platform's rules. Proposed, not run (G9).
+
+Two further contrasts. Arm C **does not compress** the negotiation — 167
+governed rounds against arm B's 27, because the envelope leaves a zone to haggle
+inside — and **14 of its 29 agreed contracts run past T_max = 6**, which is the
+only place in this project where the liveness bound binds at all (C8). A
+negotiated contract preserves the negotiation and pays for it in termination.
+
 ## The claim this supports, and the claim it does not
 
 **Supported:** the filter converts a *tendency* into a *bound*. Per-round
@@ -158,7 +199,7 @@ offered.
 
 ## Method material belonging in chapter 4
 
-Three bugs are worth a page, because each is a general lesson about testing a
+Five bugs are worth a page, because each is a general lesson about testing a
 safety layer and each passed a full suite:
 
 1. **The wire copy.** The regulator rewrote a copy of the request; the server
@@ -174,9 +215,24 @@ safety layer and each passed a full suite:
    never made. Fixed by client-side reconciliation; the guarantee never
    depended on it, but the trajectories did.
 
-The common thread: all three were invisible to tests that asserted on a
+4. **The intervention logging gap.** Opening projections were recorded with
+   `intervention = 0`, hiding almost every correction the filter made and
+   producing the false "enforcement is prevention" finding retracted in §4.
+5. **The buyer's counter-offer was the seller's own quote.** Buyers restate the
+   price on the table before naming their own — "The current quote of $13.76 is
+   above my budget of $11.58" — and `_MONEY.search` returns the *first* figure.
+   The extractor recorded a counter-offer at the seller's own ask and discarded
+   the buyer's real position. **110 of 125 extracted buyer moves (88%) were
+   echoes.** It corrupted only the *observed* trajectory, so the drift,
+   funnelling and safety results — computed on binding trajectories or database
+   outcomes — survive; the section 11 report did not.
+
+The common thread: all five were invisible to tests that asserted on a
 plausible-looking surface rather than the one that decides what the counterparty
-sees.
+sees. The fifth adds a second lesson worth its own paragraph — it was latent in
+every arm from the start and became visible only when arm C became the first
+component to *read* the buyer's position rather than merely log it. A value
+nothing depends on is a value nothing checks.
 
 ## Figures
 

@@ -94,6 +94,25 @@ def build_parser(description: str) -> argparse.ArgumentParser:
     parser.add_argument("--max-steps", type=int, default=100)
     parser.add_argument("--results", default="results")
     parser.add_argument("--override", action="store_true")
+    parser.add_argument(
+        "--theta-source",
+        default="scenario",
+        choices=["scenario", "inferred"],
+        help="'scenario' imposes theta from the data (arms B/D); 'inferred' "
+        "builds it as the envelope of the agents' own opening positions "
+        "(arm C)",
+    )
+    parser.add_argument(
+        "--prephase-counts-against-tmax",
+        dest="prephase_counts_against_tmax",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="arm C only: whether rounds spent agreeing theta count against "
+        "the liveness bound T_max. Default true — agreeing the contract is "
+        "time spent negotiating, and exempting it would certify termination "
+        "of only the enforced half. --no-prephase-counts-against-tmax "
+        "measures the enforced window alone",
+    )
     return parser
 
 
@@ -128,6 +147,8 @@ def run_arm(args: argparse.Namespace, mode: str) -> dict[str, Any]:
             rho=args.rho,
             capacity_factor=args.capacity_factor,
             solver=args.solver,
+            theta_source=args.theta_source,
+            prephase_counts_against_tmax=args.prephase_counts_against_tmax,
             contract_spec=contract_spec(args),
             results_dir=args.results,
             customer_max_steps=args.max_steps,
@@ -155,24 +176,48 @@ def section_11_report(protocol: Any, controller: ControllerSpec) -> dict[str, An
     registry = protocol.registry
     trajectories = protocol.trajectories(binding=False)
 
+    inferred = getattr(protocol, "theta_source", "scenario") == "inferred"
+
     negotiations: list[dict[str, Any]] = []
     as_arrays: dict[str, list[np.ndarray]] = {}
     for key, trajectory in sorted(trajectories.items()):
         as_arrays[key] = [np.asarray(x, dtype=float) for x in trajectory]
         business_id, customer_id = key.split("|", 1)
-        negotiations.append(
-            _one_negotiation(
-                key=key,
-                trajectory=as_arrays[key],
-                business=registry.businesses.get(business_id),
-                customer=registry.customers.get(customer_id),
-                contract=registry.get(business_id, customer_id),
-                records=[r for r in protocol.records if r.pair_id == key],
-                controller=controller,
-            )
+        imposed = registry.get(business_id, customer_id)
+        # Arm C is certified against the contract it actually enforced, which
+        # is the agents' envelope. The imposed theta is carried alongside
+        # rather than replaced, because "did the pair honour its own contract"
+        # and "did it satisfy the platform's mandate" are different questions
+        # and arm C is the arm where they can differ.
+        governing = imposed
+        if inferred:
+            state = protocol.states.get(key)
+            envelope = state.positions.contract if state is not None else None
+            governing = envelope if envelope is not None else imposed
+        one = _one_negotiation(
+            key=key,
+            trajectory=as_arrays[key],
+            business=registry.businesses.get(business_id),
+            customer=registry.customers.get(customer_id),
+            contract=governing,
+            records=[r for r in protocol.records if r.pair_id == key],
+            controller=controller,
         )
+        if inferred:
+            one["theta"] = _theta_comparison(protocol, key, imposed)
+        negotiations.append(one)
 
-    return {
+    out_extra: dict[str, Any] = {}
+    if inferred:
+        out_extra["inference"] = {
+            "summary": protocol.inference.summary(),
+            "failures": protocol.inference.failures(),
+            "prephase_counts_against_tmax": (
+                protocol.prephase_counts_against_tmax
+            ),
+        }
+
+    return {**out_extra,
         "controller": {
             "gamma": controller.gamma,
             "t_max": controller.t_max,
@@ -182,6 +227,43 @@ def section_11_report(protocol: Any, controller: ControllerSpec) -> dict[str, An
         "negotiations": negotiations,
         "aggregate": _aggregate(negotiations, as_arrays),
     }
+
+
+def _theta_comparison(protocol: Any, key: str, imposed: Any) -> dict[str, Any]:
+    """How the negotiated theta differs from the one the platform would impose.
+
+    Reported per pair because the direction is the interesting part: an
+    envelope built from a seller's opening ask is *looser* on the budget row
+    than a mandate built from the customer's reservation price, so arm C can
+    hold its own contract perfectly and still breach the platform's.
+    """
+    state = protocol.states.get(key)
+    positions = state.positions if state is not None else None
+    out: dict[str, Any] = {
+        "frozen": bool(positions is not None and positions.is_frozen),
+        "prephase_rounds": int(state.prephase_rounds) if state else None,
+        "enforced_rounds": (
+            protocol.enforced_rounds(state) if state is not None else None
+        ),
+    }
+    if positions is not None:
+        out["seller_ask"] = positions.seller_ask
+        out["buyer_offer"] = positions.buyer_offer
+        out["frozen_at_round"] = positions.frozen_at_round
+        out["failure"] = positions.failure
+    envelope = positions.contract if positions is not None else None
+    if envelope is not None:
+        out["inferred"] = envelope.theta.tolist()
+        out["refines_imposed"] = (
+            bool(envelope.refines(imposed)) if imposed is not None else None
+        )
+    if imposed is not None:
+        out["imposed"] = imposed.theta.tolist()
+        if envelope is not None:
+            out["budget_ratio"] = (
+                envelope.budget / imposed.budget if imposed.budget else None
+            )
+    return out
 
 
 def _one_negotiation(
@@ -413,12 +495,43 @@ def print_report(safety: dict[str, float], section11: dict[str, Any]) -> None:
     gap = safety.get("certificate_gap_rate", 0.0)
     print(f"  {'certificate_gap_rate':<30}{gap:>14.4f}")
 
+    if "inference" in section11:
+        inf = section11["inference"]
+        print("\n" + "=" * 66)
+        print("NEGOTIATED THETA  (arm C pre-phase)")
+        print("=" * 66)
+        for key, value in inf["summary"].items():
+            print(f"  {key:<30}{value:>14.4f}")
+        print(
+            f"  {'prephase counts vs T_max':<30}"
+            f"{str(inf['prephase_counts_against_tmax']):>14}"
+        )
+        for failure in inf["failures"]:
+            print(f"    ungoverned: {failure['pair']} — {failure['reason']}")
+
     print("\n" + "=" * 66)
     print("CONVERGENCE AND TERMINATION  (section 11 items ii-vi)")
     print("=" * 66)
 
     for negotiation in section11["negotiations"]:
         print(f"\n  {negotiation['pair']}  ({negotiation['rounds']} term vectors)")
+        if "theta" in negotiation:
+            t = negotiation["theta"]
+            if t.get("frozen"):
+                print(
+                    f"    theta agreed at round {t['frozen_at_round']}: "
+                    f"ask {t['seller_ask']:.2f} / offer {t['buyer_offer']:.2f} "
+                    f"-> B={t['inferred'][0]:.2f} c={t['inferred'][1]:.2f} "
+                    f"(imposed B={t['imposed'][0]:.2f} c={t['imposed'][1]:.2f}, "
+                    f"ratio {t['budget_ratio']:.2f}x, "
+                    f"refines={t['refines_imposed']})"
+                )
+                print(
+                    f"    rounds: {t['prephase_rounds']} pre-phase, "
+                    f"{t['enforced_rounds']} charged against T_max"
+                )
+            else:
+                print(f"    theta never agreed — ran ungoverned ({t.get('failure')})")
         if negotiation.get("status") != "ok":
             print(f"    {negotiation.get('status')}")
             if negotiation.get("shadow_prices"):
