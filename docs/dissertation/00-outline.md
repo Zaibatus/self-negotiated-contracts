@@ -20,13 +20,18 @@ time to run experiments that fill them. Every section carries one of:
 
 | # | file | source | state |
 |---|---|---|---|
-| 1 | `10-introduction.md` | new prose | **DONE** — leads with the G4 asymmetry |
+| 1 | `10-introduction.md` | new prose | **DRAFTED 2026-08-10** — leads with the G4 asymmetry |
 | 2 | `60-related-work.md` | new prose | **DONE**, CBF-LLM re-verified |
 | 3 | `30-theory.md` | → `formulation.md` §1–9 | mostly DONE, 3 OPEN |
-| 4 | `20-method.md` | new prose | **DONE** — needs the **fifth** bug (the buyer-counter echo) added |
+| 4 | `20-method.md` | new prose | **DRAFTED 2026-08-10** — includes all five integration bugs |
 | 5 | `40-results.md` | the nine arm notes | **DONE** for A/B/C/D + γ + models + undisclosed |
+
+Chapters 1, 4 and 7 were marked DONE on 2026-08-07 before they had been
+written — the marks recorded the *plan* for them rather than their state. They
+exist as of 2026-08-10 and are marked DRAFTED, which means written and
+sourced but not revised against a full read-through.
 | 6 | `50-limitations.md` | dedup of 6 sources | DONE |
-| 7 | `70-conclusion.md` | new prose | **DONE** |
+| 7 | `70-conclusion.md` | new prose | **DRAFTED 2026-08-10** — remaining work ordered by impact |
 
 ## The argument in one page
 
