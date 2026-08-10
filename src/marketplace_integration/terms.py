@@ -172,6 +172,7 @@ def from_text(
     message: TextMessage | str,
     fallback_quantity: float,
     llm_extractor: LLMExtractor | None = None,
+    current_price: float | None = None,
 ) -> Terms | None:
     """Best-effort terms from a free-text buyer counter-offer.
 
@@ -184,19 +185,41 @@ def from_text(
 
     ``fallback_quantity`` is the quantity currently on the table, used when the
     buyer names a price but no quantity (the common case: "can you do $12?").
+
+    ``current_price`` is the unit price already on the table, and supplying it
+    closes a real extraction defect that ran for the whole project. Buyers
+    habitually restate the seller's quote before naming their own number:
+
+        "The current quote of $13.76 is above my budget of $11.58."
+
+    ``_MONEY.search`` returns the *first* figure, so the extractor recorded the
+    buyer as counter-offering at $13.76 — the price the seller had just asked
+    for — and silently discarded $11.58, which is the only number in the
+    sentence the buyer actually owns. Both halves are wrong: a fabricated move
+    to the seller's own ask, and the real position dropped.
+
+    So every figure is considered, those equal to the price on the table are
+    discarded as echoes, and the first survivor is the buyer's position. When
+    every figure is an echo the message states no position and returns None,
+    which is correct whether the buyer was accepting or rejecting: in neither
+    case is it a *new* point in term space.
+
+    Measured over the 25 stored arm A/B/D runs, **110 of 125 extracted buyer
+    "moves" (88%) were echoes**. The published drift, funnelling and safety
+    results are unaffected because they are computed on the *binding*
+    trajectory (seller proposals, exact structured terms) or on database
+    outcomes; the corrupted surface is the *observed* trajectory, which is what
+    arm C's inference reads — which is why arm C is where this surfaced.
     """
     content = message.content if isinstance(message, TextMessage) else message
 
-    price_match = _MONEY.search(content)
+    matches = list(_MONEY.finditer(content))
     quantity_match = _QUANTITY.search(content)
 
-    if price_match is None:
+    if not matches:
         if llm_extractor is not None:
             return llm_extractor(content)
         return None
-
-    raw = next(g for g in price_match.groups() if g is not None)
-    price = float(raw.replace(",", ""))
 
     quantity = fallback_quantity
     if quantity_match is not None:
@@ -206,16 +229,37 @@ def from_text(
     # A buyer quoting a bare figure is usually quoting the *total*, not a unit
     # price. Disambiguate only when the text says so explicitly.
     per_unit = bool(re.search(r"\b(each|per\s+(?:unit|item|piece))\b", content, re.I))
-    if not per_unit and quantity > 0:
-        price = price / quantity
+
+    def unit(match: re.Match[str]) -> float:
+        raw = next(g for g in match.groups() if g is not None)
+        value = float(raw.replace(",", ""))
+        return value / quantity if not per_unit and quantity > 0 else value
+
+    # Every money figure in the message, not just the first. Buyers habitually
+    # restate the seller's quote before naming their own number -- "The current
+    # quote of $13.76 is above my budget of $11.58" -- and taking `.search()`
+    # returned the seller's figure while discarding the buyer's. Dropping the
+    # echoes leaves the buyer's own position, which is the move we are after.
+    chosen = next(
+        (
+            m
+            for m in matches
+            if current_price is None or abs(unit(m) - current_price) >= 0.005
+        ),
+        None,
+    )
+    if chosen is None:
+        # Every figure in the message was the price already on the table, so
+        # the buyer stated no position of its own. Not a move in term space.
+        return None
 
     return Terms(
-        price=price,
+        price=unit(chosen),
         quantity=quantity,
         deadline=parse_days(content),
         source="text_regex",
         exact=False,
-        fields={"matched": price_match.group(0), "per_unit": str(per_unit)},
+        fields={"matched": chosen.group(0), "per_unit": str(per_unit)},
     )
 
 

@@ -30,6 +30,14 @@ Modes:
     "filter"  project proposals and rewrite the outgoing message
     "monitor" detect and record, forward the message untouched (arm D)
     "off"     record the trajectory only, no contract enforcement (arm A)
+
+Where theta comes from is a separate axis from the mode:
+
+    theta_source="scenario"  imposed by the platform (arms B and D)
+    theta_source="inferred"  the envelope of the agents' own opening positions,
+                             frozen once both have spoken (arm C). See
+                             ``inference.py``. Arms B and C then differ in
+                             exactly one thing, which is the point.
 """
 
 from __future__ import annotations
@@ -55,10 +63,12 @@ from magentic_marketplace.platform.shared.models import (
 from ..certificates.dcbf import DCBFFilter, project_into_safe_set
 from ..certificates.metrics import RoundRecord, make_round_record, summarise
 from ..payoffs import dist_M
+from .inference import InferenceReport, Positions
 from .terms import Terms, from_order_proposal, from_text, rewrite_proposal
 from .theta import ContractRegistry, pair_key
 
 Mode = Literal["filter", "monitor", "off"]
+ThetaSource = Literal["scenario", "inferred"]
 
 
 @dataclass
@@ -74,6 +84,12 @@ class PairState:
     settled: bool = False
     opened_outside: bool | None = None
     unsatisfiable: bool = False
+    # Arm C only: the two opening positions and the envelope they imply.
+    positions: Positions = field(default_factory=Positions)
+    # Rounds that elapsed before theta was agreed. Counted against T_max or
+    # not, depending on `prephase_counts_against_tmax`; recorded either way so
+    # the choice is auditable rather than baked in.
+    prephase_rounds: int = 0
 
     @property
     def last_binding(self) -> np.ndarray | None:
@@ -91,6 +107,8 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         rho: float = 1e4,
         couple: bool = True,
         solver: str = "osqp",
+        theta_source: ThetaSource = "scenario",
+        prephase_counts_against_tmax: bool = True,
     ):
         """Configure the regulator.
 
@@ -105,14 +123,28 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                 concurrently open negotiations. Requires the registry to carry
                 capacities; without them this has no effect.
             solver: "osqp" (standard) or "slsqp" (legacy, for A/B only).
+            theta_source: "scenario" (imposed, arms B/D) or "inferred" (the
+                envelope of the agents' opening positions, arm C).
+            prephase_counts_against_tmax: whether rounds spent agreeing theta
+                count against the liveness bound. **Default True**: the
+                pre-phase is time the parties spend negotiating, and exempting
+                it would let a contract take arbitrarily long to agree while
+                still certifying "terminates within T_max". Set False to
+                measure the enforced window alone. Recorded in the report
+                either way, because at observed lengths of one to two rounds
+                this is the difference between a T_max that never binds and
+                one that binds immediately.
         """
         super().__init__()
         self.registry = registry
         self.mode: Mode = mode
         self.couple = couple
+        self.theta_source: ThetaSource = theta_source
+        self.prephase_counts_against_tmax = prephase_counts_against_tmax
         self.filter = DCBFFilter(gamma=gamma, rho=rho, solver=solver)
         self.states: dict[str, PairState] = {}
         self.records: list[RoundRecord] = []
+        self.inference = InferenceReport()
         # Messages we could not govern, and why. Reported, never dropped.
         self.ungoverned: list[dict[str, str]] = []
 
@@ -202,6 +234,27 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             PairState(key=key, business_id=business_id, customer_id=customer_id),
         )
         x_proposed = terms.vector
+
+        if self.theta_source == "inferred":
+            self.inference.pairs.setdefault(key, state.positions)
+            state.positions.note_seller(float(x_proposed[0]), float(x_proposed[1]))
+            envelope_contract = state.positions.contract
+            if envelope_contract is None:
+                # Pre-phase: theta is not agreed yet, so there is nothing to
+                # enforce. The round is recorded against the scenario theta so
+                # that arm C stays comparable with the other arms, but nothing
+                # is filtered and the trajectory is left as proposed.
+                state.prephase_rounds += 1
+                self._record(state, effective, x_proposed, x_proposed, x_proposed,
+                             None, terms, intervention=0.0)
+                state.binding.append(x_proposed)
+                state.observed.append(x_proposed)
+                return None
+            effective = (
+                envelope_contract
+                if terms.deadline_observed
+                else envelope_contract.without_deadline()
+            )
 
         if not effective.is_satisfiable():
             # C(theta) is empty: this seller's cost floor is above this buyer's
@@ -321,10 +374,23 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         if state is None or state.last_binding is None:
             return
 
-        terms = from_text(message, fallback_quantity=float(state.last_binding[1]))
+        terms = from_text(
+            message,
+            fallback_quantity=float(state.last_binding[1]),
+            current_price=float(state.last_binding[0]),
+        )
         if terms is None:
             return
         state.observed.append(terms.vector)
+
+        if self.theta_source == "inferred" and not state.positions.is_frozen:
+            # The buyer's first counter closes the pre-phase: both sides have
+            # now named a price, so the envelope is determined and is frozen
+            # here for the rest of the negotiation.
+            state.positions.note_buyer(float(terms.vector[0]))
+            base = self.registry.get(business_id, customer_id)
+            if base is not None:
+                state.positions.try_freeze(base, state.prephase_rounds)
 
     # ------------------------------------------------------------- internals --
 
@@ -389,7 +455,29 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             sum(1 for s in self.states.values() if s.unsatisfiable)
         )
         out["ungoverned_messages"] = float(len(self.ungoverned))
+        if self.theta_source == "inferred":
+            out.update(self.inference.summary())
+            # Rounds spent agreeing theta. Whether these count against T_max is
+            # a policy choice, so both the count and the choice are reported.
+            out["prephase_rounds_total"] = float(
+                sum(s.prephase_rounds for s in self.states.values())
+            )
+            out["prephase_counts_against_tmax"] = float(
+                self.prephase_counts_against_tmax
+            )
         return out
+
+    def enforced_rounds(self, state: PairState) -> int:
+        """Rounds charged against T_max for a pair.
+
+        Under ``prephase_counts_against_tmax`` the pre-phase is included, which
+        is the default: agreeing the contract is time spent negotiating, and a
+        liveness certificate that ignored it would bound only the second half
+        of the process.
+        """
+        if self.prephase_counts_against_tmax:
+            return state.rounds
+        return max(0, state.rounds - state.prephase_rounds)
 
     def trajectories(self, binding: bool = False) -> dict[str, list[np.ndarray]]:
         """Per-pair term trajectories, for the energy layer."""
