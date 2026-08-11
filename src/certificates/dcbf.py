@@ -169,7 +169,63 @@ def project_into_safe_set(
         if np.linalg.norm(step) < tol:
             break
         current = current + step
-    return current
+
+    if contract.is_safe(current, tol=tol):
+        return current
+    return _feasible_fallback(np.asarray(x, dtype=float), contract, tol)
+
+
+def _feasible_fallback(
+    x: np.ndarray, contract: Contract, tol: float = 1e-7
+) -> np.ndarray:
+    """Closed-form point inside C(theta), for when the QP cannot find one.
+
+    The QP above is not always able to. When C(theta) is **degenerate** — a
+    single admissible point, which is what composing a negotiated contract with
+    a mandate produces whenever the buyer's stated price equals the mandate's
+    ceiling — the projection step's feasible region is a single point expressed
+    as two opposing inequalities, and OSQP returns ``maximum iterations
+    reached`` with u = 0. The loop then exits and hands back an unsafe state,
+    silently: the caller sees a projection that "succeeded" and forwards
+    breaching terms. Measured on arm C-meet, that is exactly what happened.
+
+    So when the iteration fails, fall back to the closed form this template
+    admits. Clip the deadline and quantity into their bands, shrink q if the
+    cost floor and budget cannot both be met at the current q (the largest
+    admissible quantity is B/c), then clip price into [c, B/q].
+
+    This is a **feasibility** fallback, not the metric-nearest point: it
+    guarantees a return inside C(theta) whenever C(theta) is non-empty, and
+    does not claim minimality. That is the right trade for a safety layer —
+    minimally invasive is a preference, staying inside the safe set is the
+    guarantee — but it is a real difference from the QP path and is reported
+    rather than hidden. Returns x unchanged when C(theta) is empty, which the
+    caller detects separately and handles as "no deal".
+    """
+    if not contract.is_satisfiable():
+        return x
+
+    p, q, d = float(x[0]), float(x[1]), float(x[2])
+
+    if contract.deadline_active:
+        d = min(max(d, contract.d_min), contract.d_max)
+    q = min(max(q, contract.q_min), contract.q_max)
+
+    # Price is squeezed into [c, B/q]; that interval is non-empty only when
+    # q <= B/c, so shrink q first when it is not (never below q_min, which
+    # satisfiability already guarantees is admissible).
+    if contract.cost_floor > 0.0 and q > contract.budget / contract.cost_floor:
+        q = max(contract.q_min, contract.budget / contract.cost_floor)
+
+    ceiling = contract.budget / q if q > 0 else contract.budget
+    p = min(max(p, contract.cost_floor), ceiling)
+
+    out = np.array([p, q, d])
+    if not contract.is_safe(out, tol=tol):
+        # Only reachable through floating-point slop on a zero-margin contract;
+        # nudge price down by the tolerance rather than return a breach.
+        out[0] = max(contract.cost_floor, ceiling - tol)
+    return out
 
 
 class DCBFFilter:

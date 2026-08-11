@@ -242,3 +242,63 @@ class TestTheMeetNeedsAnOpeningProjection:
         assert m.is_satisfiable()
         assert m.is_safe(np.array([5.79, 2.0, 0.0]))
         assert not m.is_safe(np.array([5.80, 2.0, 0.0]))
+
+
+class TestProjectionSurvivesADegenerateSafeSet:
+    """The QP cannot project onto a measure-zero feasible set, and used to fail
+    silently by returning the unsafe input.
+
+    On the composed contract the projection step's feasible region is a single
+    point written as two opposing inequalities; OSQP returns "maximum
+    iterations reached" with u = 0, the iteration exits, and the caller
+    forwards breaching terms believing it projected them. Arm C-meet breached
+    2 of 6 enforced rounds this way.
+    """
+
+    DEGENERATE = Contract(budget=11.58, cost_floor=5.79, q_min=2.0, q_max=4.0,
+                          deadline_active=False)
+
+    def test_the_safe_set_really_is_a_single_point(self):
+        m = self.DEGENERATE
+        assert m.cost_floor * m.q_min == pytest.approx(m.budget)
+        assert m.is_safe(np.array([5.79, 2.0, 0.0]))
+        assert not m.is_safe(np.array([5.80, 2.0, 0.0]))
+
+    def test_projection_lands_inside_rather_than_returning_the_breach(self):
+        from src.certificates.dcbf import project_into_safe_set
+
+        x = np.array([6.755, 2.0, 0.0])
+        assert not self.DEGENERATE.is_safe(x)
+        out = project_into_safe_set(x, self.DEGENERATE)
+        assert self.DEGENERATE.is_safe(out), (
+            "projection returned a state outside C(theta) — the silent failure"
+        )
+        assert out[0] == pytest.approx(5.79, abs=1e-6)
+
+    @pytest.mark.parametrize(
+        "contract,x",
+        [
+            (Contract(budget=31.38, cost_floor=10.46, q_min=3.0, q_max=6.0,
+                      deadline_active=False), [12.51, 3.0, 0.0]),
+            (Contract(budget=11.58, cost_floor=5.27, q_min=2.0, q_max=4.0,
+                      deadline_active=False), [6.755, 2.0, 0.0]),
+            (Contract(budget=60.0, cost_floor=5.0, q_min=8.0, q_max=20.0,
+                      d_min=1.0, d_max=5.0), [9.0, 10.0, 9.0]),
+        ],
+    )
+    def test_projection_is_safe_across_shapes(self, contract, x):
+        from src.certificates.dcbf import project_into_safe_set
+
+        out = project_into_safe_set(np.asarray(x, dtype=float), contract)
+        assert contract.is_safe(out)
+
+    def test_an_unsatisfiable_contract_is_left_alone(self):
+        """Projecting into an empty set is not a safety operation; the caller
+        detects this separately and reports 'no deal'."""
+        from src.certificates.dcbf import project_into_safe_set
+
+        empty = Contract(budget=10.0, cost_floor=9.0, q_min=5.0, q_max=6.0,
+                         deadline_active=False)
+        assert not empty.is_satisfiable()
+        x = np.array([9.5, 5.0, 0.0])
+        assert np.allclose(project_into_safe_set(x, empty), x)
