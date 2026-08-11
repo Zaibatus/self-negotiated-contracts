@@ -1,0 +1,652 @@
+{
+  "inference": {
+    "summary": {
+      "pairs_seen": 8.0,
+      "pairs_frozen": 7.0,
+      "pairs_never_frozen": 1.0,
+      "freeze_rate": 0.875,
+      "mean_prephase_rounds": 1.0,
+      "max_prephase_rounds": 1.0,
+      "mean_zone_width": 2.0350000000000006
+    },
+    "failures": [
+      {
+        "pair": "business_0005|customer_0002",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      }
+    ],
+    "prephase_counts_against_tmax": true
+  },
+  "controller": {
+    "gamma": 0.4,
+    "t_max": 6,
+    "kappa0": 2.0,
+    "rho": 0.5
+  },
+  "negotiations": [
+    {
+      "pair": "business_0001|customer_0001",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 0.5,
+      "breach_rounds": 1,
+      "lambda": {
+        "value": 0.15027499999999974,
+        "identified": false,
+        "n_events": 3,
+        "reason": "all 3 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          0.0001775085442832102,
+          1.6604874060549555,
+          1.6604874060549555
+        ],
+        "final": 1.6604874060549555,
+        "fraction_decreasing": 0.5
+      },
+      "phi_projected": {
+        "series": [
+          null,
+          1.8675852153850543e-14,
+          1.8675852153850543e-14
+        ],
+        "defined_at": 2,
+        "of_rounds": 3,
+        "final": 1.8675852153850543e-14,
+        "fraction_decreasing": 1.0,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 2
+      },
+      "settled": {
+        "terms": [
+          5.79,
+          2.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          5.6797249999999995,
+          2.0000000000000004,
+          0.0
+        ],
+        "distance_scaled_units": 0.11027500000000057,
+        "surplus": 0.6010999999999989,
+        "w_max": 0.601099999999999,
+        "surplus_loss_pct": 1.8469855675015112e-14
+      },
+      "rationalizability": {
+        "consistent": false,
+        "kappa_interval": null,
+        "n_rounds": 2,
+        "n_moved": 1,
+        "n_inconsistent_rounds": 2,
+        "description": "NOT consistent: the agent stalled at incentive 0.721 and moved at 0.000, so no single kappa explains it; 2 of 2 rounds cannot be reconciled. The bridge from the gradient-ascent proxies to these agents does not hold at this scale"
+      },
+      "status": "ok",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 6.755,
+        "buyer_offer": 5.79,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          13.51,
+          5.79,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          11.579999999999998,
+          5.79,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": true,
+        "strictly_tighter_than_mandate_on": [
+          "cost_floor"
+        ],
+        "margin": -1.7763568394002505e-15,
+        "imposed": [
+          11.579999999999998,
+          5.2689,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.1666666666666667
+      }
+    },
+    {
+      "pair": "business_0002|customer_0001",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 0.5,
+      "breach_rounds": 1,
+      "lambda": {
+        "value": 0.0742999999999996,
+        "identified": false,
+        "n_events": 3,
+        "reason": "all 3 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          2.3543260903065714e-11,
+          1.1501452112341186,
+          1.1501452112341186
+        ],
+        "final": 1.1501452112341186,
+        "fraction_decreasing": 0.5
+      },
+      "phi_projected": {
+        "series": [
+          null,
+          1.0464993089230197e-14,
+          1.0464993089230197e-14
+        ],
+        "defined_at": 2,
+        "of_rounds": 3,
+        "final": 1.0464993089230197e-14,
+        "fraction_decreasing": 1.0,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 2
+      },
+      "settled": {
+        "terms": [
+          5.79,
+          2.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          5.7557,
+          2.0000000000000004,
+          0.0
+        ],
+        "distance_scaled_units": 0.0343,
+        "surplus": 0.29719999999999835,
+        "w_max": 0.2971999999999984,
+        "surplus_loss_pct": 1.867804550176922e-14
+      },
+      "rationalizability": {
+        "consistent": false,
+        "kappa_interval": null,
+        "n_rounds": 2,
+        "n_moved": 1,
+        "n_inconsistent_rounds": 2,
+        "description": "NOT consistent: the agent stalled at incentive 0.863 and moved at 0.000, so no single kappa explains it; 2 of 2 rounds cannot be reconciled. The bridge from the gradient-ascent proxies to these agents does not hold at this scale"
+      },
+      "status": "ok",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 6.88,
+        "buyer_offer": 5.79,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          13.76,
+          5.79,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          11.579999999999998,
+          5.79,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": true,
+        "strictly_tighter_than_mandate_on": [
+          "cost_floor"
+        ],
+        "margin": -1.7763568394002505e-15,
+        "imposed": [
+          11.579999999999998,
+          5.572800000000001,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.1882556131260795
+      }
+    },
+    {
+      "pair": "business_0004|customer_0002",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 0.5,
+      "breach_rounds": 1,
+      "lambda": {
+        "value": 0.06369999999999998,
+        "identified": false,
+        "n_events": 3,
+        "reason": "all 3 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          6.494011379843525e-05,
+          0.8967391909460095,
+          0.8967391909460095
+        ],
+        "final": 0.8967391909460095,
+        "fraction_decreasing": 0.5
+      },
+      "phi_projected": {
+        "series": [
+          null,
+          1.7802729976725074e-14,
+          1.7802729976725074e-14
+        ],
+        "defined_at": 2,
+        "of_rounds": 3,
+        "final": 1.7802729976725074e-14,
+        "fraction_decreasing": 1.0,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 2
+      },
+      "settled": {
+        "terms": [
+          7.45,
+          1.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          7.3426,
+          1.0,
+          0.0
+        ],
+        "distance_scaled_units": 0.10740000000000016,
+        "surplus": 0.25480000000000036,
+        "w_max": 0.2547999999999999,
+        "surplus_loss_pct": -1.7428932882655526e-13
+      },
+      "rationalizability": {
+        "consistent": false,
+        "kappa_interval": null,
+        "n_rounds": 2,
+        "n_moved": 1,
+        "n_inconsistent_rounds": 2,
+        "description": "NOT consistent: the agent stalled at incentive 0.317 and moved at 0.000, so no single kappa explains it; 2 of 2 rounds cannot be reconciled. The bridge from the gradient-ascent proxies to these agents does not hold at this scale"
+      },
+      "status": "ok",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 8.31,
+        "buyer_offer": 7.45,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          8.31,
+          7.45,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          7.45,
+          7.45,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": true,
+        "strictly_tighter_than_mandate_on": [
+          "cost_floor"
+        ],
+        "margin": 0.0,
+        "imposed": [
+          7.45,
+          6.9804,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.1154362416107384
+      }
+    },
+    {
+      "pair": "business_0005|customer_0002",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 8.66,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          7.45,
+          6.668200000000001,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0006|customer_0002",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 2,
+      "status": "payoff model not definable: pair business_0006|customer_0002 has no bargaining zone: the buyer's reservation price 7.45 is at or below the seller's marginal cost 9.27, so any agreement destroys surplus",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 11.3,
+        "buyer_offer": 7.45,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          11.3,
+          7.45,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          7.45,
+          9.266,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": false,
+        "strictly_tighter_than_mandate_on": [],
+        "margin": -1.8159999999999998,
+        "imposed": [
+          7.45,
+          9.266,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.516778523489933
+      }
+    },
+    {
+      "pair": "business_0007|customer_0003",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 2,
+      "status": "payoff model not definable: pair business_0007|customer_0003 has no bargaining zone: the buyer's reservation price 10.46 is at or below the seller's marginal cost 11.76, so any agreement destroys surplus",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 12.51,
+        "buyer_offer": 10.459999999999999,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          37.53,
+          10.459999999999999,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          31.38,
+          11.7594,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": false,
+        "strictly_tighter_than_mandate_on": [],
+        "margin": -3.898199999999999,
+        "imposed": [
+          31.38,
+          11.7594,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.1959847036328872
+      }
+    },
+    {
+      "pair": "business_0008|customer_0003",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 0.5,
+      "breach_rounds": 1,
+      "lambda": {
+        "value": 0.14519999999999902,
+        "identified": false,
+        "n_events": 3,
+        "reason": "all 3 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          0.002627653754792951,
+          1.4440234701165733,
+          1.4440234701165733
+        ],
+        "final": 1.4440234701165733,
+        "fraction_decreasing": 0.5
+      },
+      "phi_projected": {
+        "series": [
+          null,
+          8.530675149520015e-15,
+          8.530675149520015e-15
+        ],
+        "defined_at": 2,
+        "of_rounds": 3,
+        "final": 8.530675149520015e-15,
+        "fraction_decreasing": 1.0,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 2
+      },
+      "settled": {
+        "terms": [
+          10.459999999999999,
+          3.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          10.4232,
+          2.999999999999994,
+          0.0
+        ],
+        "distance_scaled_units": 0.0367999999999995,
+        "surplus": 0.5807999999999947,
+        "w_max": 0.5807999999999961,
+        "surplus_loss_pct": 2.48500332646817e-13
+      },
+      "rationalizability": {
+        "consistent": false,
+        "kappa_interval": null,
+        "n_rounds": 2,
+        "n_moved": 1,
+        "n_inconsistent_rounds": 2,
+        "description": "NOT consistent: the agent stalled at incentive 1.318 and moved at 0.004, so no single kappa explains it; 2 of 2 rounds cannot be reconciled. The bridge from the gradient-ascent proxies to these agents does not hold at this scale"
+      },
+      "status": "ok",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 10.96,
+        "buyer_offer": 10.459999999999999,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          32.88,
+          10.459999999999999,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          31.38,
+          10.459999999999999,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": true,
+        "strictly_tighter_than_mandate_on": [
+          "cost_floor"
+        ],
+        "margin": 3.552713678800501e-15,
+        "imposed": [
+          31.38,
+          10.1928,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.0478011472275335
+      }
+    },
+    {
+      "pair": "business_0009|customer_0003",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 2,
+      "status": "payoff model not definable: pair business_0009|customer_0003 has no bargaining zone: the buyer's reservation price 10.46 is at or below the seller's marginal cost 14.00, so any agreement destroys surplus",
+      "theta": {
+        "frozen": true,
+        "prephase_rounds": 1,
+        "enforced_rounds": 2,
+        "seller_ask": 15.39,
+        "buyer_offer": 10.459999999999999,
+        "frozen_at_round": 1,
+        "failure": null,
+        "inferred": [
+          46.17,
+          10.459999999999999,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "refines_imposed": false,
+        "enforced": [
+          31.38,
+          14.0049,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "enforced_refines_imposed": true,
+        "enforced_refines_envelope": true,
+        "enforced_satisfiable": false,
+        "strictly_tighter_than_mandate_on": [],
+        "margin": -10.634699999999999,
+        "imposed": [
+          31.38,
+          14.0049,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ],
+        "budget_ratio": 1.47131931166348
+      }
+    }
+  ],
+  "aggregate": {
+    "negotiations": 8,
+    "measurable": 4,
+    "mean_distance_to_nbs_scaled": 0.07219375000000006,
+    "mean_surplus_loss_pct": 2.7839726249261514e-14,
+    "rationalizable_fraction": 0.0
+  }
+}

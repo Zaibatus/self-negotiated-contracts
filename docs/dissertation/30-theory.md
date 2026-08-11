@@ -23,6 +23,7 @@ exactly the drift this avoids.
 | 7 | safety layer, DCBF-QP | **DONE** + live | 0/27 governed rounds, arm B |
 | 8 | coupling, Φ_proj, prices | **RERUN** | never run on live agents, G2 |
 | 9 | design implications | **DONE** | |
+| 9.5 | **Proposition 3**: composition, C(θ₁∧θ₂) = C(θ₁)∩C(θ₂) | **DONE** + live | new 2026-08-11; arm C-meet is the first use |
 
 ## What is genuinely established
 
@@ -37,6 +38,22 @@ which made `NE = {G = 0}` a characterisation without content.
 gradients are large and opposite — ‖∇Û_i‖_M = 79.56 each — and only their sum
 vanishes. One scalar cannot answer both *does it reach the deal?* and *does it
 stop?*.
+
+**Proposition 3 makes composition usable, and it is the one the experiments
+needed.** The meet of two contracts is exact — componentwise min on upper
+bounds and max on lower bounds gives precisely the intersection of the safe
+sets, with no slack — because each row of h is monotone in its own θ component
+and the bilinear budget row is *linear in B*. Exactness is not decoration: an
+inner approximation would refine both operands, pass every structural check,
+and quietly forbid terms both parties had agreed to.
+
+It matters because a self-negotiated contract **need not refine the mandate
+its parties are subject to** (arm C: 9 of 9 pairs, budgets 1.05–1.52× above),
+so enforcing what the parties agreed can license exactly what the platform
+forbids. Composition is what makes a self-negotiated contract safe to permit.
+The refinement order also had a latent error until it was property-tested,
+which is itself the argument for stating this as a proposition with a proof
+rather than as an assertion about a lattice.
 
 **Proposition 2 makes deadlines structural.** κ\*(x) *rises* along an improving
 path (15.95 → 39.78), because gradients grow as the draft gets better and

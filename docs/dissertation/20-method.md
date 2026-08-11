@@ -177,7 +177,7 @@ Arms A and D are behaviourally identical by construction — the monitor changes
 no message — which makes every A/D difference an estimate of the noise floor.
 This is the only reason any effect in chapter 5 can be called large.
 
-## 4.5 Five integration bugs, and why they belong in a methods chapter
+## 4.5 Seven integration bugs, and why they belong in a methods chapter
 
 Each of the following passed a complete test suite. Each was invisible for the
 same reason: **the tests asserted on a plausible-looking surface rather than the
@@ -246,7 +246,30 @@ the corrupted surface is the *observed* trajectory. The drift, funnelling,
 compression and safety results are computed on the *binding* trajectory or on
 database outcomes and are unaffected; the section 11 convergence report is not.
 
-**What the fifth one adds to the lesson.** It was latent in every arm from the
+**6. The negotiated arms raised on every governed round.** The freeze-time
+projection referenced a `PairState` field that a botched edit never added, so
+every proposal after θ was agreed raised `AttributeError`. The whole suite
+passed: every negotiated-arm test stopped at the freeze, so the pre-phase was
+covered and the enforced phase never was. The live symptom looks nothing like a
+crash — the exception escapes `execute_action` *before* the action row is
+persisted, so the message simply never arrives, no error is logged, and both
+agents poll until they hit their step limit. Five seeds ran to completion, wrote
+plausible certificates, and recorded 0 enforced rounds out of 35, which reads as
+a *finding* ("the pre-phase consumes everything") and was nearly written up as
+one. What caught it was an A/B control, not the logs: an arm B run on an
+untouched code path looked normal while an arm C run made at the same moment
+looked broken, which ruled out the environment and pointed at the diff.
+
+**7. The projection returned the breach on a degenerate safe set.** Composition
+can make C(θ) a single admissible point — which on `bargain_3_9` it does exactly,
+because the buyer states its budget verbatim so c_meet·q_min = B_meet to the
+cent. `project_into_safe_set` cannot land on it: the feasible region is a point
+expressed as two opposing inequalities, OSQP returns "maximum iterations
+reached" with u = 0, and the routine handed back the *unsafe* input while
+reporting nothing. Arm C-meet breached 2 of 6 enforced rounds this way. Closed
+with a closed-form feasibility fallback (limitation B7).
+
+**What the fifth, sixth and seventh add to the lesson.** It was latent in every arm from the
 first run and became visible only when arm C became the first component to
 *read* the buyer's position rather than merely log it. A value that nothing
 depends on is a value that nothing checks. A safety layer accumulates such

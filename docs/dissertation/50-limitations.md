@@ -58,6 +58,25 @@ which is the whole of that arm's residual harm. Whether the platform should
 *refuse* trades it knows to be unsatisfiable — rather than merely decline to
 filter them — is open design question G8. *(addendum 11)*
 
+**B6 — A negotiated contract cannot govern the exchange that creates it.**
+*(new 2026-08-11)* θ inferred from opening positions does not exist until both
+sides have spoken, so the pre-phase is ungoverned by construction — and if the
+buyer accepts during it, the contract is agreed and never binds at all. This is
+structural to arms C and C-meet and has no analogue in arms B or D, where θ
+exists before the first message. It also means the composed arm's guarantee is
+conditional on the negotiation surviving its own opening.
+
+**B7 — The projection onto a degenerate safe set is a feasibility fallback, not
+the metric-nearest point.** *(new 2026-08-11)* Composition can make C(θ) a
+single admissible point, and the QP cannot land on one: the feasible region is
+a point written as two opposing inequalities, OSQP reports "maximum iterations
+reached", and the routine used to return the *unsafe* input silently. It now
+falls back to a closed-form clip that is guaranteed inside C(θ) whenever C(θ)
+is non-empty but does not claim minimality. Staying inside the safe set is the
+guarantee; minimal invasiveness is a preference — but on degenerate contracts
+the two are no longer delivered by the same code path, and the intervention
+magnitudes on those rounds are not QP-optimal.
+
 **B5 — Money is quantised and the safe set is not.** Any "zero breaches" claim
 must state whether it survives writing the terms back at currency precision.
 Ours does, because the rewrite quantises *into* C(θ); it did not before.

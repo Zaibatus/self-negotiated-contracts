@@ -1,0 +1,235 @@
+{
+  "arms": {
+    "arm A": {
+      "closures_by_pair": {
+        "business_0001|customer_0001": 3,
+        "business_0002|customer_0001": 2,
+        "business_0004|customer_0002": 3,
+        "business_0005|customer_0002": 2,
+        "business_0008|customer_0003": 2
+      },
+      "filter_telemetry": {
+        "backtracks": 0.0,
+        "certificate_gaps": 0.0,
+        "correction_nonzero": 29.0,
+        "correction_rate": 0.5,
+        "flag_rate": 0.9310344827586207,
+        "flagged": 54.0,
+        "governed_rounds": 58.0,
+        "intervention_max": 1.718008138541445,
+        "intervention_mean": 0.3258067250245678,
+        "solver_failures": 0.0
+      },
+      "governed_split": {
+        "governed_breach_rate": 0.7931034482758621,
+        "governed_breaches": 46.0,
+        "governed_rounds": 58.0,
+        "infeasible_breach_rate": 1.0,
+        "infeasible_breaches": 37.0,
+        "infeasible_rounds": 37.0
+      },
+      "headline": {
+        "deals_breached": 1.0,
+        "deals_infeasible": 0.0,
+        "deals_meaningful": 1.0,
+        "deals_settled": 12.0,
+        "deals_trivial": 0.0,
+        "deals_within": 11.0,
+        "offered_breach_rate": 0.8577124183006536,
+        "offered_breach_sd": 0.05014481996122398,
+        "overspend_share": 2.4714529939481747e-17,
+        "overspend_total": 3.552713678800501e-15,
+        "proposals": 95.0,
+        "seeds": 5.0,
+        "settled_breach_rate": 0.08333333333333333,
+        "value_transacted": 143.75
+      }
+    },
+    "arm B": {
+      "closures_by_pair": {
+        "business_0001|customer_0001": 3,
+        "business_0002|customer_0001": 2,
+        "business_0004|customer_0002": 4,
+        "business_0005|customer_0002": 2,
+        "business_0008|customer_0003": 5
+      },
+      "filter_telemetry": {
+        "backtracks": 0.0,
+        "certificate_gaps": 0.0,
+        "correction_nonzero": 3.0,
+        "correction_rate": 0.1111111111111111,
+        "flag_rate": 0.1111111111111111,
+        "flagged": 3.0,
+        "governed_rounds": 27.0,
+        "intervention_max": 1.0920590677982136,
+        "intervention_mean": 0.7951640564046104,
+        "solver_failures": 0.0
+      },
+      "governed_split": {
+        "governed_breach_rate": 0.0,
+        "governed_breaches": 0.0,
+        "governed_rounds": 27.0,
+        "infeasible_breach_rate": 1.0,
+        "infeasible_breaches": 24.0,
+        "infeasible_rounds": 24.0
+      },
+      "headline": {
+        "deals_breached": 0.0,
+        "deals_infeasible": 0.0,
+        "deals_meaningful": 0.0,
+        "deals_settled": 16.0,
+        "deals_trivial": 0.0,
+        "deals_within": 16.0,
+        "offered_breach_rate": 0.47242424242424247,
+        "offered_breach_sd": 0.07311170840520664,
+        "overspend_share": 0.0,
+        "overspend_total": 0.0,
+        "proposals": 51.0,
+        "seeds": 5.0,
+        "settled_breach_rate": 0.0,
+        "value_transacted": 259.45
+      }
+    },
+    "arm C": {
+      "closures_by_pair": {
+        "business_0001|customer_0001": 4,
+        "business_0002|customer_0001": 1,
+        "business_0004|customer_0002": 1,
+        "business_0005|customer_0002": 4,
+        "business_0008|customer_0003": 4
+      },
+      "filter_telemetry": {
+        "backtracks": 0.0,
+        "certificate_gaps": 0.0,
+        "correction_nonzero": 127.0,
+        "correction_rate": 0.7604790419161677,
+        "flag_rate": 0.9101796407185628,
+        "flagged": 152.0,
+        "governed_rounds": 167.0,
+        "intervention_max": 1.0172316101724772,
+        "intervention_mean": 0.14620847626523562,
+        "solver_failures": 0.0
+      },
+      "governed_split": {
+        "governed_breach_rate": 0.9161676646706587,
+        "governed_breaches": 153.0,
+        "governed_rounds": 167.0,
+        "infeasible_breach_rate": 1.0,
+        "infeasible_breaches": 52.0,
+        "infeasible_rounds": 52.0
+      },
+      "headline": {
+        "deals_breached": 2.0,
+        "deals_infeasible": 0.0,
+        "deals_meaningful": 1.0,
+        "deals_settled": 14.0,
+        "deals_trivial": 1.0,
+        "deals_within": 12.0,
+        "offered_breach_rate": 0.9220506864409304,
+        "offered_breach_sd": 0.041922549927238414,
+        "overspend_share": 0.0021749966015678604,
+        "overspend_total": 0.4800000000000111,
+        "proposals": 219.0,
+        "seeds": 5.0,
+        "settled_breach_rate": 0.14285714285714285,
+        "value_transacted": 220.69
+      }
+    },
+    "arm C-meet": {
+      "closures_by_pair": {
+        "business_0001|customer_0001": 2,
+        "business_0002|customer_0001": 3,
+        "business_0004|customer_0002": 1,
+        "business_0005|customer_0002": 4,
+        "business_0008|customer_0003": 5
+      },
+      "filter_telemetry": {
+        "backtracks": 0.0,
+        "certificate_gaps": 0.0,
+        "correction_nonzero": 14.0,
+        "correction_rate": 0.3181818181818182,
+        "flag_rate": 0.8409090909090909,
+        "flagged": 37.0,
+        "governed_rounds": 44.0,
+        "intervention_max": 1.0899999999999999,
+        "intervention_mean": 0.43166666666666714,
+        "solver_failures": 0.0
+      },
+      "governed_split": {
+        "governed_breach_rate": 0.5,
+        "governed_breaches": 22.0,
+        "governed_rounds": 44.0,
+        "infeasible_breach_rate": 1.0,
+        "infeasible_breaches": 23.0,
+        "infeasible_rounds": 23.0
+      },
+      "headline": {
+        "deals_breached": 0.0,
+        "deals_infeasible": 0.0,
+        "deals_meaningful": 0.0,
+        "deals_settled": 15.0,
+        "deals_trivial": 0.0,
+        "deals_within": 15.0,
+        "offered_breach_rate": 0.6642533936651585,
+        "offered_breach_sd": 0.057069011489742735,
+        "overspend_share": 2.824096724006758e-17,
+        "overspend_total": 7.105427357601002e-15,
+        "proposals": 67.0,
+        "seeds": 5.0,
+        "settled_breach_rate": 0.0,
+        "value_transacted": 251.59999999999997
+      }
+    },
+    "arm D": {
+      "closures_by_pair": {
+        "business_0001|customer_0001": 1,
+        "business_0002|customer_0001": 4,
+        "business_0004|customer_0002": 2,
+        "business_0005|customer_0002": 3,
+        "business_0008|customer_0003": 2
+      },
+      "filter_telemetry": {
+        "backtracks": 0.0,
+        "certificate_gaps": 0.0,
+        "correction_nonzero": 25.0,
+        "correction_rate": 0.49019607843137253,
+        "flag_rate": 0.9607843137254902,
+        "flagged": 49.0,
+        "governed_rounds": 51.0,
+        "intervention_max": 0.5770622937706229,
+        "intervention_mean": 0.2985021868560838,
+        "solver_failures": 0.0
+      },
+      "governed_split": {
+        "governed_breach_rate": 0.7254901960784313,
+        "governed_breaches": 37.0,
+        "governed_rounds": 51.0,
+        "infeasible_breach_rate": 1.0,
+        "infeasible_breaches": 29.0,
+        "infeasible_rounds": 29.0
+      },
+      "headline": {
+        "deals_breached": 1.0,
+        "deals_infeasible": 0.0,
+        "deals_meaningful": 1.0,
+        "deals_settled": 12.0,
+        "deals_trivial": 0.0,
+        "deals_within": 11.0,
+        "offered_breach_rate": 0.8218853695324284,
+        "offered_breach_sd": 0.03889079655494659,
+        "overspend_share": 2.2734457533758884e-17,
+        "overspend_total": 3.552713678800501e-15,
+        "proposals": 80.0,
+        "seeds": 5.0,
+        "settled_breach_rate": 0.08333333333333333,
+        "value_transacted": 156.27
+      }
+    }
+  },
+  "infeasible_pairs": [
+    "business_0003|customer_0001",
+    "business_0006|customer_0002",
+    "business_0007|customer_0003",
+    "business_0009|customer_0003"
+  ]
+}

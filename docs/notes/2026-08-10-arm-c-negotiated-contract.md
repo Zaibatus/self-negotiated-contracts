@@ -155,6 +155,10 @@ platform's rules. The machinery for it already exists (`Contract.refines`, and
 the meet is componentwise), it is one arm's worth of work, and it is *not* run
 here because it is a fourth treatment rather than a fix to this one.
 
+**[2026-08-11: done — see `2026-08-11-arm-c-meet.md`.]** `Contract.meet` was
+added with the exactness result as formulation §9.5 Proposition 3, and arm
+C-meet runs it.
+
 ## Arm C does not compress the negotiation, and that is the cost
 
 The funnelling note's cleanest result was that enforcement removes the
@@ -291,5 +295,14 @@ enforce" — an *exact* equality, which is what gave it away.
 - **n = 5 seeds × 3 customers.** The 0/136 safety result is categorical. The
   1.21× looseness is 29 observations of one scenario's price structure and the
   *direction* is what transfers, not the multiple.
-- **θ_negotiated ∧ θ_mandate is proposed, not tested.** The composition that
-  would fix the compliance gap is one arm's work and is named rather than run.
+- ~~**θ_negotiated ∧ θ_mandate is proposed, not tested.**~~ **Tested
+  2026-08-11**, `2026-08-11-arm-c-meet.md`.
+- **Arm C's runs predate two protocol fixes** *(2026-08-11)*: the freeze-time
+  opening projection, and the degenerate-safe-set projection fallback. Neither
+  changes the terms arm C delivers — the envelope contains the seller's opening
+  ask by construction, so the freeze-time projection is a provable no-op there
+  (`test_the_envelope_contains_the_opening_ask_by_construction`), and arm C's
+  envelope is never degenerate. What does shift is bookkeeping: under the
+  current code arm C's first post-freeze round is recorded as an opening rather
+  than as a barrier step. The outcome numbers stand; the opening/continuation
+  split would be drawn slightly differently if re-run.
