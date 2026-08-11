@@ -335,22 +335,37 @@ def rewrite_proposal(
 
 
 def _repair_quantisation(
-    proposal: OrderProposal, contract: Contract, max_cent_steps: int
+    proposal: OrderProposal,
+    contract: Contract,
+    max_cent_steps: int,
+    tol: float = 1e-6,
 ) -> OrderProposal:
     """Nudge unit prices by whole cents until the true h is satisfied.
 
     Moves the *largest* line item, so the fewest cents shift the total the
     furthest, and gives up rather than looping if the breach is on a row price
     cannot fix.
+
+    ``tol`` matches ``Contract.is_safe`` and is not cosmetic. When C(theta) is
+    **degenerate** — the safe set a single price, which is exactly what
+    theta_negotiated ∧ theta_mandate produces on `bargain_3_9` because the buyer
+    states its budget verbatim and c_meet * q_min = B_meet to the cent — the
+    admissible point sits on both boundaries at once. Comparing against a hard
+    ``0.0`` then fails on representation error alone (10.46 × 3 evaluates to
+    31.380000000000003 against a budget of 31.38), and the loop oscillates:
+    over budget by 3.6e-15 → down a cent → under the cost floor by 0.01 → up a
+    cent → forever, returning a breaching proposal after ``max_cent_steps``.
+    A degenerate safe set is a legitimate contract, so the repair has to be
+    able to land on it.
     """
     mask = contract.active_mask()
     for _ in range(max_cent_steps):
         values = contract.h(from_order_proposal(proposal).vector)
-        if bool(np.all(values[mask] >= 0.0)):
+        if bool(np.all(values[mask] >= -tol)):
             return proposal
-        if mask[0] and values[0] < 0:
+        if mask[0] and values[0] < -tol:
             step = -0.01  # over budget: come down
-        elif mask[1] and values[1] < 0:
+        elif mask[1] and values[1] < -tol:
             step = 0.01  # under the cost floor: come up
         else:
             return proposal  # quantity or deadline: not a price problem

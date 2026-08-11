@@ -153,6 +153,17 @@ class Contract:
         The refinement order of formulation.md section 1. For this template it
         is componentwise: a tighter budget, a higher cost floor, and narrower
         bands all shrink the safe set.
+
+        The deadline case is asymmetric and used to be wrong. A contract with
+        the deadline rows *off* does not constrain d at all, so it cannot
+        refine one that does — its safe set is unbounded in a direction where
+        the other's is not. The previous version skipped the comparison
+        whenever either side had them off, and so reported
+        ``a.without_deadline().refines(a) is True`` while
+        ``x = (6, 10, 99)`` sits in the first safe set and outside the second.
+        Found by the property tests in ``tests/test_contract_algebra.py``,
+        which are the first thing ever to check this order rather than assert
+        it.
         """
         checks = [
             self.budget <= other.budget + tol,
@@ -160,12 +171,65 @@ class Contract:
             self.q_min >= other.q_min - tol,
             self.q_max <= other.q_max + tol,
         ]
-        if self.deadline_active and other.deadline_active:
+        if other.deadline_active:
+            if not self.deadline_active:
+                # `other` bounds d and `self` does not: not a refinement.
+                return False
             checks += [
                 self.d_min >= other.d_min - tol,
                 self.d_max <= other.d_max + tol,
             ]
         return all(checks)
+
+    def meet(self, other: Contract) -> Contract:
+        """theta_self AND theta_other: the greatest lower bound in the
+        refinement order, with C(meet) = C(self) intersect C(other).
+
+        Componentwise ``min`` on the upper bounds (budget, q_max, d_max) and
+        ``max`` on the lower bounds (cost_floor, q_min, d_min).
+
+        **Why this is exact rather than an inner approximation.** Each row of h
+        is monotone in its own theta component, and — crucially for the budget
+        row — h1 = B - p*q is *bilinear in x but linear in B*. So x satisfies
+        both budgets exactly when p*q <= min(B_self, B_other), and likewise
+        row by row. The intersection of the two safe sets is therefore itself
+        of the form C(theta) for the componentwise meet, with no slack. That is
+        what makes contracts over this template a meet-semilattice rather than
+        merely a partial order, and it is the property arm C-meet relies on.
+
+        The deadline rows follow the same rule once they are read correctly: a
+        contract with them off imposes no bound on d, so it is the *identity*
+        on that axis, and the meet keeps whichever side actually constrains it.
+
+        The meet may be **unsatisfiable even when both inputs are satisfiable**
+        — c_other * q_min_self can exceed B_self. That is not a defect; it is
+        the composition telling you the two contracts have no common ground,
+        and it is handled exactly as any other unsatisfiable theta
+        (formulation.md section 10, limitation B4).
+        """
+        if self.deadline_active and not other.deadline_active:
+            # `other` is the identity on this axis, so it must not narrow the
+            # band — its d_min/d_max are dormant data, not constraints.
+            d_min, d_max = self.d_min, self.d_max
+        elif other.deadline_active and not self.deadline_active:
+            d_min, d_max = other.d_min, other.d_max
+        else:
+            # Both active (a genuine intersection) or both dormant (the band is
+            # inert, but the *same* rule still has to apply or the operation
+            # stops being commutative — keeping `self`'s dormant band made
+            # a.meet(b) and b.meet(a) differ, which the property tests caught).
+            d_min, d_max = max(self.d_min, other.d_min), min(self.d_max, other.d_max)
+
+        return Contract(
+            budget=min(self.budget, other.budget),
+            cost_floor=max(self.cost_floor, other.cost_floor),
+            q_min=max(self.q_min, other.q_min),
+            q_max=min(self.q_max, other.q_max),
+            d_min=d_min,
+            d_max=d_max,
+            deadline_active=self.deadline_active or other.deadline_active,
+            pair_id=self.pair_id or other.pair_id,
+        )
 
     def active_mask(self) -> np.ndarray:
         """Boolean mask over ROW_LABELS of which rows are enforced."""
