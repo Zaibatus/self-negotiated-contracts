@@ -34,6 +34,9 @@ Modes:
 Where theta comes from is a separate axis from the mode:
 
     theta_source="scenario"  imposed by the platform (arms B and D)
+    theta_source="meet"      theta_negotiated AND theta_mandate: the envelope
+                             composed with the platform's contract, which is
+                             the arm that recovers the guarantee (arm C-meet)
     theta_source="inferred"  the envelope of the agents' own opening positions,
                              frozen once both have spoken (arm C). See
                              ``inference.py``. Arms B and C then differ in
@@ -62,13 +65,14 @@ from magentic_marketplace.platform.shared.models import (
 
 from ..certificates.dcbf import DCBFFilter, project_into_safe_set
 from ..certificates.metrics import RoundRecord, make_round_record, summarise
+from ..contract import Contract
 from ..payoffs import dist_M
 from .inference import InferenceReport, Positions
 from .terms import Terms, from_order_proposal, from_text, rewrite_proposal
 from .theta import ContractRegistry, pair_key
 
 Mode = Literal["filter", "monitor", "off"]
-ThetaSource = Literal["scenario", "inferred"]
+ThetaSource = Literal["scenario", "inferred", "meet"]
 
 
 @dataclass
@@ -86,6 +90,14 @@ class PairState:
     unsatisfiable: bool = False
     # Arm C only: the two opening positions and the envelope they imply.
     positions: Positions = field(default_factory=Positions)
+    # Arm C-meet only: the composed contract actually enforced, kept so the
+    # note can report how often the negotiated side strictly bites.
+    meet_contract: Contract | None = None
+    # Has the contract-governed phase had its opening projection yet? Distinct
+    # from `binding` being empty, because a negotiated theta only comes into
+    # existence after a pre-phase that has already put points on the
+    # trajectory. See the `first_governed_round` branch in `_on_proposal`.
+    governed_opened: bool = False
     # Rounds that elapsed before theta was agreed. Counted against T_max or
     # not, depending on `prephase_counts_against_tmax`; recorded either way so
     # the choice is auditable rather than baked in.
@@ -235,7 +247,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         )
         x_proposed = terms.vector
 
-        if self.theta_source == "inferred":
+        if self.theta_source in ("inferred", "meet"):
             self.inference.pairs.setdefault(key, state.positions)
             state.positions.note_seller(float(x_proposed[0]), float(x_proposed[1]))
             envelope_contract = state.positions.contract
@@ -250,10 +262,17 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                 state.binding.append(x_proposed)
                 state.observed.append(x_proposed)
                 return None
+            # Arm C enforces what the parties agreed. Arm C-meet enforces the
+            # meet of that with the platform's mandate, which is what makes a
+            # self-negotiated contract safe to permit: the envelope alone need
+            # not refine the mandate (0 of 29 did on bargain_3_9), so enforcing
+            # it can license exactly what the mandate forbids.
+            governing = envelope_contract
+            if self.theta_source == "meet":
+                governing = envelope_contract.meet(contract)
+                state.meet_contract = governing
             effective = (
-                envelope_contract
-                if terms.deadline_observed
-                else envelope_contract.without_deadline()
+                governing if terms.deadline_observed else governing.without_deadline()
             )
 
         if not effective.is_satisfiable():
@@ -271,7 +290,28 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             state.observed.append(x_proposed)
             return None
 
-        if state.last_binding is None:
+        # The first proposal governed by *this* contract is projected, not
+        # recovered — the module docstring's third asymmetry, applied at the
+        # moment theta comes into existence rather than at the first message.
+        #
+        # For arms B and D the two coincide. For a negotiated theta they do
+        # not: the pre-phase has already consumed the opening, so without this
+        # the first enforced round is a *transition* and the DCBF only
+        # guarantees geometric recovery from outside C (limitation B2).
+        #
+        # Arm C never noticed, because its envelope contains the seller's
+        # opening ask by construction (B_env = p_ask * q_ask, so h_budget = 0
+        # exactly there) and the projection is a provable no-op. Arm C-meet is
+        # the first arm where a contract comes into being with the state
+        # already outside it, and there the distinction decides the guarantee:
+        # measured, the un-projected version recovered 11.58 - 13.51 = -1.93 to
+        # only -0.75 and delivered breaching terms while satisfying the DCBF
+        # condition exactly as specified.
+        first_governed_round = state.last_binding is None or (
+            self.theta_source in ("inferred", "meet") and not state.governed_opened
+        )
+        if first_governed_round:
+            state.governed_opened = True
             return self._open_negotiation(
                 envelope, proposal, state, effective, terms, x_proposed
             )
@@ -383,7 +423,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             return
         state.observed.append(terms.vector)
 
-        if self.theta_source == "inferred" and not state.positions.is_frozen:
+        if self.theta_source in ("inferred", "meet") and not state.positions.is_frozen:
             # The buyer's first counter closes the pre-phase: both sides have
             # now named a price, so the envelope is determined and is frozen
             # here for the rest of the negotiation.
@@ -455,7 +495,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             sum(1 for s in self.states.values() if s.unsatisfiable)
         )
         out["ungoverned_messages"] = float(len(self.ungoverned))
-        if self.theta_source == "inferred":
+        if self.theta_source in ("inferred", "meet"):
             out.update(self.inference.summary())
             # Rounds spent agreeing theta. Whether these count against T_max is
             # a policy choice, so both the count and the choice are reported.

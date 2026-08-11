@@ -97,10 +97,11 @@ def build_parser(description: str) -> argparse.ArgumentParser:
     parser.add_argument(
         "--theta-source",
         default="scenario",
-        choices=["scenario", "inferred"],
+        choices=["scenario", "inferred", "meet"],
         help="'scenario' imposes theta from the data (arms B/D); 'inferred' "
         "builds it as the envelope of the agents' own opening positions "
-        "(arm C)",
+        "(arm C); 'meet' enforces theta_negotiated AND theta_mandate "
+        "(arm C-meet)",
     )
     parser.add_argument(
         "--prephase-counts-against-tmax",
@@ -176,7 +177,8 @@ def section_11_report(protocol: Any, controller: ControllerSpec) -> dict[str, An
     registry = protocol.registry
     trajectories = protocol.trajectories(binding=False)
 
-    inferred = getattr(protocol, "theta_source", "scenario") == "inferred"
+    source = getattr(protocol, "theta_source", "scenario")
+    inferred = source in ("inferred", "meet")
 
     negotiations: list[dict[str, Any]] = []
     as_arrays: dict[str, list[np.ndarray]] = {}
@@ -193,6 +195,8 @@ def section_11_report(protocol: Any, controller: ControllerSpec) -> dict[str, An
         if inferred:
             state = protocol.states.get(key)
             envelope = state.positions.contract if state is not None else None
+            if source == "meet" and state is not None and state.meet_contract:
+                envelope = state.meet_contract
             governing = envelope if envelope is not None else imposed
         one = _one_negotiation(
             key=key,
@@ -204,7 +208,7 @@ def section_11_report(protocol: Any, controller: ControllerSpec) -> dict[str, An
             controller=controller,
         )
         if inferred:
-            one["theta"] = _theta_comparison(protocol, key, imposed)
+            one["theta"] = _theta_comparison(protocol, key, imposed, source)
         negotiations.append(one)
 
     out_extra: dict[str, Any] = {}
@@ -229,7 +233,9 @@ def section_11_report(protocol: Any, controller: ControllerSpec) -> dict[str, An
     }
 
 
-def _theta_comparison(protocol: Any, key: str, imposed: Any) -> dict[str, Any]:
+def _theta_comparison(
+    protocol: Any, key: str, imposed: Any, source: str = "inferred"
+) -> dict[str, Any]:
     """How the negotiated theta differs from the one the platform would impose.
 
     Reported per pair because the direction is the interesting part: an
@@ -257,6 +263,31 @@ def _theta_comparison(protocol: Any, key: str, imposed: Any) -> dict[str, Any]:
         out["refines_imposed"] = (
             bool(envelope.refines(imposed)) if imposed is not None else None
         )
+    enforced = state.meet_contract if state is not None else None
+    if source == "meet" and enforced is not None:
+        out["enforced"] = enforced.theta.tolist()
+        out["enforced_refines_imposed"] = (
+            bool(enforced.refines(imposed)) if imposed is not None else None
+        )
+        out["enforced_refines_envelope"] = (
+            bool(enforced.refines(envelope)) if envelope is not None else None
+        )
+        out["enforced_satisfiable"] = bool(enforced.is_satisfiable())
+        if imposed is not None:
+            # Does the negotiated side actually bite, or is the meet just the
+            # mandate again? Reported per row, because on bargain_3_9 it is
+            # always the cost floor and never the budget.
+            bites = []
+            if enforced.budget < imposed.budget - 1e-9:
+                bites.append("budget")
+            if enforced.cost_floor > imposed.cost_floor + 1e-9:
+                bites.append("cost_floor")
+            if enforced.q_min > imposed.q_min + 1e-9:
+                bites.append("q_min")
+            if enforced.q_max < imposed.q_max - 1e-9:
+                bites.append("q_max")
+            out["strictly_tighter_than_mandate_on"] = bites
+            out["margin"] = enforced.budget - enforced.cost_floor * enforced.q_min
     if imposed is not None:
         out["imposed"] = imposed.theta.tolist()
         if envelope is not None:

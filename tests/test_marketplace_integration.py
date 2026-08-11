@@ -746,3 +746,75 @@ class TestSellerReconciliation:
 
         type(agent).__mro__[1].send_message = staticmethod(odd)
         await agent.send_message("customer_0001", sent)  # must not raise
+
+
+class TestTheNegotiatedArmsReachTheGovernedPhase:
+    """Arms C and C-meet must survive the round *after* theta is agreed.
+
+    This is the coverage whose absence let a protocol that raised
+    `AttributeError` on every governed round pass the entire suite. Every
+    existing negotiated-arm test stopped at the freeze, so the pre-phase was
+    exercised and the enforced phase never was -- and a live run answers by
+    going silent rather than by failing, because the exception escapes
+    `execute_action` before the action is persisted, so the message simply
+    never arrives and both agents poll until they hit their step limit.
+
+    Asserting the pre-phase works is asserting on a plausible surface. The
+    surface that matters is the first proposal the contract actually governs.
+    """
+
+    @pytest.mark.parametrize("theta_source", ["inferred", "meet"])
+    async def test_a_proposal_after_the_freeze_is_governed_not_an_exception(
+        self, theta_source: str
+    ):
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", theta_source=theta_source
+        )
+        # Pre-phase: the seller opens, the buyer names its own price.
+        await send(protocol, proposal(total=14.0))
+        await send(
+            protocol,
+            TextMessage(content="Your quote of $14.00 is over my budget of $11.00."),
+            sender="customer_0001",
+            recipient="business_0001",
+        )
+        state = protocol.states["business_0001|customer_0001"]
+        assert state.positions.is_frozen, "pre-phase did not resolve; test is void"
+
+        # The round the contract governs. Before the fix this raised.
+        held = await send(protocol, proposal(total=13.0, pid="p2"))
+        assert isinstance(held.message, OrderProposal)
+        assert state.governed_opened
+
+        # And a second one, so the open -> continue transition is covered too.
+        held2 = await send(protocol, proposal(total=12.5, pid="p3"))
+        assert isinstance(held2.message, OrderProposal)
+
+    async def test_the_meet_is_what_gets_enforced_not_the_envelope(self):
+        """The whole point of arm C-meet, asserted on the enforced object."""
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", theta_source="meet"
+        )
+        await send(protocol, proposal(total=14.0))
+        await send(
+            protocol,
+            TextMessage(content="Your quote of $14.00 is over my budget of $11.00."),
+            sender="customer_0001",
+            recipient="business_0001",
+        )
+        await send(protocol, proposal(total=13.0, pid="p2"))
+
+        state = protocol.states["business_0001|customer_0001"]
+        mandate = protocol.registry.get("business_0001", "customer_0001")
+        envelope_theta = state.positions.contract
+        enforced = state.meet_contract
+        assert enforced is not None
+        assert enforced.refines(mandate)
+        assert enforced.refines(envelope_theta)
+        # And it is genuinely the composition, not just one of the operands.
+        assert enforced.budget == pytest.approx(
+            min(envelope_theta.budget, mandate.budget)
+        )
+        assert enforced.cost_floor == pytest.approx(
+            max(envelope_theta.cost_floor, mandate.cost_floor)
+        )
