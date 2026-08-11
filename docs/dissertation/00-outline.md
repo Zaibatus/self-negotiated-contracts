@@ -1,6 +1,6 @@
 # Dissertation outline — status map
 
-**Started:** 2026-08-05. **Marks refreshed 2026-08-10** after the undisclosed-budget and arm C commits (G1 and G7 closed; G8 and G9 opened). Structure only; chapters point at their sources rather
+**Started:** 2026-08-05. **Marks refreshed 2026-08-11** after arm C-meet (G1, G7 and G9 closed; G8 opened and now more pressing). **The experimental programme is closed.** Structure only; chapters point at their sources rather
 than copying them, so a correction to `formulation.md` cannot silently diverge
 from a chapter.
 
@@ -16,22 +16,31 @@ time to run experiments that fill them. Every section carries one of:
 
 ---
 
-## Chapters
+## Chapters — send-readiness
 
-| # | file | source | state |
-|---|---|---|---|
-| 1 | `10-introduction.md` | new prose | **DRAFTED 2026-08-10** — leads with the G4 asymmetry |
-| 2 | `60-related-work.md` | new prose | **DONE**, CBF-LLM re-verified |
-| 3 | `30-theory.md` | → `formulation.md` §1–9 | mostly DONE, 3 OPEN |
-| 4 | `20-method.md` | new prose | **DRAFTED 2026-08-10** — includes all five integration bugs |
-| 5 | `40-results.md` | the nine arm notes | **DONE** for A/B/C/D + γ + models + undisclosed |
+**Refreshed 2026-08-11.** "DRAFT COMPLETE" means the chapter says everything it
+is meant to say, is consistent with the notes it draws on, and can go to a
+supervisor as it stands. It does **not** mean prose-polished or figure-complete;
+where a figure is still to be drawn that is named, because a missing figure does
+not stop a chapter being read.
 
-Chapters 1, 4 and 7 were marked DONE on 2026-08-07 before they had been
-written — the marks recorded the *plan* for them rather than their state. They
-exist as of 2026-08-10 and are marked DRAFTED, which means written and
-sourced but not revised against a full read-through.
-| 6 | `50-limitations.md` | dedup of 6 sources | DONE |
-| 7 | `70-conclusion.md` | new prose | **DRAFTED 2026-08-10** — remaining work ordered by impact |
+| # | file | state | send? | what is missing |
+|---|---|---|---|---|
+| 1 | `10-introduction.md` | **DRAFT COMPLETE** | **yes** | nothing blocking. Leads with the safety/convergence asymmetry and the four axes it is replicated on |
+| 2 | `60-related-work.md` | **DRAFT COMPLETE** | **yes** | nothing blocking. CBF-LLM re-verified 2026-08-05 |
+| 3 | `30-theory.md` | **DRAFT COMPLETE** | **yes, with a caveat** | it is a *section map* onto `formulation.md`, not standalone prose — send both, or say so. Three OPEN theoretical obligations are named in it |
+| 4 | `20-method.md` | **DRAFT COMPLETE** | **yes** | nothing blocking. Includes all seven integration bugs |
+| 5 | `40-results.md` | **DRAFT COMPLETE** | **yes** | all five arms and both scenarios. Figures 1–7 are specified but **not drawn** — the data exists for all of them |
+| 6 | `50-limitations.md` | **DRAFT COMPLETE** | **yes** | nothing blocking. Single consolidated list, deduplicated from every source |
+| 7 | `70-conclusion.md` | **DRAFT COMPLETE** | **yes** | nothing blocking. Remaining work ordered by impact; three deliberate gaps named separately |
+
+**Send order, if sending piecemeal:** 5 → 1 → 7 first. Chapter 5 carries the
+evidence and is where a supervisor's objections will land; 1 and 7 frame what it
+does and does not establish. Chapters 2, 3, 4 and 6 are reference material and
+will generate fewer questions.
+
+**Nothing is blocked on an experiment.** The programme closed 2026-08-11 with
+arm C-meet. Everything outstanding is drawing figures and prose.
 
 ## The argument in one page
 
@@ -138,26 +147,39 @@ exists. Refusing the trade would take marketplace-wide overspend to £0.00 and
 forbid nothing that should have been allowed. Not implemented, because blocking
 is a different intervention from filtering and would confound arm B.
 
-**G9 — the negotiated and imposed contracts are never composed.** *(RERUN,
-new 2026-08-10)* Arm C shows θ_negotiated sitting *above* θ_mandate in the
-refinement order in every case, so enforcing it alone permits exactly what the
-mandate forbids. The fix is the meet, θ_negotiated ∧ θ_mandate — parties may
-agree their own terms, but only inside the platform's rules — which is one
-arm's work on machinery that already exists (`Contract.refines`; the meet is
-componentwise). Proposed, not tested.
+**G9 — the negotiated and imposed contracts are never composed.** *(**CLOSED
+2026-08-11** — `2026-08-11-arm-c-meet.md`)* Arm C showed θ_negotiated sitting
+*above* θ_mandate in the refinement order on every pair, so enforcing it alone
+permits exactly what the mandate forbids. Arm C-meet enforces the meet.
+
+**The guarantee is recovered and closure is not the price:** 0 of 15 settled
+deals breach the mandate, £0.00 overspent (arm C: 2/14, £0.48), with 15 deals
+closing against arm B's 16 and arm A's 12. The enforced contract refines the
+mandate in 27/27 instances and the negotiated envelope in 27/27, so what the
+parties agreed survives inside what is enforced. `Contract.meet` and
+Proposition 3 (C(θ₁∧θ₂) = C(θ₁)∩C(θ₂), exactly) are now formulation §9.5.
+
+Three things it also produced: the **intervention rate fell** rather than rose
+(0.82 vs arm B's 0.89 — a tighter contract governing a shorter window);
+composition can **destroy feasibility** (one seed, buyer counter-offered above
+its own budget, meet empty, pair unfiltered — which sharpens G8); and the
+property tests written to underwrite the algebra found `Contract.refines`
+**wrong** on the deadline case, which had been asserted and never checked.
 
 ## Not blocking, but worth a paragraph each
 
 - ~~Arm B's trajectories predate the reconciliation fix~~ — **resolved
   2026-08-07**: the γ = 0.4 cell of the γ sweep is arm B re-run post-fix.
-- **Five** integration bugs are methodological material for chapter 4, not two:
+- **Seven** integration bugs are methodological material for chapter 4, not two:
   the wire copy, currency quantisation, the Φ_proj active-row test, the
-  intervention-rate logging gap, and **the buyer-counter echo** (2026-08-10 —
-  `from_text` took the *first* money figure, which is the seller's quote the
-  buyer was restating in order to reject it; 88% of extracted buyer moves were
-  echoes). All five passed a full test suite because the tests asserted on the
-  wrong surface; one produced a *false finding* ("enforcement is prevention")
-  that stood for two days, and the echo stayed latent in every arm until arm C
-  became the first thing to *read* the buyer's position rather than log it.
+  intervention-rate logging gap, the buyer-counter echo, **the negotiated arms
+  raising on every governed round**, and **the projection returning the breach
+  on a degenerate safe set** (both 2026-08-11). All seven passed a full test
+  suite because the tests asserted on the wrong surface. One produced a *false
+  finding* ("enforcement is prevention") that stood for two days; the echo
+  stayed latent in every arm until arm C became the first thing to *read* the
+  buyer's position rather than log it; and the sixth produced **five seeds of
+  clean, interpretable, wholly false data** that only an A/B control on an
+  untouched code path caught.
 - The environment is not pinned, so "bit-reproducible" is currently false as
   stated (limitation 13).

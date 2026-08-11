@@ -1,18 +1,31 @@
-# Chapter 5 — Results: four arms on a live LLM marketplace
+# Chapter 5 — Results: five arms on a live LLM marketplace
 
 **Sources:** the arm notes in `docs/notes/`. This file is the *argument* the
 arms make together, which none of the individual notes states; the numbers and
 their reproduction stay in the notes.
 
-**State: DONE for arms A, B, C and D**, on both `bargain_3_9` and
-`undisclosed_3_9`. Arm E is deferred.
+**State: DRAFT COMPLETE.** Arms A, B, C, C-meet and D, on both `bargain_3_9`
+and `undisclosed_3_9`. Arm E is deferred and is named as such in chapter 7.
+
+**Retracted claims, stated here so no reader meets them as live:** an earlier
+draft led §4 with *"enforcement is prevention"* — that the filter changes the
+trajectory so violations stop arising. It was an artefact of the intervention
+logging bug (chapter 4, bug 4) and is **withdrawn**. The surviving claim is
+narrower and is what §4 now says: *correct the opening and the negotiation
+ends.* An earlier draft also reported the funnel effect as a multiple of the
+A/D noise floor, dividing by a single realisation; that arithmetic is withdrawn
+in favour of the categorical statement.
 
 ---
 
 ## The narrative
 
-The chapter should be read as one argument in five steps, not as a list of
-experiments.
+The chapter should be read as one argument in six steps, not as a list of
+experiments. Steps 1–2 establish the problem and demolish the first attempt to
+measure it; step 2b is the **empirical centre of the dissertation**, the only
+place a benefit is measured in currency; steps 3–4 characterise what enforcement
+actually does; steps 5–6 are the culmination, where the contract stops being
+imposed and starts being negotiated.
 
 ### 1. Ungoverned marketplaces breach the contracts their own scenarios imply
 
@@ -36,7 +49,7 @@ tells the customer what it is, and the customer then polices it.
 should be presented as such rather than buried: an authored scenario changes
 more than the variable it was authored to change.
 
-### 2b. Withhold the budget from the buyer and the benefit appears, in currency
+### 2b. The centrepiece: withhold the budget and the benefit appears, in currency
 
 `undisclosed_3_9` drops the buyer clause and changes nothing else — same θ, same
 seller mandate, same basket. The buyer is no longer told its ceiling; the
@@ -51,8 +64,11 @@ platform still knows it. That single variable decides the whole benefit side.
 | **transacted above the ceiling** | **£21.70 (7.93%)** | **£0.00** |
 
 Every ungoverned deal breaches in every seed; no governed deal breaches in any.
-Unlike every other contrast in this chapter, this one is categorical and needs
-no noise floor.
+**Unlike every other contrast in this chapter, this one is categorical and needs
+no noise floor** — there is nothing to average, because the per-seed table is
+3/3 breaching against 0/3 in all five seeds. This is the single result that
+justifies the machinery: everything else in the dissertation bounds a risk,
+and this measures a harm.
 
 The mechanism is **buyer passivity, not seller aggression**: with no budget to
 defend, the buyer accepts the seller's opening list price, so every proposal is
@@ -161,9 +177,9 @@ seller's opening ask sits above the customer's reservation. So arm C settles a
 and is the only arm on `bargain_3_9` that overspends.
 
 This makes §9's refinement order the load-bearing idea rather than a formal
-nicety, and names the composition the thesis should propose: enforce
+nicety, and names the composition step 6 then runs: enforce
 **θ_negotiated ∧ θ_mandate**, the meet — parties may agree their own terms, but
-only inside the platform's rules. Proposed, not run (G9).
+only inside the platform's rules.
 
 Two further contrasts. Arm C **does not compress** the negotiation — 167
 governed rounds against arm B's 27, because the envelope leaves a zone to haggle
@@ -171,12 +187,60 @@ inside — and **14 of its 29 agreed contracts run past T_max = 6**, which is th
 only place in this project where the liveness bound binds at all (C8). A
 negotiated contract preserves the negotiation and pays for it in termination.
 
+### 6. Composition recovers the guarantee — the culmination
+
+Arm C-meet enforces the meet of the negotiated envelope and the platform's
+mandate. The pre-phase is identical to arm C; only the contract handed to the
+filter differs. §9.5's Proposition 3 is what licenses it:
+C(θ₁ ∧ θ₂) = C(θ₁) ∩ C(θ₂), exactly.
+
+| | arm A | arm D | arm B | arm C | **arm C-meet** |
+|---|---|---|---|---|---|
+| proposals offered | 95 | 80 | 51 | 219 | 67 |
+| breaching the scenario θ | 0.858 | 0.822 | 0.472 | 0.922 | 0.664 |
+| deals settled | 12 | 12 | 16 | 14 | **15** |
+| settled breaching the scenario θ | 0.083 | 0.083 | **0.000** | 0.143 | **0.000** |
+| overspend | £0.00 | £0.00 | £0.00 | £0.48 | **£0.00** |
+
+**The guarantee is recovered, and closure is not the price.** Zero of fifteen
+settled deals breach the mandate; overspend returns to £0.00 from arm C's
+£0.48; and fifteen deals close, against arm B's sixteen and arm A's twelve. The
+structural half holds by construction and was verified rather than assumed: the
+enforced contract refines the mandate in **27 of 27** frozen instances, and
+refines the negotiated envelope in 27 of 27 as well — so what the parties agreed
+survives inside what is enforced.
+
+That is the thesis's answer to its own title. A self-negotiated contract is safe
+to *permit* precisely when it is not enforced alone.
+
+**The negotiated side genuinely binds** — on 17 of 27 frozen instances across 4
+distinct pairs — so the composition is not a formality that collapses back to
+the mandate. But the bite is one-sided and scenario-specific: it is always on
+the cost floor and never on the budget, because the seller's opening ask sits
+above the mandate's ceiling on every pair, and 16 of the 17 leave a **degenerate**
+safe set — a single admissible price — because `bargain_3_9` tells the buyer its
+budget, so the buyer's revealed floor coincides with the platform's ceiling.
+
+**Two things this arm did not deliver, and both belong here rather than in a
+footnote.** The intervention rate was predicted to rise and instead fell — 0.82
+against arm B's 0.89 — because the pre-phase absorbs the opening exchange where
+arm B does most of its correcting, so a tighter contract governs a shorter
+window. And composition can *destroy* feasibility: on one seed a buyer
+counter-offered above its own stated budget, the meet had no common ground, and
+the pair ran unfiltered. That is the arm's only breaching enforced round. On
+satisfiable meets it is 16 enforced rounds, 0 breaching.
+
 ## The claim this supports, and the claim it does not
 
 **Supported:** the filter converts a *tendency* into a *bound*. Per-round
 exposure goes to zero, on governed pairs, on live agents, with no agent forked
 and no fallback tier ever firing. That is the live replication of F1
 (9.9% → 0% in simulation).
+
+**Supported, as of arm C-meet:** that a contract the parties negotiate for
+themselves can be permitted without giving up the platform's guarantee, provided
+it is composed with the mandate rather than enforced in its place. 0/15 settled
+breaches with closure preserved.
 
 **Also supported, as of the undisclosed scenario:** that the filter averts
 *realised* harm where the counterparty cannot police the constraint itself —
@@ -199,8 +263,9 @@ offered.
 
 ## Method material belonging in chapter 4
 
-Five bugs are worth a page, because each is a general lesson about testing a
-safety layer and each passed a full suite:
+Seven bugs are worth a page, because each is a general lesson about testing a
+safety layer and each passed a full suite. They are set out in chapter 4 §4.5;
+what belongs here is only which results they touched:
 
 1. **The wire copy.** The regulator rewrote a copy of the request; the server
    persists the original. Five seeds of arm B enforced nothing while the
@@ -227,12 +292,24 @@ safety layer and each passed a full suite:
    funnelling and safety results — computed on binding trajectories or database
    outcomes — survive; the section 11 report did not.
 
-The common thread: all five were invisible to tests that asserted on a
+6. **The negotiated arms raised on every governed round.** Arms C and C-meet
+   threw on every proposal after θ was agreed. The exception escaped before the
+   action was persisted, so messages vanished silently and five seeds produced a
+   clean, interpretable, entirely false result — 0 enforced rounds out of 35 —
+   that was nearly written up as "the pre-phase consumes everything". An A/B
+   control on an untouched code path is what caught it.
+7. **The projection returned the breach on a degenerate safe set.** Composition
+   makes C(θ) a single point on this scenario, and the QP cannot land on one; the
+   routine handed back the unsafe input while reporting success. Arm C-meet
+   breached 2 of 6 enforced rounds before this was closed.
+
+The common thread: all seven were invisible to tests that asserted on a
 plausible-looking surface rather than the one that decides what the counterparty
-sees. The fifth adds a second lesson worth its own paragraph — it was latent in
-every arm from the start and became visible only when arm C became the first
-component to *read* the buyer's position rather than merely log it. A value
-nothing depends on is a value nothing checks.
+sees. Three later lessons compound it — a value nothing depends on is a value
+nothing checks (bug 5); a safety layer fails *quietly*, returning well-formed
+output from a function whose whole job was to return a safe one (bugs 6 and 7);
+and when a result looks like a finding, control for the diff before believing it
+(bug 6).
 
 ## Figures
 
@@ -243,3 +320,9 @@ nothing depends on is a value nothing checks.
 3. Per-pair closure table across arms, with infeasible pairs marked. *(have)*
 4. The `mexican_3_9` → `bargain_3_9` inversion — offers worse, deals cleaner.
    *(have)*
+5. **The harm-averted bar**: value transacted above the ceiling, arm A vs arm B
+   on `undisclosed_3_9`, per seed. The centrepiece figure. *(have)*
+6. **The refinement lattice**: θ_negotiated, θ_mandate and their meet on one
+   pair, with C(θ) drawn in (p, q), showing the envelope sitting *above* the
+   mandate and the meet below both. *(have data; schematic)*
+7. Five-arm settled-breach and overspend summary. *(have)*

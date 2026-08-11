@@ -1,6 +1,6 @@
 # Chapter 7 — Conclusion
 
-**State: DRAFT, 2026-08-10.** Sources: chapters 1 and 5, `50-limitations.md`,
+**State: DRAFT COMPLETE, 2026-08-11.** Sources: chapters 1 and 5, `50-limitations.md`,
 and the gap list in `00-outline.md`.
 
 ---
@@ -11,8 +11,8 @@ and the gap list in `00-outline.md`.
 marketplace, without touching the agents.** Per-round exposure to the enforced
 contract is zero on governed pairs in every configuration tried: 27 rounds
 under an imposed contract, 100 rounds across three models, 126 rounds across
-four values of γ, 136 rounds under a *negotiated* contract, and 22 rounds on
-the undisclosed-budget scenario. No agent was forked, no prompt edited, and the
+four values of γ, 136 rounds under a *negotiated* contract, 16 under a
+*composed* one, and 22 rounds on the undisclosed-budget scenario. No agent was forked, no prompt edited, and the
 fallback tier never fired.
 
 The invariance of that result is itself the evidence for the mechanism's
@@ -39,17 +39,35 @@ progress and halts at the deal; termination requires escalation. And the rest
 point of the concession dynamics is the Nash bargaining solution, so the
 convergence target is a property of preferences rather than of the update rule.
 
+**Composition is what makes a self-negotiated contract safe to permit.** This
+is the dissertation's answer to its own title, and it arrives in two steps.
+First the negative one:
+
 **A self-negotiated contract is enforced just as reliably as an imposed one,
 and governs less.** Arm C infers θ from the agents' own opening positions and
 holds them to it: zero breaches over 136 rounds. But the negotiated contract
-**refines the platform's mandate in none of 29 cases** — it is looser on the
-budget row by 1.21× on average, because a seller's opening ask sits above the
-buyer's reservation — so enforcing it permits *more* realised harm than doing
+**refines the platform's mandate on none of the 9 pairs** — its budget row is
+looser on every one, by 1.05–1.52×, identically in every seed because both
+opening positions are deterministic given the scenario, because a seller's
+opening ask sits above the buyer's reservation — so enforcing it permits *more* realised harm than doing
 nothing at all. This is the most substantive conceptual result in the
 dissertation, and it converts §9's refinement order from a formal nicety into
-the operationally important idea: what parties agree between themselves and
-what a platform requires of them are different objects, and only their meet is
-both legitimate and safe.
+the operationally important idea.
+
+Then the positive one. **Enforcing θ_negotiated ∧ θ_mandate recovers the
+guarantee without buying it with closure.** Arm C-meet settles 0 of 15 deals in
+breach of the mandate and overspends £0.00 — against arm C's 2 of 14 and £0.48 —
+while closing fifteen deals, against arm B's sixteen and the ungoverned twelve.
+The enforced contract refines the mandate in 27 of 27 instances and the
+negotiated envelope in 27 of 27, so what the parties agreed survives inside what
+is enforced: the platform removes only what the mandate already forbade.
+
+This rests on Proposition 3, and the exactness matters. The meet is the true
+intersection of the safe sets rather than an inner approximation — each row of h
+is monotone in its own θ component and the bilinear budget row is *linear in B* —
+so composing contracts forbids nothing that both parties had agreed was
+admissible. An inner approximation would have passed every structural check
+while quietly narrowing the deal space.
 
 ## 7.2 What was not established
 
@@ -93,45 +111,75 @@ settled-breach differences do not clear the noise floor and are not claimed.
 
 Ordered by how much each would change the dissertation's claims, not by cost.
 
-1. **Compose the negotiated contract with the mandate (G9).** Arm C shows the
-   two contracts standing in the wrong refinement relation; the fix is to
-   enforce their meet. The machinery exists — refinement is componentwise —
-   and this is one arm's work. It converts arm C's negative result into a
-   positive proposal, and it is the highest-value experiment not yet run.
-
-2. **A scenario that sustains six to ten rounds.** Almost every unanswered
+1. **A scenario that sustains six to ten rounds.** Almost every unanswered
    question is downstream of negotiation length: convergence has no trajectory
    to test, the liveness bound barely binds, λ is unidentified, and "did not
    overshoot" cannot be distinguished from "ran out of rounds". One scenario
    fixes four gaps at once.
 
-3. **Coupling on live agents (G2).** `mexican_33_99` has sellers serving
+2. **Coupling on live agents (G2).** `mexican_33_99` has sellers serving
    multiple buyers, which would exercise the shared-capacity clause and make
    the shadow prices observable. Blocked on a scale-versus-depth decision
    rather than on anything technical.
 
-4. **Enforce termination, or restate the claim (G3).** Either impose the
+3. **Enforce termination, or restate the claim (G3).** Either impose the
    friction schedule and accept a second intervention confounding the safety
    arm, or restate the termination result as conditional. The present position
    — claiming achievement while measuring a schedule nobody experiences — is
    the one option that should not survive.
 
-5. **Refuse trades on unsatisfiable pairs (G8).** Where c·q_min > B the
+4. **Refuse trades on unsatisfiable pairs (G8).** Where c·q_min > B the
    platform knows with certainty that no compliant deal exists, yet the current
    design merely declines to filter and lets the trade proceed. That is the
    whole of the residual £6.15 under enforcement on the undisclosed scenario.
    Refusing would take marketplace-wide overspend to zero and forbid nothing
    that should have been allowed.
 
-6. **Cross-vendor models.** The model-dependence result compares three Gemini
+5. **Cross-vendor models.** The model-dependence result compares three Gemini
    models and therefore tests capability, not vendor — and imperfectly even
    there, since the API retired every 2.x model but one. Blocked on API keys.
 
-7. **More seeds.** Cheap, and would move the closure and surplus comparisons
+6. **More seeds.** Cheap, and would move the closure and surplus comparisons
    from "not claimed" to claimable. It would not touch any of the structural
    gaps above, which is why it is last.
 
-## 7.4 Closing
+## 7.4 The three deliberate gaps
+
+Three things this dissertation does not do are worth separating from the
+ordered list above, because each is a *gap* — a known question left open for a
+stated reason — rather than a failure to notice something.
+
+**Coupling and shadow prices.** The shared-capacity clause, the generalised
+Nash displacement and the KKT shadow prices are derived, simulated and never
+run live. This is not an oversight: it needs a scenario in which one seller
+serves two buyers concurrently, and the working scenario has none. `mexican_33_99`
+does. The gap is a scale-versus-depth choice made in favour of depth — five arms
+on one nine-pair scenario rather than two arms on a ninety-nine-pair one — and
+the economic half of the formalism is the price paid for it.
+
+**Cross-vendor models.** The model-dependence result compares three Gemini
+models, so it tests capability rather than vendor, and imperfectly even there,
+since the API retired every 2.x model but one and the strongest models tested
+refused to run at the fixed reasoning budget. What would close it is API keys
+for a second and third vendor, and nothing else. The claim in the meantime is
+correspondingly narrow: the safety result is *architecturally* model-independent
+— the filter never inspects the generator — and *empirically* verified across
+three models of one family.
+
+**Live convergence.** Safety is demonstrated live; convergence is not. The
+reason is not that the experiment was skipped but that this regime cannot carry
+it: enforced negotiations run a median of one round, live agents have no step
+schedule to which the theorem applies, and Φ's second zero makes a low reading
+ambiguous exactly where live trajectories start. Closing it needs a
+sustained-negotiation regime, not more seeds of this one — and arm C is
+evidence such a regime is reachable, since a contract loose enough to leave a
+bargaining zone produced 219 proposals where the imposed contract produced 51.
+
+The honest summary is that this dissertation demonstrates safety broadly and
+convergence not at all, and that the boundary between them is a property of how
+short LLM negotiations are rather than of the theory.
+
+## 7.5 Closing
 
 The argument this dissertation makes is narrow and, within its scope, firm. LLM
 agents negotiating on a marketplace routinely propose terms that violate the

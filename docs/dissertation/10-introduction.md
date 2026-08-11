@@ -1,6 +1,6 @@
 # Chapter 1 — Introduction
 
-**State: DRAFT, 2026-08-10.** Sources: `formulation.md` §1–2, the nine arm
+**State: DRAFT COMPLETE, 2026-08-11.** Sources: `formulation.md` §1–2, the nine arm
 notes, and `00-outline.md` for the gaps this chapter must not paper over.
 
 ---
@@ -70,14 +70,22 @@ A thesis about safety *and* convergence guarantees should say at the outset
 which of the two it actually demonstrates, because they are not equally
 supported and an examiner will find the gap if the introduction does not.
 
-> **Safety is demonstrated on live LLM agents. Convergence is proved on
+> **Safety is demonstrated on live LLM agents, across models, enforcement
+> rates, scenarios and contract provenances. Convergence is proved on
 > gradient-ascent proxies and is not demonstrated live.**
 
-The safety half is strong and repeatedly replicated. Zero breaches of the
-enforced contract, on governed pairs, across every configuration tried: three
-models over 100 governed rounds, four values of γ over 126 rounds, an imposed
-contract over 27 rounds, a *negotiated* contract over 136 rounds. The result
-does not vary because nothing in the mechanism can vary with the generator.
+The safety half is strong and replicated along four independent axes:
+
+| varied | held | result |
+|---|---|---|
+| **model** — 3 Gemini models | γ = 0.4, `bargain_3_9` | 0 breaches / 100 governed rounds |
+| **enforcement rate** — γ ∈ {0.2, 0.4, 0.7, 1.0} | model, scenario | 0 / 126 |
+| **scenario** — `bargain_3_9`, `undisclosed_3_9` | model, γ | 0 / 27 and 0 / 22 |
+| **contract provenance** — imposed, negotiated, composed | model, γ, scenario | 0 / 27, 0 / 136, 0 / 16 |
+
+The result does not vary because nothing in the mechanism can vary with what it
+governs: the filter reads terms, solves a QP and rewrites, and no branch of that
+path inspects the model, the prompt, or where θ came from.
 
 The convergence half is not in that position, for three reasons that compound:
 
@@ -100,9 +108,21 @@ The convergence half is not in that position, for three reasons that compound:
    certified monotone radius of ≈1 unit, so any live Φ reading needs a radius
    check before it can be interpreted at all.
 
-What would close the gap is stated rather than promised: a scenario that
-sustains six to ten rounds of genuine concession, and a radius check preceding
-every Φ reading. Chapter 7 orders this against the other outstanding work.
+**What would close it**, stated concretely rather than promised:
+
+1. **A scenario that sustains six to ten rounds of genuine concession.** Far
+   apart opening positions and no early acceptance, so there is a transient to
+   measure rather than a single projected step. Arm C already shows such
+   negotiations exist — it ran 219 proposals where arm B ran 51 — so the
+   ingredient is a contract loose enough to leave a bargaining zone.
+2. **A radius check before every Φ reading**, rejecting any value taken more
+   than ≈1 scaled unit from the agreement zone, since Φ is a merit function only
+   inside the certified monotone region.
+3. **A step-size proxy**, or an explicit statement that the convergence theorem
+   is about a dynamic LLM agents do not run and is offered as a design
+   principle rather than a prediction.
+
+Chapter 7 orders this against the other outstanding work.
 
 ## 1.4 Contributions
 
@@ -147,12 +167,23 @@ every Φ reading. Chapter 7 orders this against the other outstanding work.
    the composition that a real marketplace needs: enforce the *meet* of the
    negotiated contract and the mandate.
 
-7. **Five integration bugs, reported as methodological material.** Each passed
+7. **Composition, and the arm that needed it.** The refinement order on
+   contracts is made precise, the meet is shown to be *exact* — C(θ₁ ∧ θ₂) is
+   the intersection, not an inner approximation, because the bilinear budget row
+   is linear in B — and arm C-meet enforces θ_negotiated ∧ θ_mandate. The
+   guarantee is recovered (0 of 15 settled deals breach, £0.00 overspent) with
+   closure preserved (15 deals against 16 and 12). This is the dissertation's
+   answer to its own title: a self-negotiated contract is safe to *permit*
+   precisely when it is not enforced alone.
+
+8. **Seven integration bugs, reported as methodological material.** Each passed
    a full test suite; each was invisible because the tests asserted on a
    plausible surface rather than the one that determines what the counterparty
-   receives. One of them produced a headline finding that stood for two days
-   before being retracted. Chapter 4 argues this is the central practical
-   lesson in building a safety layer, not an embarrassment to be omitted.
+   receives. One produced a headline finding that stood for two days before
+   being retracted; another produced five seeds of clean, interpretable, wholly
+   false data that an A/B control caught and the logs did not. Chapter 4 argues
+   this is the central practical lesson in building a safety layer, not an
+   embarrassment to be omitted.
 
 ## 1.5 What this dissertation does not claim
 
