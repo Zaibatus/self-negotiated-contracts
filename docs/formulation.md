@@ -25,7 +25,9 @@ v2 derives everything from utilities. The consequences are substantial: the rest
 - γ ∈ (0,1] — enforcement rate of the safety filter (§7);
 - τ = (T_max, ε) — liveness specification: agreement to tolerance ε within T_max round-pairs.
 
-*The contract is the vector θ together with the controller parameters (γ, τ).* Composition is concatenation of constraint blocks; coupling adds shared rows; renegotiation is a move in θ-space; refinement order 𝒞′ ⊑ 𝒞 iff C(θ′) ⊆ C(θ).
+*The contract is the vector θ together with the controller parameters (γ, τ).* Composition is concatenation of constraint blocks; coupling adds shared rows; renegotiation is a move in θ-space.
+
+**Refinement order.** 𝒞′ ⊑ 𝒞 iff C(θ′) ⊆ C(θ) — θ′ is *at least as strict*. Keeping γ and τ out of θ is what makes this well posed: refinement is a statement about the admissible set, not about how hard the filter pushes or how long it is given. For this template the order is componentwise — tighter budget, higher cost floor, narrower bands — with one asymmetry that is easy to get wrong and was wrong in the implementation until property-tested: a contract with the deadline rows *inactive* imposes no bound on d, so it is the identity on that axis and **cannot** refine one that does bound d. See §9.5 and `tests/test_contract_algebra.py`.
 
 **Protocol.** Single negotiating text: agents alternately propose modifications to a shared draft x_k. (Matches the prototype and real mediation practice; the two-stance variant is a generalisation, §10.)
 
@@ -160,7 +162,7 @@ When a constraint binds, the equilibrium moves — and the certificate must be *
 > constrained field-zero at (8.469, 94.47, 25.71); there **Φ = 5.99 but Φ_proj = 0.00000**.
 > At the constrained NBS, Φ_proj = 1.34 — small but nonzero: with the transfer capped, equal split and field-zero no longer coincide exactly. Their separation is **0.029 scaled units**, so Proposition 1's coincidence survives constraint-binding to good approximation, not exactly.
 
-This is the payoff-based version of v1's headline: anchored certificates stall at their own anchoring error under coupling (measured 510.3 vs 509.9 predicted), while the anchor-free certificate — here Φ_proj — vanishes exactly at the *generalised* equilibrium, wherever it lies. **Safety composes unconditionally** (stacked rows, one QP); **liveness composes only with anchor-free, projected certificates.**
+This is the payoff-based version of v1's headline: anchored certificates stall at their own anchoring error under coupling (measured 510.3 vs 509.9 predicted), while the anchor-free certificate — here Φ_proj — vanishes exactly at the *generalised* equilibrium, wherever it lies. **Safety composes unconditionally** (stacked rows, one QP); **liveness composes only with anchor-free, projected certificates.** Made precise, and finally *used*, in §9.5: the meet is exact (Prop. 3), and composing a self-negotiated contract with the platform's mandate is what arm C-meet tests.
 
 **Prices.** The KKT multiplier of a coupling constraint is its shadow price: λ_measured = scarcity price + conservatism premium(γ), the premium vanishing as γ → 1, with the filter's conservatism displacing the closed-loop equilibrium into the interior [v1 F6]. Magnitudes indicative pending OSQP duals. Consequence: **γ is an economic policy parameter, not only a safety one** — *in simulation*. **[corrected 2026-08-07]** This does not reach the live regime. A γ-sweep over {0.2, 0.4, 0.7, 1.0} on live agents found **no boundary layer at all**: the margin inside C(θ) is 0.000 at every γ. The cause is structural rather than statistical — live negotiations run 1.16–1.38 rounds per pair, 73–86% of governed rounds *are* the opening, and `project_into_safe_set` uses γ = 1 by construction because a projection is not a barrier step. **The step that decides the outcome never sees γ.** The conservatism premium is a property of *sustained* negotiation; this testbed does not sustain one. See `docs/notes/2026-08-07-gamma-independence.md`.
 
@@ -170,6 +172,30 @@ This is the payoff-based version of v1's headline: anchored certificates stall a
 2. **Stability** — choose C(θ) inside the monotone region (≈1 scaled unit around the expected agreement zone, §6.1). This is how a contract *earns* its convergence guarantee.
 3. **Termination** — schedule friction κ_k rather than fixing it (Prop. 2); pick T_max on the §6.4 trade-off curve against tolerable surplus loss.
 4. **Price policy** — set γ knowing it shifts both the equilibrium and the shadow prices **in sustained negotiation**. **[corrected 2026-08-07]** Live, γ is very nearly inert: with negotiations of 1–2 rounds the outcome is fixed by the opening projection, which runs at γ = 1 regardless. This implication is currently supported by simulation only, and the same is true of the shadow prices, which have never been exercised on live agents (outline G2).
+5. **Composition** — when more than one contract is in force, enforce their **meet**. §9.5.
+
+### 9.5 Composition: contracts as a meet-semilattice
+
+Sections 1 and 8 assert composition properties. This section makes them precise and reports the experiment that needed them, because until arm C-meet nothing in the thesis had ever *used* composition — and an algebra that is never applied is decoration.
+
+**The meet.** For contracts over this template define θ₁ ∧ θ₂ componentwise: `min` on the upper bounds (B, q_max, d_max), `max` on the lower bounds (c, q_min, d_min), with the deadline rows active in the meet iff active in either operand and taking the bounds of whichever operand actually constrains d.
+
+**Proposition 3 (exactness).** C(θ₁ ∧ θ₂) = C(θ₁) ∩ C(θ₂).
+
+*Proof sketch.* Each row of h is monotone in its own θ component and involves no other, so admissibility decomposes row by row. The only row that is not affine in x is the budget row h₁ = B − pq, and it is **linear in B**: x satisfies both budgets exactly when pq ≤ min(B₁, B₂). Hence the intersection is itself of the form C(θ) with θ the componentwise meet, with no slack. ∎
+
+The exactness matters and is not automatic. An *inner* approximation would still refine both operands, still be a lower bound, and still pass every structural check — while quietly forbidding terms both parties had agreed were admissible. The bilinearity of the budget row is exactly where one would expect exactness to fail, and it does not.
+
+**Corollary.** ⊑ is a partial order and ∧ is idempotent, commutative and associative, so contracts over this template form a meet-semilattice; ∧ is the greatest lower bound. Verified as executable properties in `tests/test_contract_algebra.py` rather than asserted — which is how the `refines` error noted in §1 was found.
+
+**What composes, and what does not.** Restating §8 in these terms:
+
+- **Safety composes unconditionally.** Enforcing θ₁ ∧ θ₂ is one QP over the union of the constraint rows. Forward invariance of the intersection follows from the same DCBF argument with no extra hypothesis, because the barrier condition is imposed row-wise and the rows are simply stacked. Coupling is the same operation across pairs rather than within one.
+- **Liveness does not compose unconditionally.** It needs the *anchor-free* certificate. An anchored certificate stalls at its own anchoring error once a composed constraint binds (measured 510.3 against 509.9 predicted), while Φ_proj — the field projected onto the tangent cone of the active rows — vanishes at the *generalised* equilibrium wherever the composition puts it. So composing contracts is free for safety and costs a change of certificate for liveness.
+
+**The meet can be unsatisfiable when both operands are satisfiable**, since c₂·q_min,₁ may exceed B₁. This is not a defect of the operation; it is the composition reporting that the two contracts have no common ground, and it is handled as any other empty safe set (§10.6, limitation B4): no projection, no deal.
+
+**Why this is not optional.** *(empirical, 2026-08-10 — see `docs/notes/2026-08-11-arm-c-meet.md`)* A contract the parties negotiate between themselves **need not refine the mandate they are subject to**. On `bargain_3_9`, 0 of 29 self-negotiated envelopes refined the platform's θ; inferred budgets ran 1.05–1.52× above it, because a seller's opening ask sits above the buyer's reservation. Enforcing the negotiated contract alone therefore licenses exactly what the mandate forbids, and arm C settles a higher fraction of breaching deals than doing nothing at all. Composition is what makes a self-negotiated contract safe to *permit*: the platform lets the parties agree what they like and enforces θ_negotiated ∧ θ_mandate, which by Proposition 3 is precisely "everything both contracts allow, and nothing else".
 
 ## 10. Assumptions and limitations (single source of truth)
 

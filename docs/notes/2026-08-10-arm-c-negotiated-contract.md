@@ -69,8 +69,16 @@ reported rather than tuned away.
 | before θ was agreed (pre-phase) | 25 / 31 |
 | **under the agreed θ** | **0 / 136** |
 
-**Zero breaches of the negotiated contract across 136 enforced rounds.** This
-is the expected result and it is worth stating why it is not trivial: the
+**Zero breaches of the negotiated contract across 136 enforced rounds.**
+
+**[qualified 2026-08-11: this is a weaker test than arm B's 0/27, and the two
+should not be read as comparable.** The envelope is looser than the mandate on
+every pair, so 136 rounds against an easier target is less evidence per round,
+not more. What the number establishes is that the filter is indifferent to the
+contract's provenance; it does *not* establish that a negotiated contract is as
+protective.]**
+
+It is worth stating why even that is not trivial: the
 filter never inspects where θ came from. It reads the terms, solves the QP and
 rewrites. Arms B and C share every line of that path and differ only in which
 Contract object is handed to it, so a non-zero result here would have been an
@@ -97,13 +105,34 @@ fraction of breaching deals than doing nothing at all (0.143 against arm A's
 0.083), and its offered-breach rate against the mandate is the highest of the
 four.
 
+**[qualified 2026-08-11.]** The settled-breach comparison is **2/14 against
+1/12 — one extra deal** — and £0.48 is that same deal or two. Both sit inside
+the A/D noise floor this project insists on elsewhere, so the *rate* is not
+claimable at n = 5 × 3. What carries the finding is the refinement fact below,
+which is categorical and needs no interval: a contract that permits more cannot
+forbid more. The direction is established; the magnitude is not.
+
 The mechanism is not subtle, and §9's refinement relation is exactly the right
 tool for naming it:
 
-| | |
+**[corrected 2026-08-11: the arithmetic below originally pooled 29 envelopes as
+if independent. They are 9 distinct pairs observed across 1–5 seeds each, and
+within a pair the ratio is *identical* in every seed — the seller's opening ask
+and the buyer's stated budget are both deterministic given the scenario. The
+effective n is 9, not 29. The corrected statement is categorical and therefore
+stronger than the pooled mean it replaces.]**
+
+| | per pair (n = 9) |
 |---|---|
-| inferred B / imposed B | mean **1.21×**, range 1.05–1.52× |
-| envelopes that **refine** the imposed θ | **0 / 29** |
+| inferred B / imposed B | **1.05–1.52×**, one value per pair, SD 0.000 across seeds |
+| pairs where the ratio exceeds 1 | **9 / 9** |
+| envelopes that **refine** the imposed θ | **0 / 9 pairs** (0 / 29 envelopes) |
+
+Pooling gives 1.214× and the mean of the nine per-pair values is 1.234×, so the
+pooled figure was not misleading in magnitude — but the *claim* it supported
+should be the categorical one: **every pair's negotiated budget exceeds the
+mandate's, in every seed.** That is a structural fact about where a seller's
+opening ask sits, not an estimate with a spread.
 
 The seller's opening ask sits above the customer's reservation price, so an
 envelope whose ceiling is that ask is *looser* than a mandate whose ceiling is
@@ -144,6 +173,12 @@ the buyer's budget immediately and there was nothing left to argue about.
 **Nearly half of arm C's agreed contracts run past the liveness bound**, which
 is the sharpest liveness signal anywhere in this project: T_max has barely bound
 in any other arm (limitation C8), and here it binds on 48% of pairs.
+
+**[qualified 2026-08-11.]** This is less a discovery about liveness than a
+consequence of a looser contract permitting more movement, measured against a
+T_max that was calibrated on arm B and D lengths. The honest reading is that
+T_max binds where there is a negotiation left to bound — which is arm C — not
+that arm C is badly behaved.
 
 Read together with the safety column, that is the trade the arm exposes:
 a negotiated contract preserves the negotiation and pays for it in termination.
