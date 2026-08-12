@@ -211,8 +211,8 @@ be read.
 
 Chapter 2 places the work against control-barrier approaches to LLM safety,
 mechanism design and the automated-negotiation literature. Chapter 3 develops
-the formalism and proves the two propositions. Chapter 4 describes the testbed,
-the enforcement point and the scenario construction, and reports the five
-integration bugs. Chapter 5 presents the four arms. Chapter 6 is the single
-consolidated limitations list. Chapter 7 concludes and orders the remaining
-work.
+the formalism and proves the three propositions. Chapter 4 describes the
+testbed, the enforcement point and the scenario construction, and reports the
+seven integration bugs. Chapter 5 presents the five arms across two scenarios.
+Chapter 6 is the single consolidated limitations list. Chapter 7 concludes,
+orders the remaining work, and names the three deliberate gaps.

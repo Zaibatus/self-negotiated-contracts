@@ -171,8 +171,10 @@ the contract's provenance, which is what "we certify the game, not the agents"
 should also mean for the contract.
 
 **Enforcing it is not governance.** The negotiated θ **refines the imposed one
-in 0 of 29 cases** — looser on the budget row by 1.21× on average — because the
-seller's opening ask sits above the customer's reservation. So arm C settles a
+on none of the 9 pairs** — its budget row is looser on every one, by 1.05–1.52×,
+identically in every seed, because both opening positions are deterministic
+given the scenario and a seller's opening ask sits above the customer's
+reservation. The direction is categorical, not an estimate with a spread. So arm C settles a
 *higher* fraction of breaching deals than doing nothing (0.143 against 0.083)
 and is the only arm on `bargain_3_9` that overspends.
 

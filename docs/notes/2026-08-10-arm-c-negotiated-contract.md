@@ -293,8 +293,10 @@ enforce" — an *exact* equality, which is what gave it away.
 - **The funnel agreement is a coincidence of a disclosed budget**, as above,
   and would not survive `undisclosed_3_9`. Not run.
 - **n = 5 seeds × 3 customers.** The 0/136 safety result is categorical. The
-  1.21× looseness is 29 observations of one scenario's price structure and the
-  *direction* is what transfers, not the multiple.
+  looseness is **9 pairs of one scenario's price structure**, not 29
+  independent observations — within a pair the ratio is identical in every
+  seed — so the *direction* is what transfers (9 of 9 pairs above 1), not the
+  1.05–1.52× range.
 - ~~**θ_negotiated ∧ θ_mandate is proposed, not tested.**~~ **Tested
   2026-08-11**, `2026-08-11-arm-c-meet.md`.
 - **Arm C's runs predate two protocol fixes** *(2026-08-11)*: the freeze-time

@@ -123,8 +123,8 @@ survives.
 
 Result, and it is not the one the design expected. **The guarantee transfers
 intact: 0 breaches of the agreed θ over 136 enforced rounds.** But **the
-negotiated θ refines the imposed one in 0 of 29 cases** — it is looser on the
-budget row by 1.21× on average — so arm C settles *more* breaching deals than
+negotiated θ refines the imposed one on none of the 9 pairs** — its budget row
+is looser on every one, by 1.05–1.52×, identically in every seed — so arm C settles *more* breaching deals than
 arm A (0.143 vs 0.083) and is the only arm on `bargain_3_9` that overspends
 (£0.48). Enforcing what the parties agreed is not a substitute for governance.
 
