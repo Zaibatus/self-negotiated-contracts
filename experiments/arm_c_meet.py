@@ -2,9 +2,12 @@
 
 Arm C established that a self-negotiated theta is enforced exactly as reliably
 as an imposed one (0 breaches over 136 enforced rounds) and yet does *not*
-deliver the mandate: 0 of 29 envelopes refined the platform's contract, inferred
-budgets ran 1.05-1.52x above it, and arm C settled a higher fraction of
-breaching deals than doing nothing at all.
+deliver the mandate: the negotiated theta refined the platform's contract on
+**none of the 9 pairs**, its budget row looser on every one by 1.05-1.52x and
+identically in every seed, because both opening positions are deterministic
+given the scenario. (Corrected 2026-08-21: this said "0 of 29 envelopes", the
+pooled form retracted in SCIENCE.md section 9 -- the 29 are 9 pairs observed
+across 1-5 seeds each and are not independent.)
 
 The fix is composition. The enforced contract here is
 

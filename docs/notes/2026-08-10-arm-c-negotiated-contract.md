@@ -221,6 +221,10 @@ Two consequences, and the second is the one to keep:
   `undisclosed_3_9` the buyer states no budget, so the envelope's floor would be
   wherever the buyer chose to open, and the funnel point would move. That run
   is the obvious follow-up and is **not** done.
+  **[2026-08-21: done, and the premise was wrong. An uninformed buyer does not
+  "choose where to open" -- it names no price at all (0 of 105 buyer messages),
+  so the envelope never freezes and arm C never governs. See
+  `2026-08-21-composition-undisclosed.md`.]**
 
 ## The T_max question, answered
 

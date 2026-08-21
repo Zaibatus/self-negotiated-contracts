@@ -1,0 +1,229 @@
+{
+  "inference": {
+    "summary": {
+      "pairs_seen": 7.0,
+      "pairs_frozen": 0.0,
+      "pairs_never_frozen": 7.0,
+      "freeze_rate": 0.0
+    },
+    "failures": [
+      {
+        "pair": "business_0001|customer_0001",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      },
+      {
+        "pair": "business_0002|customer_0001",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      },
+      {
+        "pair": "business_0004|customer_0002",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      },
+      {
+        "pair": "business_0005|customer_0002",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      },
+      {
+        "pair": "business_0007|customer_0003",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      },
+      {
+        "pair": "business_0008|customer_0003",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      },
+      {
+        "pair": "business_0009|customer_0003",
+        "reason": "buyer never stated a price: no counter-offer to infer a budget row from"
+      }
+    ],
+    "prephase_counts_against_tmax": true
+  },
+  "controller": {
+    "gamma": 0.4,
+    "t_max": 6,
+    "kappa0": 2.0,
+    "rho": 0.5
+  },
+  "negotiations": [
+    {
+      "pair": "business_0001|customer_0001",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 6.755,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          11.579999999999998,
+          5.2689,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0002|customer_0001",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 6.88,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          11.579999999999998,
+          5.572800000000001,
+          2.0,
+          4.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0004|customer_0002",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 8.31,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          7.45,
+          6.9804,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0005|customer_0002",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 8.66,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          7.45,
+          6.668200000000001,
+          1.0,
+          2.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0007|customer_0003",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 12.51,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          31.38,
+          11.7594,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0008|customer_0003",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 10.96,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          31.38,
+          10.1928,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ]
+      }
+    },
+    {
+      "pair": "business_0009|customer_0003",
+      "rounds": 1,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 1,
+      "status": "insufficient data: 1 observed term vectors, so there is no move to measure. Expected on the stock scenarios, which settle in two or three messages \u2014 that is what data/bargain_3_9 exists to change",
+      "theta": {
+        "frozen": false,
+        "prephase_rounds": 1,
+        "enforced_rounds": 1,
+        "seller_ask": 15.39,
+        "buyer_offer": null,
+        "frozen_at_round": null,
+        "failure": null,
+        "imposed": [
+          31.38,
+          14.0049,
+          3.0,
+          6.0,
+          0.0,
+          7.0
+        ]
+      }
+    }
+  ],
+  "aggregate": {
+    "negotiations": 7,
+    "measurable": 0,
+    "status": "insufficient data: no negotiation produced enough observed moves to measure. Report the breach rate and shadow prices only"
+  }
+}
