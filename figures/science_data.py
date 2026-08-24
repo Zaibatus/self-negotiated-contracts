@@ -110,6 +110,28 @@ REPLICATION = {
     "governed": [100, 126, 49, 179],
 }
 
+# --- The gamma sweep (2026-08-07-gamma-independence.md:29-34, :57-62) --------
+# SCIENCE.md:138 and :142 carry the same governed-round counts.
+#
+# NOTE: chapters/03-theory.md:110 specifies this figure as "the conservatism
+# premium in term space". That prediction is **marked corrected** in the note at
+# :46-53 — the boundary layer does not appear live, and the margin is 0.000 at
+# every gamma. The figure therefore draws the corrected finding (gamma
+# independence), not the superseded one.
+GAMMA = {
+    "gamma": [0.2, 0.4, 0.7, 1.0],
+    "governed": [34, 30, 29, 33],
+    "breaches": [0, 0, 0, 0],
+    "corrected": [30, 27, 23, 24],
+    "mean_u": [0.727, 0.790, 0.787, 0.737],
+    "deals": [17, 17, 17, 15],
+    "rounds_per_pair": [1.36, 1.25, 1.16, 1.38],
+    "margin": [0.000, 0.000, 0.000, 0.000],
+    "opening_share": [0.74, 0.80, 0.86, 0.73],
+    # Simulated prediction that live data did not reproduce, note :48-51.
+    "predicted_margin_endpoints": {0.2: 3.19, 0.7: 0.34},
+}
+
 ARM_LABELS = {
     "A": "A\nungoverned",
     "D": "D\nmonitor",
