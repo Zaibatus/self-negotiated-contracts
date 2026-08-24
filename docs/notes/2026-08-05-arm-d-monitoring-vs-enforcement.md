@@ -174,15 +174,18 @@ it mainly convert a tendency into a bound?
 
 **Mainly a bound**, and the arm D numbers make the case precisely:
 
-- the marketplace proposes inadmissible terms almost continuously — 96% of
-  governed rounds flagged when nothing is enforced;
+- the marketplace proposes inadmissible terms almost continuously — **0.73** of
+  governed rounds flagged when nothing is enforced (arm A: 0.79);
+  *(Corrected 2026-08-24: read "96%" until now. That figure is from the table
+  retracted above on 2026-08-07 and was missed when this section was rewritten.
+  The recomputed rates are in the flag-rate table in that section.)*
 - the buyer declines nearly all of them unaided, so only 1 deal in 12 settles
   outside θ;
 - the filter takes per-round exposure to **zero** and takes that one deal to
   zero as well, but the second of those is a single event.
 
 The thesis claim that this supports is about *guarantees*, not about harm
-averted on this scenario. A buyer that declines 96% of bad offers is not a
+averted on this scenario. A buyer that declines nearly all bad offers is not a
 buyer that declines all of them, and it offers no bound. Arm D is what turns
 that from an assertion into a measurement — and it also shows the honest limit:
 on `bargain_3_9` the realised harm was small enough that no filter could have
