@@ -219,9 +219,9 @@ def fig_harm_averted():
     fig, ax = plt.subplots(figsize=(FULL, 3.1))
 
     ax.bar(x - w / 2, a, width=w, color=ACCENT, edgecolor=INK, linewidth=0.6,
-           label="arm A — ungoverned")
+           label="arm A (ungoverned)")
     ax.bar(x + w / 2, b, width=w, color=GREY_LIGHT, edgecolor=INK, linewidth=0.6,
-           label="arm B — enforced")
+           label="arm B (enforced)")
     # A zero-height bar draws nothing, which reads as missing data rather than
     # as zero. Mark each arm B position with an explicit flat cap on the axis.
     ax.hlines(y=np.zeros(len(x)), xmin=x, xmax=x + w,

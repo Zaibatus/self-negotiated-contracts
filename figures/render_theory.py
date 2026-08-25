@@ -157,7 +157,7 @@ def fig_gamma_independence():
     ax.set_xticklabels([f"{v}" for v in g])
     ax.set_ylim(-0.45, 3.7)
     ax.axhline(0, color=GREY_DARK, lw=0.7, zorder=1)
-    ax.annotate("0.000 at every $\\gamma$ —\nno boundary layer",
+    ax.annotate("0.000 at every $\\gamma$:\nno boundary layer",
                 xy=(1.5, 0.0), xytext=(0.75, 1.5), fontsize=8, color=INK,
                 arrowprops=dict(arrowstyle="->", color=INK, lw=0.8))
     ax.legend(loc="upper right", fontsize=8)
