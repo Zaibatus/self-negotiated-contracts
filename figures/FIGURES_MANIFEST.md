@@ -9,6 +9,7 @@ Text block: **15.4 cm** (`includes.tex:20`).
 | figure | natural width | include at | note |
 |---|---|---|---|
 | `fig_anchorfree_certificate.pdf` | 10.49 cm | `0.68\textwidth` | natural size |
+| `fig_enforcement_point.pdf` | 14.81 cm | `\textwidth` | upscaled 1.040x |
 | `fig_exposure_by_arm.pdf` | 15.10 cm | `\textwidth` | upscaled 1.020x |
 | `fig_five_arm_summary.pdf` | 14.82 cm | `\textwidth` | upscaled 1.039x |
 | `fig_flagged_vs_corrected.pdf` | 14.81 cm | `\textwidth` | upscaled 1.040x |
@@ -28,6 +29,15 @@ Text block: **15.4 cm** (`includes.tex:20`).
   \includegraphics[width=0.68\textwidth]{figures/fig_anchorfree_certificate.pdf}
   \caption{TODO — state the finding, end with a provenance tag.}
   \label{fig:anchorfree-certificate}
+\end{figure}
+```
+
+```latex
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig_enforcement_point.pdf}
+  \caption{TODO — state the finding, end with a provenance tag.}
+  \label{fig:fig-enforcement-point}
 \end{figure}
 ```
 
