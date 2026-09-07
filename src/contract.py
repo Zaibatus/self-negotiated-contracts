@@ -273,8 +273,19 @@ class Contract:
 
         d(B - p*q)/d(p, q) = (-q, -p): valid for the small per-round
         adjustments typical of negotiation. Large single-round jumps are a
-        stated attack surface (formulation.md section 7.4); the filter
-        backtracks on the true h to close it.
+        stated attack surface (formulation.md item 6).
+
+        **The backtrack narrows that surface; it does not close it.**
+        [corrected 2026-09-01, see docs/notes/2026-08-28-safety-fuzzing.md.]
+        Fuzzed over 60,000 sampled contracts, ``_backtrack_on_true_h`` honours
+        the barrier *inequality* against the exact bilinear h on every draw
+        (0/60000, worst residual -9.4e-08). What it does not guarantee is
+        *set membership*: in the large-jump regime 14.8% of draws left C(theta)
+        materially, worst case -0.575, because the QP is free to spend slack
+        and the backtrack accepts a step whose target already has that slack
+        subtracted. The breaches are on the cost_floor and q_min rows; the
+        budget row -- the bilinear one this Jacobian linearises -- did not
+        break once.
         """
         p, q = float(x[0]), float(x[1])
         return np.array(

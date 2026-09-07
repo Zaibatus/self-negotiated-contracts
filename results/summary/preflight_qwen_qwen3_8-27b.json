@@ -1,0 +1,76 @@
+{
+  "trials": [
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 0.9429111669887789,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.2021428750013001,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": null,
+      "seconds": 0.5293807090492919,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "2023-10-27",
+      "seconds": 0.5428802079986781,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 0.3406072090147063,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 0.28871670801891014,
+      "tokens_in": null,
+      "tokens_out": null
+    }
+  ],
+  "config": {
+    "provider": "openai",
+    "model": "qwen/qwen3.8-27b",
+    "base_url": "https://api.groq.com/openai/v1"
+  },
+  "verdict": "USABLE"
+}

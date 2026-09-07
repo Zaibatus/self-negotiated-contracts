@@ -1,0 +1,59 @@
+{
+  "scenario": "data/hardundis_010_3_9",
+  "rows": [
+    {
+      "pair": "business_0001|customer_0001",
+      "margin": 0.01777499999999943,
+      "below_crossover": false,
+      "A_mean": 4.377507773202843e-20,
+      "B_mean": 0.9605940705802268,
+      "gain": 0.9605940705802268,
+      "A_n": 5,
+      "B_n": 5,
+      "B_price_mean": 5.42,
+      "funnel_point": 5.42
+    },
+    {
+      "pair": "business_0004|customer_0002",
+      "margin": 0.022400000000000198,
+      "below_crossover": false,
+      "A_mean": 2.4861319476194624e-22,
+      "B_mean": 0.8861044151229744,
+      "gain": 0.8861044151229744,
+      "A_n": 5,
+      "B_n": 5,
+      "B_price_mean": 7.110000000000001,
+      "funnel_point": 7.11
+    },
+    {
+      "pair": "business_0005|customer_0002",
+      "margin": 0.10044999999999948,
+      "below_crossover": false,
+      "A_mean": 1.1942994640836095e-11,
+      "B_mean": 0.7318506187490119,
+      "gain": 0.7318506187370689,
+      "A_n": 5,
+      "B_n": 5,
+      "B_price_mean": 7.110000000000001,
+      "funnel_point": 7.11
+    },
+    {
+      "pair": "business_0008|customer_0003",
+      "margin": -0.010699999999998155,
+      "below_crossover": true,
+      "A_mean": 1.0247848769157286e-11,
+      "B_mean": 0.9803000965767344,
+      "gain": 0.9803000965664866,
+      "A_n": 5,
+      "B_n": 5,
+      "B_price_mean": 10.27,
+      "funnel_point": 10.270000000000001
+    }
+  ],
+  "above_mean_gain": 0.8595163681467567,
+  "below_mean_gain": 0.9803000965664866,
+  "median_rounds": {
+    "A": 1.0,
+    "B": 1.0
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "integrability": {
+    "worst_rel_grad_mismatch": 2.9971986305836235e-08,
+    "worst_rel_jacobian_asymmetry": 2.6003373367263848e-06,
+    "hessian_eigenvalues_at_nbs": [
+      -108.77252091701328,
+      -0.6867464962910235,
+      -0.06897683872859423
+    ],
+    "negative_definite_at_nbs": true
+  },
+  "spurious_zeros": {
+    "states_beyond_radius": 180958,
+    "radius": 3.0,
+    "threshold": 1.0,
+    "phi_false_converged": 71303,
+    "phi_false_rate": 0.39403065904795587,
+    "V_false_converged": 0,
+    "V_false_rate": 0.0
+  },
+  "live": {
+    "c": {
+      "trajectories": 17,
+      "distance_down": [
+        144,
+        145
+      ],
+      "distance_frac": 0.993103448275862,
+      "psi_up": [
+        144,
+        145
+      ],
+      "psi_frac": 0.993103448275862,
+      "phi_down": [
+        67,
+        145
+      ],
+      "phi_frac": 0.46206896551724136
+    },
+    "a": {
+      "trajectories": 11,
+      "distance_down": [
+        30,
+        31
+      ],
+      "distance_frac": 0.967741935483871,
+      "psi_up": [
+        30,
+        31
+      ],
+      "psi_frac": 0.967741935483871,
+      "phi_down": [
+        14,
+        31
+      ],
+      "phi_frac": 0.45161290322580644
+    }
+  }
+}

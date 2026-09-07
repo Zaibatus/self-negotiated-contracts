@@ -1,0 +1,90 @@
+{
+  "analytic_floor_by_k": {
+    "1": 0.9434094454990485,
+    "2": 0.8240271466351268,
+    "3": 0.800081363506507,
+    "4": 0.8258168415831457,
+    "5": 0.8413335470169047,
+    "6": 0.8521649115251626,
+    "8": 0.8699967357642707,
+    "12": 0.9025552557702858,
+    "20": 0.9419936109624764
+  },
+  "floor_at_calibration": 0.8258168415831457,
+  "scenarios": {
+    "bargain_3_9": [
+      {
+        "pair": "business_0001|customer_0001",
+        "observed": 0.6193227468367553,
+        "family_min": 0.8258168578934378,
+        "family_max": 0.9999999999999998,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0002|customer_0001",
+        "observed": 0.2803769940998702,
+        "family_min": 0.8258170461716212,
+        "family_max": 0.9999999999999952,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0004|customer_0002",
+        "observed": 0.5450500512176231,
+        "family_min": 0.8258167522994257,
+        "family_max": 0.9999999999999994,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0005|customer_0002",
+        "observed": 0.6916445703441546,
+        "family_min": 0.825816842663069,
+        "family_max": 1.0,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0008|customer_0003",
+        "observed": 0.3925735304593454,
+        "family_min": 0.8258173885436876,
+        "family_max": 0.9999999999999989,
+        "outside_family": true
+      }
+    ],
+    "undisclosed_3_9": [
+      {
+        "pair": "business_0001|customer_0001",
+        "observed": 5.804296356800719e-06,
+        "family_min": 0.8258168578934378,
+        "family_max": 0.9999999999999998,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0002|customer_0001",
+        "observed": 6.846015519508704e-13,
+        "family_min": 0.8258170461716212,
+        "family_max": 0.9999999999999952,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0004|customer_0002",
+        "observed": 2.417058932027495e-06,
+        "family_min": 0.8258167522994257,
+        "family_max": 0.9999999999999994,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0005|customer_0002",
+        "observed": 1.2001480435429457e-05,
+        "family_min": 0.825816842663069,
+        "family_max": 1.0,
+        "outside_family": true
+      },
+      {
+        "pair": "business_0008|customer_0003",
+        "observed": 0.00014523349331483655,
+        "family_min": 0.8258173885436876,
+        "family_max": 0.9999999999999989,
+        "outside_family": true
+      }
+    ]
+  }
+}

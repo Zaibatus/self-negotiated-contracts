@@ -1,0 +1,71 @@
+{
+  "psi_star": 187.56848432769922,
+  "x_star": [
+    8.5,
+    100.0,
+    26.0
+  ],
+  "rows": [
+    {
+      "kappa": 0.0,
+      "rho": 0.5,
+      "round_up_fraction": 0.525,
+      "round_worst_change": -6.9704098402984584,
+      "pair_up_fraction": 1.0,
+      "pair_worst_change": 0.00015285228749917223,
+      "final_psi_ratio": 0.9516000335795523
+    },
+    {
+      "kappa": 2.0,
+      "rho": 0.5,
+      "round_up_fraction": 0.525,
+      "round_worst_change": -6.9704098402984584,
+      "pair_up_fraction": 1.0,
+      "pair_worst_change": 0.00015285228749917223,
+      "final_psi_ratio": 0.9516000335795523
+    },
+    {
+      "kappa": 0.0,
+      "rho": 0.2,
+      "round_up_fraction": 0.5575,
+      "round_worst_change": -3.4702677536078,
+      "pair_up_fraction": 1.0,
+      "pair_worst_change": 0.0045895024681783525,
+      "final_psi_ratio": 0.9778483025810624
+    },
+    {
+      "kappa": 2.0,
+      "rho": 0.2,
+      "round_up_fraction": 0.5575,
+      "round_worst_change": -3.4702677536078,
+      "pair_up_fraction": 1.0,
+      "pair_worst_change": 0.0045895024681783525,
+      "final_psi_ratio": 0.9778483025810624
+    },
+    {
+      "kappa": 0.0,
+      "rho": 0.05,
+      "round_up_fraction": 0.715,
+      "round_worst_change": -0.6605275996973603,
+      "pair_up_fraction": 1.0,
+      "pair_worst_change": 0.13479462296584188,
+      "final_psi_ratio": 0.9226475242466834
+    },
+    {
+      "kappa": 2.0,
+      "rho": 0.05,
+      "round_up_fraction": 1.0,
+      "round_worst_change": 0.0,
+      "pair_up_fraction": 1.0,
+      "pair_worst_change": 0.0,
+      "final_psi_ratio": 0.15896619169295192
+    }
+  ],
+  "live_reference": {
+    "arm_c_pair_granularity": [
+      144,
+      145
+    ],
+    "note": "binding trajectory is seller-to-seller, so consecutive points span a round-pair"
+  }
+}

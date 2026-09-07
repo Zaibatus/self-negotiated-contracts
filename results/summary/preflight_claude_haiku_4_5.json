@@ -1,0 +1,120 @@
+{
+  "trials": [
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 2.117796416976489,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.9902593339793384,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 2.1408268330269493,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.924430375045631,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.856325958040543,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.9406740420381539,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.9361579170217738,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.933437125000637,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.917908624978736,
+      "tokens_in": null,
+      "tokens_out": null
+    },
+    {
+      "ok": true,
+      "consistent_total": true,
+      "n_items": 2,
+      "total_price": 27.5,
+      "line_total": 27.5,
+      "delivery": "3 days",
+      "seconds": 1.8800946670235135,
+      "tokens_in": null,
+      "tokens_out": null
+    }
+  ],
+  "config": {
+    "provider": "anthropic",
+    "model": "claude-haiku-4-5-20251001",
+    "base_url": null
+  },
+  "verdict": "USABLE"
+}

@@ -1,0 +1,170 @@
+{
+  "calibration": {
+    "a": 12.0,
+    "b": 0.04,
+    "c": 6.0,
+    "e": 0.02,
+    "gamma_b": 0.3,
+    "gamma_s": 0.3,
+    "d_b": 40.0,
+    "d_s": 12.0,
+    "lambda": 60.0,
+    "q_pin": 100.0
+  },
+  "unconstrained_check": {
+    "p_star": 8.5,
+    "d_predicted": 25.999999999999996,
+    "d_eff": 26.0
+  },
+  "fit": {
+    "r2": 0.9994544021077439,
+    "max_abs_error_days": 0.089803125470997,
+    "mean_abs_error_days": 0.062107966462333304,
+    "n_points": 17
+  },
+  "weights_at": [
+    {
+      "p": 8.5,
+      "d": 25.999999999999996,
+      "u_buyer": 120.6,
+      "u_seller": 120.60000000000002,
+      "slack_buyer": 0.11815697780926959,
+      "slack_seller": 0.11815697780926948,
+      "weight_buyer": 0.44249731523797914,
+      "weight_seller": 0.44249731523797897,
+      "seller_share": 0.4999999999999999
+    },
+    {
+      "p": 6.12,
+      "d": 17.657440620587433,
+      "u_buyer": 313.12150605661355,
+      "u_seller": -92.80099515632091,
+      "slack_buyer": 0.005385249859970576,
+      "slack_seller": 0.8244341741122285,
+      "weight_buyer": 0.30593240500237223,
+      "weight_seller": 1.208198792220335,
+      "seller_share": 0.7979485492647347
+    }
+  ],
+  "rows": [
+    {
+      "p_boundary": 6.12,
+      "binds": true,
+      "measured_deadline": 17.735354214713357,
+      "predicted_deadline": 17.657441300246546,
+      "error_days": -0.07791291446681115
+    },
+    {
+      "p_boundary": 6.5875,
+      "binds": true,
+      "measured_deadline": 18.351481133846537,
+      "predicted_deadline": 18.33093197284233,
+      "error_days": -0.020549161004208116
+    },
+    {
+      "p_boundary": 7.055000000000001,
+      "binds": true,
+      "measured_deadline": 19.53235671413708,
+      "predicted_deadline": 19.4962189466194,
+      "error_days": -0.03613776751767972
+    },
+    {
+      "p_boundary": 7.522500000000001,
+      "binds": true,
+      "measured_deadline": 21.206030057044114,
+      "predicted_deadline": 21.22489323489171,
+      "error_days": 0.018863177847595836
+    },
+    {
+      "p_boundary": 7.99,
+      "binds": true,
+      "measured_deadline": 23.41495386669922,
+      "predicted_deadline": 23.394832681561198,
+      "error_days": -0.020121185138023634
+    },
+    {
+      "p_boundary": 8.4575,
+      "binds": true,
+      "measured_deadline": 25.77887915865546,
+      "predicted_deadline": 25.77638221490198,
+      "error_days": -0.0024969437534814176
+    },
+    {
+      "p_boundary": 8.925,
+      "binds": false,
+      "measured_deadline": 26.007858736549043,
+      "predicted_deadline": 25.921174697504213,
+      "error_days": -0.08668403904482958
+    },
+    {
+      "p_boundary": 9.3925,
+      "binds": false,
+      "measured_deadline": 26.01271569486352,
+      "predicted_deadline": 25.92619767793655,
+      "error_days": -0.08651801692696992
+    },
+    {
+      "p_boundary": 9.860000000000001,
+      "binds": false,
+      "measured_deadline": 26.016512498505794,
+      "predicted_deadline": 25.930151834947736,
+      "error_days": -0.08636066355805738
+    },
+    {
+      "p_boundary": 10.3275,
+      "binds": false,
+      "measured_deadline": 26.0147740672897,
+      "predicted_deadline": 25.92869778854611,
+      "error_days": -0.08607627874359025
+    },
+    {
+      "p_boundary": 10.795000000000002,
+      "binds": false,
+      "measured_deadline": 26.01199754335174,
+      "predicted_deadline": 25.922194417880743,
+      "error_days": -0.089803125470997
+    },
+    {
+      "p_boundary": 11.262500000000001,
+      "binds": false,
+      "measured_deadline": 26.012564941976642,
+      "predicted_deadline": 25.927934434321273,
+      "error_days": -0.08463050765536906
+    },
+    {
+      "p_boundary": 11.73,
+      "binds": false,
+      "measured_deadline": 25.997364207102848,
+      "predicted_deadline": 25.92826910162502,
+      "error_days": -0.06909510547782816
+    },
+    {
+      "p_boundary": 12.197500000000002,
+      "binds": false,
+      "measured_deadline": 25.999538903253942,
+      "predicted_deadline": 25.928570491823137,
+      "error_days": -0.07096841143080468
+    },
+    {
+      "p_boundary": 12.665000000000001,
+      "binds": false,
+      "measured_deadline": 26.005404220775027,
+      "predicted_deadline": 25.93166445613939,
+      "error_days": -0.07373976463563636
+    },
+    {
+      "p_boundary": 13.1325,
+      "binds": false,
+      "measured_deadline": 26.006607526629967,
+      "predicted_deadline": 25.933668343036075,
+      "error_days": -0.07293918359389195
+    },
+    {
+      "p_boundary": 13.600000000000001,
+      "binds": false,
+      "measured_deadline": 26.006607526629967,
+      "predicted_deadline": 25.933668343036075,
+      "error_days": -0.07293918359389195
+    }
+  ]
+}

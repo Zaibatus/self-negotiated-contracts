@@ -1,0 +1,245 @@
+{
+  "undisclosed_3_9": {
+    "pairs": {
+      "business_0001|customer_0001": {
+        "r": 5.789999999999999,
+        "c": 5.2689,
+        "margin": 0.5210999999999988,
+        "quantity": 2.0,
+        "surplus_per_deal": 1.0421999999999976,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0002|customer_0001": {
+        "r": 5.789999999999999,
+        "c": 5.572800000000001,
+        "margin": 0.21719999999999828,
+        "quantity": 2.0,
+        "surplus_per_deal": 0.43439999999999657,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0003|customer_0001": {
+        "r": 5.789999999999999,
+        "c": 6.0228,
+        "margin": -0.232800000000001,
+        "quantity": 2.0,
+        "surplus_per_deal": -0.465600000000002,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      },
+      "business_0004|customer_0002": {
+        "r": 7.45,
+        "c": 6.9804,
+        "margin": 0.4695999999999998,
+        "quantity": 1.0,
+        "surplus_per_deal": 0.4695999999999998,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0005|customer_0002": {
+        "r": 7.45,
+        "c": 6.668200000000001,
+        "margin": 0.7817999999999996,
+        "quantity": 1.0,
+        "surplus_per_deal": 0.7817999999999996,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0006|customer_0002": {
+        "r": 7.45,
+        "c": 9.266,
+        "margin": -1.8159999999999998,
+        "quantity": 1.0,
+        "surplus_per_deal": -1.8159999999999998,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      },
+      "business_0007|customer_0003": {
+        "r": 10.459999999999999,
+        "c": 11.7594,
+        "margin": -1.2994000000000003,
+        "quantity": 3.0,
+        "surplus_per_deal": -3.898200000000001,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      },
+      "business_0008|customer_0003": {
+        "r": 10.459999999999999,
+        "c": 10.1928,
+        "margin": 0.267199999999999,
+        "quantity": 3.0,
+        "surplus_per_deal": 0.801599999999997,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0009|customer_0003": {
+        "r": 10.459999999999999,
+        "c": 14.0049,
+        "margin": -3.5449,
+        "quantity": 3.0,
+        "surplus_per_deal": -10.6347,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      }
+    },
+    "arms": [
+      {
+        "arm": "arm A",
+        "settled_total": 15,
+        "settled_no_zone": 0,
+        "surplus_destroyed": 0,
+        "detail": []
+      },
+      {
+        "arm": "arm B",
+        "settled_total": 14,
+        "settled_no_zone": 1,
+        "surplus_destroyed": -3.898200000000001,
+        "detail": [
+          {
+            "pair": "business_0007|customer_0003",
+            "deals": 1,
+            "margin": -1.2994000000000003,
+            "quantity": 3.0,
+            "surplus": -3.898200000000001
+          }
+        ]
+      }
+    ],
+    "no_zone_pairs": [
+      "business_0003|customer_0001",
+      "business_0006|customer_0002",
+      "business_0007|customer_0003",
+      "business_0009|customer_0003"
+    ]
+  },
+  "bargain_3_9": {
+    "pairs": {
+      "business_0001|customer_0001": {
+        "r": 5.789999999999999,
+        "c": 5.2689,
+        "margin": 0.5210999999999988,
+        "quantity": 2.0,
+        "surplus_per_deal": 1.0421999999999976,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0002|customer_0001": {
+        "r": 5.789999999999999,
+        "c": 5.572800000000001,
+        "margin": 0.21719999999999828,
+        "quantity": 2.0,
+        "surplus_per_deal": 0.43439999999999657,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0003|customer_0001": {
+        "r": 5.789999999999999,
+        "c": 6.0228,
+        "margin": -0.232800000000001,
+        "quantity": 2.0,
+        "surplus_per_deal": -0.465600000000002,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      },
+      "business_0004|customer_0002": {
+        "r": 7.45,
+        "c": 6.9804,
+        "margin": 0.4695999999999998,
+        "quantity": 1.0,
+        "surplus_per_deal": 0.4695999999999998,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0005|customer_0002": {
+        "r": 7.45,
+        "c": 6.668200000000001,
+        "margin": 0.7817999999999996,
+        "quantity": 1.0,
+        "surplus_per_deal": 0.7817999999999996,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0006|customer_0002": {
+        "r": 7.45,
+        "c": 9.266,
+        "margin": -1.8159999999999998,
+        "quantity": 1.0,
+        "surplus_per_deal": -1.8159999999999998,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      },
+      "business_0007|customer_0003": {
+        "r": 10.459999999999999,
+        "c": 11.7594,
+        "margin": -1.2994000000000003,
+        "quantity": 3.0,
+        "surplus_per_deal": -3.898200000000001,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      },
+      "business_0008|customer_0003": {
+        "r": 10.459999999999999,
+        "c": 10.1928,
+        "margin": 0.267199999999999,
+        "quantity": 3.0,
+        "surplus_per_deal": 0.801599999999997,
+        "theta_unsatisfiable": false,
+        "no_bargaining_zone": false
+      },
+      "business_0009|customer_0003": {
+        "r": 10.459999999999999,
+        "c": 14.0049,
+        "margin": -3.5449,
+        "quantity": 3.0,
+        "surplus_per_deal": -10.6347,
+        "theta_unsatisfiable": true,
+        "no_bargaining_zone": true
+      }
+    },
+    "arms": [
+      {
+        "arm": "arm A",
+        "settled_total": 12,
+        "settled_no_zone": 0,
+        "surplus_destroyed": 0,
+        "detail": []
+      },
+      {
+        "arm": "arm B",
+        "settled_total": 16,
+        "settled_no_zone": 0,
+        "surplus_destroyed": 0,
+        "detail": []
+      },
+      {
+        "arm": "arm C",
+        "settled_total": 14,
+        "settled_no_zone": 0,
+        "surplus_destroyed": 0,
+        "detail": []
+      },
+      {
+        "arm": "arm C-meet",
+        "settled_total": 15,
+        "settled_no_zone": 0,
+        "surplus_destroyed": 0,
+        "detail": []
+      },
+      {
+        "arm": "arm D",
+        "settled_total": 12,
+        "settled_no_zone": 0,
+        "surplus_destroyed": 0,
+        "detail": []
+      }
+    ],
+    "no_zone_pairs": [
+      "business_0003|customer_0001",
+      "business_0006|customer_0002",
+      "business_0007|customer_0003",
+      "business_0009|customer_0003"
+    ]
+  }
+}

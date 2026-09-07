@@ -52,7 +52,67 @@ def include_spec(width_cm: float) -> tuple[str, str]:
     return f"{frac:.2f}\\textwidth", "natural size"
 
 
+# Which renderer draws which figure. A figure is stale if it is older than the
+# module that draws it, than the data module every results figure is
+# transcribed from, or than the shared style.
+RENDERED_BY = {
+    "render_results.py": [
+        "fig_exposure_by_arm", "fig_flagged_vs_corrected", "fig_scenario_inversion",
+        "fig_harm_averted", "fig_refinement_lattice", "fig_five_arm_summary",
+    ],
+    "render_theory.py": [
+        "fig_friction_window", "fig_anchorfree_certificate", "fig_gamma_independence",
+    ],
+    "render_intro.py": ["fig_enforcement_point"],
+}
+
+# Sources every figure depends on regardless of which module draws it.
+COMMON_SOURCES = ("science_data.py", "thesis_style.py")
+
+
+def sources_for(stem: str) -> list[Path]:
+    """The files a given figure is drawn from, that exist on disk."""
+    out = [FIGURE_DIR / c for c in COMMON_SOURCES]
+    for renderer, stems in RENDERED_BY.items():
+        if stem in stems:
+            out.append(FIGURE_DIR / renderer)
+    # the one aggregate a renderer still reads directly
+    five = FIGURE_DIR.parent / "results" / "summary" / "five_arms.json"
+    if stem in RENDERED_BY["render_results.py"] and five.exists():
+        out.append(five)
+    return [p for p in out if p.exists()]
+
+
+def check_freshness(pdfs: list[Path]) -> None:
+    """Refuse to write a manifest for a figure older than what produced it.
+
+    A manifest measures include widths off the rendered PDF. If the PDF is
+    stale the width is honest about a figure nobody has drawn since the data
+    moved, which is exactly the kind of quietly-wrong artefact this project
+    keeps finding.
+    """
+    stale: list[tuple[Path, Path]] = []
+    for pdf in pdfs:
+        for src in sources_for(pdf.stem):
+            if pdf.stat().st_mtime < src.stat().st_mtime:
+                stale.append((pdf, src))
+                break
+    if not stale:
+        return
+    root = FIGURE_DIR.parent
+    lines = ["STALE FIGURES — manifest not written.", ""]
+    for pdf, src in sorted(stale):
+        lines.append(f"  {pdf.name}")
+        lines.append(f"      older than {src.relative_to(root)}")
+    lines += ["", "  Re-render, then run this again:", "",
+              "    uv run python figures/render_results.py",
+              "    uv run python figures/render_theory.py",
+              "    uv run python figures/render_intro.py"]
+    raise SystemExit("\n".join(lines))
+
+
 def main() -> None:
+    check_freshness(sorted(FIGURE_DIR.glob("fig_*.pdf")))
     rows = []
     for pdf in sorted(FIGURE_DIR.glob("fig_*.pdf")):
         width = pdf_width_cm(pdf)

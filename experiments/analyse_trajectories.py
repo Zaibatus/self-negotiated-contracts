@@ -258,12 +258,44 @@ def phi_series(arm: str, results: Path) -> dict[str, Any]:
             phis.append(negotiation["phi"]["series"])
             projs.append(negotiation["phi_projected"]["series"])
 
+    def defined_segments(series: list[float | None]) -> list[list[float]]:
+        """Maximal runs of *consecutive* defined values.
+
+        Phi_proj is undefined outside C(theta) and serialises to null. Those
+        rounds must be excluded rather than zero-filled -- but excluding them
+        by filtering the list would splice together rounds that are not
+        adjacent, and the step between them never happened. So the series is
+        split at each gap and each run is treated as its own sub-trajectory.
+        Before this, np.diff ran straight over the nulls and raised
+        TypeError on any arm with a breaching state -- which is every arm
+        except B, and is why this function had only ever been run on A, B
+        and D.
+        """
+        segments: list[list[float]] = []
+        current: list[float] = []
+        for value in series:
+            if value is None or not np.isfinite(value):
+                if current:
+                    segments.append(current)
+                current = []
+            else:
+                current.append(float(value))
+        if current:
+            segments.append(current)
+        return segments
+
     def summarise(series: list[list[float]]) -> dict[str, Any]:
-        usable = [s for s in series if len(s) >= MIN_POINTS_FOR_DIRECTION]
+        segments = [seg for s in series for seg in defined_segments(s)]
+        usable = [s for s in segments if len(s) >= MIN_POINTS_FOR_DIRECTION]
         steps = [d for s in usable for d in np.diff(s)]
         net_down = [s[-1] < s[0] for s in usable]
+        undefined = sum(
+            1 for s in series for v in s if v is None or not np.isfinite(v)
+        )
         return {
             "trajectories": len(series),
+            "segments": len(segments),
+            "undefined_rounds": undefined,
             "usable": len(usable),
             "steps": len(steps),
             "fraction_decreasing": (

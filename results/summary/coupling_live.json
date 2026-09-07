@@ -1,0 +1,84 @@
+{
+  "scenario": "data/coupled_3_9",
+  "capacity_factor": 0.67,
+  "capacity_Q": 2.0100000000000002,
+  "host": "business_0001",
+  "host_pairs": [
+    "business_0001|customer_0001",
+    "business_0001|customer_0002"
+  ],
+  "seeds": [
+    {
+      "seed": 1,
+      "host_rounds": 2,
+      "capacity_rows": 0,
+      "capacity_breaches": 0,
+      "duals_positive": 0,
+      "dual_max": 0.0,
+      "final_q_by_pair": {
+        "business_0001|customer_0002": 1.0,
+        "business_0001|customer_0001": 2.0
+      },
+      "sum_final_q": 3.0,
+      "respects_capacity": false
+    },
+    {
+      "seed": 2,
+      "host_rounds": 3,
+      "capacity_rows": 0,
+      "capacity_breaches": 0,
+      "duals_positive": 0,
+      "dual_max": 0.0,
+      "final_q_by_pair": {
+        "business_0001|customer_0002": 1.0,
+        "business_0001|customer_0001": 2.0
+      },
+      "sum_final_q": 3.0,
+      "respects_capacity": false
+    },
+    {
+      "seed": 3,
+      "host_rounds": 1,
+      "capacity_rows": 0,
+      "capacity_breaches": 0,
+      "duals_positive": 0,
+      "dual_max": 0.0,
+      "final_q_by_pair": {
+        "business_0001|customer_0001": 2.0
+      },
+      "sum_final_q": 2.0,
+      "respects_capacity": true
+    },
+    {
+      "seed": 4,
+      "host_rounds": 2,
+      "capacity_rows": 0,
+      "capacity_breaches": 0,
+      "duals_positive": 0,
+      "dual_max": 0.0,
+      "final_q_by_pair": {
+        "business_0001|customer_0001": 2.0
+      },
+      "sum_final_q": 2.0,
+      "respects_capacity": true
+    },
+    {
+      "seed": 5,
+      "host_rounds": 3,
+      "capacity_rows": 0,
+      "capacity_breaches": 0,
+      "duals_positive": 0,
+      "dual_max": 0.0,
+      "final_q_by_pair": {
+        "business_0001|customer_0002": 1.0,
+        "business_0001|customer_0001": 2.0
+      },
+      "sum_final_q": 3.0,
+      "respects_capacity": false
+    }
+  ],
+  "C1_fired_on": 0,
+  "C1_total_seeds": 5,
+  "C2_total_capacity_breaches": 0,
+  "C3_any_positive_dual": false
+}
