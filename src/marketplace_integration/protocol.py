@@ -88,6 +88,7 @@ class PairState:
     settled: bool = False
     opened_outside: bool | None = None
     unsatisfiable: bool = False
+    refused: int = 0
     # Arm C only: the two opening positions and the envelope they imply.
     positions: Positions = field(default_factory=Positions)
     # Arm C-meet only: the composed contract actually enforced, kept so the
@@ -121,6 +122,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         solver: str = "osqp",
         theta_source: ThetaSource = "scenario",
         prephase_counts_against_tmax: bool = True,
+        refuse_unsatisfiable: bool = False,
     ):
         """Configure the regulator.
 
@@ -153,6 +155,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         self.couple = couple
         self.theta_source: ThetaSource = theta_source
         self.prephase_counts_against_tmax = prephase_counts_against_tmax
+        self.refuse_unsatisfiable = refuse_unsatisfiable
         self.filter = DCBFFilter(gamma=gamma, rho=rho, solver=solver)
         self.states: dict[str, PairState] = {}
         self.records: list[RoundRecord] = []
@@ -288,7 +291,31 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                          x_proposed, x_proposed, None, terms)
             state.binding.append(x_proposed)
             state.observed.append(x_proposed)
-            return None
+            if not self.refuse_unsatisfiable:
+                return None
+            # Open design question G8, answered by configuration. The platform
+            # knows with certainty that no compliant deal exists on this pair,
+            # so forwarding the proposal lets a trade settle that the contract
+            # forbids. Refusing replaces the proposal with a plain text message
+            # in the stock schema; no agent class, prompt or message type is
+            # modified, and the seller learns why rather than being ignored.
+            state.refused += 1
+            return message.model_copy(
+                update={
+                    "message": TextMessage(
+                        content=(
+                            "This order proposal was not delivered. The "
+                            "marketplace enforces a contract on this pair whose "
+                            "admissible set is empty: the seller's cost floor "
+                            f"({effective.cost_floor:.2f}) multiplied by the "
+                            f"minimum quantity ({effective.q_min:g}) exceeds the "
+                            f"buyer's budget ({effective.budget:.2f}), so no "
+                            "terms could satisfy it. No counter-offer will "
+                            "help; there are no gains from trade here."
+                        )
+                    )
+                }
+            )
 
         # The first proposal governed by *this* contract is projected, not
         # recovered — the module docstring's third asymmetry, applied at the
@@ -490,6 +517,9 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         out.update({f"solver_{k}": v for k, v in self.filter.reliability().items()})
         out["pairs_opened_outside_C"] = float(
             sum(1 for s in self.states.values() if s.opened_outside)
+        )
+        out["proposals_refused"] = float(
+            sum(s.refused for s in self.states.values())
         )
         out["pairs_unsatisfiable"] = float(
             sum(1 for s in self.states.values() if s.unsatisfiable)

@@ -93,6 +93,12 @@ def build_parser(description: str) -> argparse.ArgumentParser:
     parser.add_argument("--q-max-factor", type=float, default=2.0)
     parser.add_argument("--max-steps", type=int, default=100)
     parser.add_argument("--results", default="results")
+    parser.add_argument(
+        "--refuse-unsatisfiable",
+        action="store_true",
+        help="on pairs whose safe set is empty, replace the order proposal "
+        "with a refusal rather than forwarding it unfiltered (open question G8)",
+    )
     parser.add_argument("--override", action="store_true")
     parser.add_argument(
         "--theta-source",
@@ -150,6 +156,7 @@ def run_arm(args: argparse.Namespace, mode: str) -> dict[str, Any]:
             solver=args.solver,
             theta_source=args.theta_source,
             prephase_counts_against_tmax=args.prephase_counts_against_tmax,
+            refuse_unsatisfiable=args.refuse_unsatisfiable,
             contract_spec=contract_spec(args),
             results_dir=args.results,
             customer_max_steps=args.max_steps,

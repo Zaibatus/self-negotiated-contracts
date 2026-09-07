@@ -53,6 +53,7 @@ async def run_governed_experiment(
     solver: str = "osqp",
     theta_source: str = "scenario",
     prephase_counts_against_tmax: bool = True,
+    refuse_unsatisfiable: bool = False,
     contract_spec=None,
     results_dir: str | Path = "results",
     search_algorithm: str = "simple",
@@ -118,6 +119,7 @@ async def run_governed_experiment(
         solver=solver,
         theta_source=theta_source,
         prephase_counts_against_tmax=prephase_counts_against_tmax,
+        refuse_unsatisfiable=refuse_unsatisfiable,
     )
 
     def database_factory():

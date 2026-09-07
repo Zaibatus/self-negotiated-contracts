@@ -144,6 +144,7 @@ def rewrite_customer(
     businesses: list[dict[str, Any]],
     zone_position: float,
     disclose_budget: bool = True,
+    disclosed_budget_factor: float = 1.0,
 ) -> tuple[dict[str, Any], dict[str, float]]:
     """Give the buyer a binding budget, consistent between prompt and theta.
 
@@ -174,9 +175,10 @@ def rewrite_customer(
     shares = _split(budget, [_cheapest_item(businesses, item) for item in items])
     out = dict(customer)
     out["menu_features"] = {item: share for item, share in zip(items, shares)}
+    stated = round(budget * disclosed_budget_factor, 2)
     if disclose_budget:
         out["request"] = (
-            f"{customer['request'].strip()} {BUYER_CLAUSE.format(budget=budget)}"
+            f"{customer['request'].strip()} {BUYER_CLAUSE.format(budget=stated)}"
         )
     # Undisclosed: the request is left exactly as the stock scenario wrote it.
     # Nothing is added and nothing is removed, so the only difference from the
@@ -184,6 +186,8 @@ def rewrite_customer(
 
     return out, {
         "budget": budget,
+        "stated_budget": stated,
+        "disclosed_budget_factor": disclosed_budget_factor,
         "cheapest_list_total": list_total,
         "cheapest_floor_total": floor_total,
         "headroom_over_floor": budget - floor_total,
@@ -229,6 +233,16 @@ def main() -> None:
         "(the G1 experiment: makes harm possible, so harm-averted is "
         "measurable)",
     )
+    parser.add_argument(
+        "--disclosed-budget-factor",
+        type=float,
+        default=1.0,
+        help="tell the buyer a budget of f times the real one, while theta "
+        "still uses the real one. f = 1.0 is the disclosed scenario and f "
+        "below 1 makes the buyer more cautious than the mandate requires; "
+        "f above 1 is the interesting case, a buyer that believes it may "
+        "spend more than the platform will permit",
+    )
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
 
@@ -254,7 +268,8 @@ def main() -> None:
     print("-" * len(header))
     for customer in customers:
         rewritten, info = rewrite_customer(
-            customer, businesses, args.zone_position, args.disclose_budget
+            customer, businesses, args.zone_position, args.disclose_budget,
+            args.disclosed_budget_factor,
         )
         dump_yaml(rewritten, dest / "customers" / f"{customer['id']}.yaml")
         if info:

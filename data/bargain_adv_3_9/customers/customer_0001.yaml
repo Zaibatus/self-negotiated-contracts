@@ -1,0 +1,15 @@
+id: customer_0001
+name: Susan Young
+request: 'Could you please find a business that serves both ''Pineapple Jalapeno Agua Fresca''
+  (1) and ''Savory Pumpkin Empanadas'' (1) and offers outdoor seating? I intend to place an
+  order for these items, so it''s important that the business meets both the menu and amenity
+  requirements. Thank you for your assistance. Budget: I can spend at most $11.58 in total,
+  and I must not exceed it. The first quote I receive will probably be above that, so do not
+  accept it. Ask the business for a better price, and keep negotiating — several rounds if
+  necessary — until the total is within my budget. Only pay once a proposal is at or under
+  $11.58.'
+menu_features:
+  Pineapple Jalapeno Agua Fresca: 2.63
+  Savory Pumpkin Empanadas: 8.95
+amenity_features:
+- Outdoor Seating
