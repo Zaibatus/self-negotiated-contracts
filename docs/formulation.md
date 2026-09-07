@@ -31,7 +31,7 @@ v2 derives everything from utilities. The consequences are substantial: the rest
 
 **Protocol.** Single negotiating text: agents alternately propose modifications to a shared draft x_k. (Matches the prototype and real mediation practice; the two-stance variant is a generalisation, §10.)
 
-**Unit metric.** Terms have incommensurable units, so all norms use M = diag(σ_p, σ_q, σ_d)⁻¹ with σ = (1, 10, 5): one *scaled unit* = £1 of price, 10 units of quantity, or 5 days.
+**Unit metric.** Terms have incommensurable units, so all norms are taken in the metric ‖v‖_M = sqrt(vᵀ M v) with M = diag(σ_p, σ_q, σ_d)⁻², σ = (1, 10, 5) — the Euclidean norm of the coordinatewise ratio v_i/σ_i. One *scaled unit* = £1 of price, 10 units of quantity, or 5 days. **γ is reserved for the enforcement rate**; the deadline-preference weights are ω_B and ω_S, and their acceptance-reweighted forms ω̃_i.
 
 **Operating box.** The experiments additionally confine the draft to a box p ∈ [6, 12], q ∈ [20, 120], d ∈ [7, 45]. The lower price bound is the cost floor c and the q, d bounds are θ's; the *upper* price bound 12 is a numerical guard, not a contract term (the budget constraint B − pq ≥ 0 is what caps price in θ). It never binds at any reported result: the bargaining solution sits at p = 8.50 with spend 850 < B = 1000, and both the far start and x\*_NBS are strictly interior to C(θ) (verified). Either fold a p_max into θ or drop the guard before the dissertation's formal statement.
 
@@ -39,14 +39,14 @@ v2 derives everything from utilities. The consequences are substantial: the rest
 
 Quasi-linear utilities, concave in quantity, quadratic deadline preferences, price a pure transfer:
 
-- **U_B(x) = aq − (b/2)q² − pq − (γ_B/2)(d − d_B°)²**
-- **U_S(x) = pq − cq − (e/2)q² − (γ_S/2)(d − d_S°)²**
+- **U_B(x) = aq − (b/2)q² − pq − (ω_B/2)(d − d_B°)²**
+- **U_S(x) = pq − cq − (e/2)q² − (ω_S/2)(d − d_S°)²**
 
-with disagreement payoffs normalised to 0. Calibration used throughout: a = 12, b = 0.04, c = 6, e = 0.02, γ_B = γ_S = 0.3, d_B° = 40, d_S° = 12.
+with disagreement payoffs normalised to 0. Calibration used throughout: a = 12, b = 0.04, c = 6, e = 0.02, ω_B = ω_S = 0.3, d_B° = 40, d_S° = 12.
 
 Joint surplus **W = U_B + U_S is independent of p** — price is distributive; quantity and deadline are efficiency-relevant. Hence
 
-q_eff = (a − c)/(b + e) = 100,  d_eff = (γ_B d_B° + γ_S d_S°)/(γ_B + γ_S) = 26,  W_max = 241.20.
+q_eff = (a − c)/(b + e) = 100,  d_eff = (ω_B d_B° + ω_S d_S°)/(ω_B + ω_S) = 26,  W_max = 241.20.
 
 **Nash bargaining solution** (symmetric, transferable utility): efficient (q, d) plus equal split of W, giving p\* = [W/2 + C(q_eff) + Φ_S(d_eff)]/q_eff.
 
@@ -208,7 +208,7 @@ Two caveats belong with it. The meet can be **unsatisfiable when both operands a
 3. Convergence is **local**: monotone within ≈1 scaled unit, not globally (18% globally) [E9].
 4. Termination is achieved by escalating friction, not by convergence of the frictionless dynamics; the two guarantees are separate (§5).
 5. The constrained-dynamics experiment [E13] used a crude boundary projection rather than the DCBF-QP; rerun with the filter during integration (the residual — dynamics settling 0.61 scaled units from the constrained field-zero — is plausibly this plus incomplete step-size decay).
-6. Extraction layer is in the trusted computing base; h₁ = B − pq is linearised per round (large-jump exploitation is a stated attack surface); invariance holds from inside C(θ).
+6. Extraction layer is in the trusted computing base; h₁ = B − pq is linearised per round (large-jump exploitation is a stated attack surface); invariance holds from inside C(θ). **[measured 2026-08-28, see `docs/notes/2026-08-28-safety-fuzzing.md`]** The surface is now quantified rather than only stated: fuzzing the shipped filter over 60,000 sampled contracts, the backtrack honours the barrier inequality against the exact h on every draw (0/60000), but invariance itself fails on **14.8%** of large-jump draws (worst −0.575 scaled units) because the QP spends slack the backtrack's target already concedes. The failures are on the cost_floor and q_min rows; **the budget row never broke**, which is what protects the £21.70 → £0.00 result. The honest form of the claim is *invariance holds from inside C(θ) under the per-round moves live agents make*, not unconditionally.
 7. Contraction/convergence estimates require a genuine transient (far-start protocol); noise-ball fits are not evidence [corrected].
 8. Agents here are gradient-ascent proxies for LLM negotiators. The bridge assumption is only cost-benefit rationalizability (§3) — to be *tested*, not assumed, in Magentic (§11).
 
