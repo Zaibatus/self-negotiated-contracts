@@ -99,6 +99,14 @@ def build_parser(description: str) -> argparse.ArgumentParser:
         help="on pairs whose safe set is empty, replace the order proposal "
         "with a refusal rather than forwarding it unfiltered (open question G8)",
     )
+    parser.add_argument(
+        "--govern-prephase",
+        action="store_true",
+        help="govern the rounds before theta is agreed by the platform's "
+        "mandate rather than forwarding them unfiltered (limitation B6). "
+        "Inference arms only; the envelope is then inferred from corrected "
+        "openings.",
+    )
     parser.add_argument("--override", action="store_true")
     parser.add_argument(
         "--theta-source",
@@ -158,6 +166,7 @@ def run_arm(args: argparse.Namespace, mode: str) -> dict[str, Any]:
             theta_source=args.theta_source,
             prephase_counts_against_tmax=args.prephase_counts_against_tmax,
             refuse_unsatisfiable=args.refuse_unsatisfiable,
+            govern_prephase=args.govern_prephase,
             contract_spec=contract_spec(args),
             results_dir=args.results,
             customer_max_steps=args.max_steps,

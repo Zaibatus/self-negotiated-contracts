@@ -95,6 +95,7 @@ class PairState:
     opened_outside: bool | None = None
     unsatisfiable: bool = False
     meet_fell_back: bool = False
+    prephase_governed: int = 0
     meet_fell_back_this_round: bool = False
     refused: int = 0
     # Arm C only: the two opening positions and the envelope they imply.
@@ -131,6 +132,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         theta_source: ThetaSource = "scenario",
         prephase_counts_against_tmax: bool = True,
         refuse_unsatisfiable: bool = False,
+        govern_prephase: bool = False,
     ):
         """Configure the regulator.
 
@@ -164,6 +166,8 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         self.theta_source: ThetaSource = theta_source
         self.prephase_counts_against_tmax = prephase_counts_against_tmax
         self.refuse_unsatisfiable = refuse_unsatisfiable
+        # Govern the pre-phase by the mandate instead of forwarding it (B6).
+        self.govern_prephase = govern_prephase
         self.filter = DCBFFilter(gamma=gamma, rho=rho, solver=solver)
         self.states: dict[str, PairState] = {}
         self.records: list[RoundRecord] = []
@@ -264,44 +268,35 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             envelope_contract = state.positions.contract
             state.meet_fell_back_this_round = False
             if envelope_contract is None:
-                # Pre-phase: theta is not agreed yet, so there is nothing to
-                # enforce. The round is recorded against the scenario theta so
-                # that arm C stays comparable with the other arms, but nothing
-                # is filtered and the trajectory is left as proposed.
                 state.prephase_rounds += 1
-                self._record(state, effective, x_proposed, x_proposed, x_proposed,
-                             None, terms, intervention=0.0)
-                state.binding.append(x_proposed)
-                state.observed.append(x_proposed)
-                return None
-            # Arm C enforces what the parties agreed. Arm C-meet enforces the
-            # meet of that with the platform's mandate, which is what makes a
-            # self-negotiated contract safe to permit: the envelope alone need
-            # not refine the mandate (0 of 29 did on bargain_3_9), so enforcing
-            # it can license exactly what the mandate forbids.
-            governing = envelope_contract
-            if self.theta_source == "guarded_meet":
-                # The meet can be empty while the mandate is not, and then B4's
-                # pass-through governs nothing although the platform holds a
-                # perfectly good contract. `guarded_meet` takes the meet where
-                # it is satisfiable and the mandate where it is not, which is
-                # the greatest satisfiable lower bound still at or below the
-                # mandate. Measured at f >= 1.02 this is the difference between
-                # correcting every governed round and correcting none of them.
-                governing, fell_back = guarded_meet(envelope_contract, contract)
-                # Latched, not assigned: a pair whose meet is empty on one
-                # round and satisfiable on the next still fell back once.
-                state.meet_fell_back_this_round = fell_back
-                state.meet_fell_back = state.meet_fell_back or fell_back
-                state.meet_contract = governing
-            elif self.theta_source == "meet":
-                governing = envelope_contract.meet(contract)
-                state.meet_contract = governing
+                if not self.govern_prephase:
+                    # Pre-phase: theta is not agreed yet, so there is nothing
+                    # to enforce. The round is recorded against the scenario
+                    # theta so that arm C stays comparable with the other arms,
+                    # but nothing is filtered and the trajectory is left as
+                    # proposed. This is limitation B6.
+                    self._record(state, effective, x_proposed, x_proposed,
+                                 x_proposed, None, terms, intervention=0.0)
+                    state.binding.append(x_proposed)
+                    state.observed.append(x_proposed)
+                    return None
+                # B6 says a negotiated contract cannot govern the exchange that
+                # creates it, and that is true of the *negotiated* contract. It
+                # is not true of the platform's, which exists from the start.
+                # Governing the pre-phase by the mandate leaves the parties free
+                # to agree anything the mandate allows, and infers the envelope
+                # from openings that have already been corrected.
+                governing = contract
+                state.prephase_governed += 1
+            else:
+                governing = self._governing_contract(state, envelope_contract,
+                                                     contract)
             effective = (
                 governing if terms.deadline_observed else governing.without_deadline()
             )
 
         if not effective.is_satisfiable():
+
             # C(theta) is empty: this seller's cost floor is above this buyer's
             # budget, so no terms could ever satisfy the contract. Projecting
             # into an empty set is not a safety operation, and every step would
@@ -499,6 +494,36 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             and not other.settled
         ]
 
+    def _governing_contract(self, state, envelope_contract, contract):
+        """Which contract governs this round, once the envelope exists.
+
+        Arm C enforces what the parties agreed. Arm C-meet enforces the meet of
+        that with the platform's mandate, which is what makes a self-negotiated
+        contract safe to permit: the envelope alone need not refine the mandate
+        (0 of 9 pairs did on bargain_3_9), so enforcing it can license exactly
+        what the mandate forbids.
+        """
+        if self.theta_source == "guarded_meet":
+            # The meet can be empty while the mandate is not, and then B4's
+            # pass-through governs nothing although the platform holds a
+            # perfectly good contract. `guarded_meet` takes the meet where it is
+            # satisfiable and the mandate where it is not, which is the greatest
+            # satisfiable lower bound still at or below the mandate. Measured at
+            # f >= 1.02 this is the difference between correcting every governed
+            # round and correcting none of them.
+            governing, fell_back = guarded_meet(envelope_contract, contract)
+            # Latched, not assigned: a pair whose meet is empty on one round and
+            # satisfiable on the next still fell back once.
+            state.meet_fell_back_this_round = fell_back
+            state.meet_fell_back = state.meet_fell_back or fell_back
+            state.meet_contract = governing
+            return governing
+        if self.theta_source == "meet":
+            governing = envelope_contract.meet(contract)
+            state.meet_contract = governing
+            return governing
+        return envelope_contract
+
     def _record(
         self,
         state: PairState,
@@ -543,6 +568,9 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         out.update({f"solver_{k}": v for k, v in self.filter.reliability().items()})
         out["pairs_opened_outside_C"] = float(
             sum(1 for s in self.states.values() if s.opened_outside)
+        )
+        out["prephase_rounds_governed"] = float(
+            sum(s.prephase_governed for s in self.states.values())
         )
         out["pairs_meet_fallback"] = float(
             sum(1 for s in self.states.values() if s.meet_fell_back)
