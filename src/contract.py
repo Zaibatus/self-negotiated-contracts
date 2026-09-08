@@ -409,3 +409,30 @@ class Contract:
                 "reservation_total": reservation_total,
             },
         )
+
+
+def guarded_meet(envelope: Contract, mandate: Contract) -> tuple[Contract, bool]:
+    """The greatest satisfiable lower bound of the two that is at or below the mandate.
+
+    ``Contract.meet`` is the greatest lower bound of the refinement lattice, and
+    ``C(a AND b) = C(a) ∩ C(b)`` exactly. Nothing in that guarantees the meet is
+    *satisfiable*: two contracts that are each satisfiable can intersect in the
+    empty set, because ``c_2 · q_min,1`` may exceed ``B_1``.
+
+    When that happens the protocol's empty-safe-set rule (limitation B4) forwards
+    the pair unfiltered. That is right when *nothing* can comply and wrong when
+    only the composition cannot: the platform still holds a satisfiable mandate,
+    and declining to enforce it because a stricter contract turned out empty
+    governs less than enforcing the mandate alone would have.
+
+    So: take the meet when it is satisfiable, and otherwise fall back to the
+    mandate, which is the coarsest element still at or below it. B4 continues to
+    apply when the mandate is itself unsatisfiable, since then there is no
+    satisfiable lower bound to fall back to.
+
+    Returns the governing contract and whether the fallback fired.
+    """
+    met = envelope.meet(mandate)
+    if met.is_satisfiable() or not mandate.is_satisfiable():
+        return met, False
+    return mandate, True

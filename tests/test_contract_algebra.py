@@ -18,7 +18,7 @@ import itertools
 import numpy as np
 import pytest
 
-from src.contract import Contract
+from src.contract import Contract, guarded_meet
 
 A = Contract(budget=100.0, cost_floor=5.0, q_min=8.0, q_max=20.0,
              d_min=1.0, d_max=6.0)
@@ -302,3 +302,64 @@ class TestProjectionSurvivesADegenerateSafeSet:
         assert not empty.is_satisfiable()
         x = np.array([9.5, 5.0, 0.0])
         assert np.allclose(project_into_safe_set(x, empty), x)
+
+
+class TestGuardedMeet:
+    """The rule that recovers governance when the meet is empty.
+
+    ``meet`` is the greatest lower bound and is exact, but nothing makes it
+    *satisfiable*: two satisfiable contracts can intersect in the empty set.
+    The protocol's empty-safe-set rule then forwards the pair unfiltered, which
+    is right when nothing can comply and wrong when only the composition
+    cannot. ``guarded_meet`` is the fix, and these pin its two branches.
+    """
+
+    # A mandate that is comfortably satisfiable: 6 * 10 = 60 <= 80.
+    MANDATE = Contract(budget=80.0, cost_floor=6.0, q_min=10.0, q_max=25.0,
+                       d_min=0.0, d_max=6.0)
+
+    def test_uses_the_meet_when_the_meet_is_satisfiable(self):
+        # Envelope loose enough that the meet stays non-empty.
+        envelope = Contract(budget=200.0, cost_floor=5.0, q_min=8.0, q_max=30.0,
+                            d_min=0.0, d_max=9.0)
+        met = envelope.meet(self.MANDATE)
+        assert met.is_satisfiable(), "fixture is wrong: the meet should be non-empty"
+        governing, fell_back = guarded_meet(envelope, self.MANDATE)
+        assert not fell_back
+        assert theta_eq(governing, met)
+
+    def test_falls_back_to_the_mandate_when_only_the_meet_is_empty(self):
+        # A floor above the mandate's ceiling per unit: 9 * 10 = 90 > 80.
+        envelope = Contract(budget=200.0, cost_floor=9.0, q_min=8.0, q_max=30.0,
+                            d_min=0.0, d_max=9.0)
+        met = envelope.meet(self.MANDATE)
+        assert not met.is_satisfiable(), "fixture is wrong: the meet should be empty"
+        assert self.MANDATE.is_satisfiable()
+        governing, fell_back = guarded_meet(envelope, self.MANDATE)
+        assert fell_back
+        assert theta_eq(governing, self.MANDATE)
+
+    def test_b4_still_applies_when_the_mandate_is_itself_unsatisfiable(self):
+        # 12 * 10 = 120 > 80: nothing can comply, so there is no satisfiable
+        # lower bound to fall back to and the empty meet must survive.
+        mandate = Contract(budget=80.0, cost_floor=12.0, q_min=10.0, q_max=25.0)
+        envelope = Contract(budget=200.0, cost_floor=5.0, q_min=8.0, q_max=30.0)
+        assert not mandate.is_satisfiable()
+        governing, fell_back = guarded_meet(envelope, mandate)
+        assert not fell_back
+        assert not governing.is_satisfiable()
+
+    @pytest.mark.parametrize("envelope", CONTRACTS)
+    @pytest.mark.parametrize("mandate", CONTRACTS)
+    def test_result_is_always_at_or_below_the_mandate(self, envelope, mandate):
+        """Whichever branch fires, the platform never ends up governing less."""
+        governing, _ = guarded_meet(envelope, mandate)
+        assert governing.refines(mandate)
+
+    @pytest.mark.parametrize("envelope", CONTRACTS)
+    @pytest.mark.parametrize("mandate", CONTRACTS)
+    def test_result_is_satisfiable_whenever_the_mandate_is(self, envelope, mandate):
+        governing, _ = guarded_meet(envelope, mandate)
+        if mandate.is_satisfiable():
+            assert governing.is_satisfiable()
+

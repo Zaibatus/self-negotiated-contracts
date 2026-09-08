@@ -103,11 +103,12 @@ def build_parser(description: str) -> argparse.ArgumentParser:
     parser.add_argument(
         "--theta-source",
         default="scenario",
-        choices=["scenario", "inferred", "meet"],
+        choices=["scenario", "inferred", "meet", "guarded_meet"],
         help="'scenario' imposes theta from the data (arms B/D); 'inferred' "
         "builds it as the envelope of the agents' own opening positions "
         "(arm C); 'meet' enforces theta_negotiated AND theta_mandate "
-        "(arm C-meet)",
+        "(arm C-meet); 'guarded_meet' is the same but falls back to the "
+        "mandate where the meet is empty and the mandate is not",
     )
     parser.add_argument(
         "--prephase-counts-against-tmax",

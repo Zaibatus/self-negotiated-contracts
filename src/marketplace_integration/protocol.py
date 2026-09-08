@@ -65,14 +65,14 @@ from magentic_marketplace.platform.shared.models import (
 
 from ..certificates.dcbf import DCBFFilter, project_into_safe_set
 from ..certificates.metrics import RoundRecord, make_round_record, summarise
-from ..contract import Contract
+from ..contract import Contract, guarded_meet
 from ..payoffs import dist_M
 from .inference import InferenceReport, Positions
 from .terms import Terms, from_order_proposal, from_text, rewrite_proposal
 from .theta import ContractRegistry, pair_key
 
 Mode = Literal["filter", "monitor", "off"]
-ThetaSource = Literal["scenario", "inferred", "meet"]
+ThetaSource = Literal["scenario", "inferred", "meet", "guarded_meet"]
 
 
 @dataclass
@@ -88,6 +88,7 @@ class PairState:
     settled: bool = False
     opened_outside: bool | None = None
     unsatisfiable: bool = False
+    meet_fell_back: bool = False
     refused: int = 0
     # Arm C only: the two opening positions and the envelope they imply.
     positions: Positions = field(default_factory=Positions)
@@ -271,7 +272,18 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             # not refine the mandate (0 of 29 did on bargain_3_9), so enforcing
             # it can license exactly what the mandate forbids.
             governing = envelope_contract
-            if self.theta_source == "meet":
+            if self.theta_source == "guarded_meet":
+                # The meet can be empty while the mandate is not, and then B4's
+                # pass-through governs nothing although the platform holds a
+                # perfectly good contract. `guarded_meet` takes the meet where
+                # it is satisfiable and the mandate where it is not, which is
+                # the greatest satisfiable lower bound still at or below the
+                # mandate. Measured at f >= 1.02 this is the difference between
+                # correcting every governed round and correcting none of them.
+                governing, fell_back = guarded_meet(envelope_contract, contract)
+                state.meet_fell_back = fell_back
+                state.meet_contract = governing
+            elif self.theta_source == "meet":
                 governing = envelope_contract.meet(contract)
                 state.meet_contract = governing
             effective = (
@@ -517,6 +529,9 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         out.update({f"solver_{k}": v for k, v in self.filter.reliability().items()})
         out["pairs_opened_outside_C"] = float(
             sum(1 for s in self.states.values() if s.opened_outside)
+        )
+        out["pairs_meet_fallback"] = float(
+            sum(1 for s in self.states.values() if s.meet_fell_back)
         )
         out["proposals_refused"] = float(
             sum(s.refused for s in self.states.values())
