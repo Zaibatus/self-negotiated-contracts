@@ -144,3 +144,51 @@ this scenario is zero.
 
 90 runs, ~£9.00, against a £10 cap. No run exceeded its budget and the guard
 never fired.
+
+---
+
+# Addendum: where composition breaks (added 2026-09-08, +10 runs, ~£1.00)
+
+P3's failure at f = 1.1 invited an obvious question: how far above the mandate
+can the buyer's belief sit before composition stops working? Arm C-meet was run
+at f = 1.02 and f = 1.05, five seeds each. Runs `arm_cm_o102_1..5`,
+`arm_cm_o105_1..5`.
+
+| f | unsatisfiable meet-instances | governed rounds | **corrections** |
+|---|---|---|---|
+| **1.00** | 11 | 67 | **14 / 67** |
+| **1.02** | 24 | 68 | **0 / 68** |
+| 1.05 | 20 | 75 | **0 / 75** |
+| 1.10 | 20 | 64 | **0 / 64** |
+
+**Composition does not degrade gradually. It stops entirely between f = 1.00
+and f = 1.02** — a two per cent overstatement of the budget — and never
+recovers.
+
+The algebra says why, and it recasts an observation the dissertation already
+records as harmless.
+
+```
+meet B = min(mandate B, seller ask x q_req)
+meet c = max(mandate floor, buyer's first counter)
+satisfiable  <=>  meet_c x q_min <= meet_B
+```
+
+At f = 1.00 the buyer counters at exactly its stated budget, so
+`meet_c x q_min = B = meet_B`. Satisfiable — but **with equality**. That is
+precisely §5.9.1's finding that 16 of 17 binding instances left a *degenerate*
+safe set, a single admissible price.
+
+§5.9.1 treats that degeneracy as a curiosity of the scenario. It is not. **A
+degenerate safe set is the boundary of feasibility, not a narrow margin on the
+right side of it.** The composition result works on `bargain_3_9` because the
+buyer is told exactly the number the mandate uses, and it is sitting exactly on
+the edge the whole time. Any positive offset tips it over.
+
+So the dissertation's answer to its own title needs a condition attached:
+**enforcing the meet recovers the guarantee only while the parties' stated
+positions are no looser than the mandate.** On this scenario family that
+tolerance is zero. Whether it is zero in general or an artefact of
+`q_min = q_requested` is not established here, and the algebra above suggests
+the latter is worth checking: a contract with slack between `q_min` and the
+requested basket would not sit on the boundary.
