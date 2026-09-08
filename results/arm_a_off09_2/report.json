@@ -1,0 +1,72 @@
+{
+  "experiment": "arm_a_off09_2",
+  "mode": "off",
+  "gamma": 0.4,
+  "capacity_factor": null,
+  "solver": "osqp",
+  "registry": {
+    "businesses": 9.0,
+    "customers": 3.0,
+    "pairs_total": 27.0,
+    "pairs_defined": 9.0,
+    "pairs_undefinable": 18.0,
+    "pairs_unsatisfiable": 4.0,
+    "pairs_tradeable": 5.0,
+    "coupled_businesses": 0.0
+  },
+  "report": {
+    "rounds": 21.0,
+    "pairs": 9.0,
+    "breach_rate": 0.9047619047619048,
+    "breach_rounds": 19.0,
+    "mean_intervention": 0.08196772385974986,
+    "max_intervention": 0.5905009499050093,
+    "intervention_rate": 0.23809523809523808,
+    "slack_total": 0.0004560072185554216,
+    "solver_failure_rate": 0.0,
+    "fallback_rate": 0.0,
+    "certificate_gap_rate": 0.0,
+    "backtrack_rate": 0.0,
+    "solver_calls": 6.0,
+    "solver_solver_failure_rate": 0.0,
+    "solver_fallback_rate": 0.0,
+    "solver_certificate_gap_rate": 0.0,
+    "solver_backtrack_rate": 0.0,
+    "pairs_opened_outside_C": 5.0,
+    "proposals_refused": 0.0,
+    "pairs_unsatisfiable": 4.0,
+    "ungoverned_messages": 6.0
+  },
+  "ungoverned": [
+    {
+      "pair": "business_0006|customer_0003",
+      "proposal": "business_0006_customer_0003_1",
+      "reason": "no definable contract for this pair"
+    },
+    {
+      "pair": "business_0001|customer_0003",
+      "proposal": "business_0001_customer_0003_1",
+      "reason": "no definable contract for this pair"
+    },
+    {
+      "pair": "business_0005|customer_0003",
+      "proposal": "business_0005_customer_0003_1",
+      "reason": "no definable contract for this pair"
+    },
+    {
+      "pair": "business_0002|customer_0003",
+      "proposal": "business_0002_customer_0003_1",
+      "reason": "no definable contract for this pair"
+    },
+    {
+      "pair": "business_0004|customer_0003",
+      "proposal": "business_0004_customer_0003_1",
+      "reason": "no definable contract for this pair"
+    },
+    {
+      "pair": "business_0003|customer_0003",
+      "proposal": "business_0003_customer_0003_1",
+      "reason": "no definable contract for this pair"
+    }
+  ]
+}
