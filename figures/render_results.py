@@ -240,7 +240,7 @@ def fig_harm_averted():
     ax.set_xticklabels(seeds)
     ax.set_ylim(0, 6.6)
     ax.legend(loc="upper right", fontsize=8, ncol=2)
-    finish(ax, xlabel="seed", ylabel="transacted above the ceiling (£)")
+    finish(ax, xlabel="run", ylabel="transacted above the ceiling (£)")
 
     # Z-order (FIGURES.md §5): the total lands top-left, where the eye enters.
     ax.text(

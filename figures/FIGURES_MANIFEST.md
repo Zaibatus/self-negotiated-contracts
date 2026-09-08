@@ -11,13 +11,13 @@ Text block: **15.4 cm** (`includes.tex:20`).
 | `fig_anchorfree_certificate.pdf` | 10.49 cm | `0.68\textwidth` | natural size |
 | `fig_enforcement_point.pdf` | 14.81 cm | `\textwidth` | upscaled 1.040x |
 | `fig_exposure_by_arm.pdf` | 15.10 cm | `\textwidth` | upscaled 1.020x |
-| `fig_five_arm_summary.pdf` | 14.82 cm | `\textwidth` | upscaled 1.039x |
-| `fig_flagged_vs_corrected.pdf` | 14.81 cm | `\textwidth` | upscaled 1.040x |
+| `fig_five_arm_summary.pdf` | 14.80 cm | `\textwidth` | upscaled 1.040x |
+| `fig_flagged_vs_corrected.pdf` | 14.80 cm | `\textwidth` | upscaled 1.041x |
 | `fig_friction_window.pdf` | 9.82 cm | `0.64\textwidth` | natural size |
 | `fig_gamma_independence.pdf` | 14.82 cm | `\textwidth` | upscaled 1.039x |
 | `fig_harm_averted.pdf` | 14.80 cm | `\textwidth` | upscaled 1.040x |
-| `fig_refinement_lattice.pdf` | 9.52 cm | `0.62\textwidth` | natural size |
-| `fig_scenario_inversion.pdf` | 14.73 cm | `\textwidth` | upscaled 1.045x |
+| `fig_refinement_lattice.pdf` | 9.57 cm | `0.62\textwidth` | natural size |
+| `fig_scenario_inversion.pdf` | 14.78 cm | `\textwidth` | upscaled 1.042x |
 
 ---
 
