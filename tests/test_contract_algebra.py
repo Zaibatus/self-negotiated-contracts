@@ -363,3 +363,25 @@ class TestGuardedMeet:
         if mandate.is_satisfiable():
             assert governing.is_satisfiable()
 
+
+def test_every_inference_arm_is_listed_in_INFERENCE_SOURCES():
+    """`guarded_meet` first ran as arm B because four gates named the arms by
+    hand and none of them had been told about the new one. The arm produced
+    plausible numbers -- it filtered, it corrected, breaches fell -- while doing
+    no composition at all, which is exactly the failure a passing test suite
+    will not catch. Pin the set against the declared type instead.
+    """
+    from typing import get_args
+
+    from src.marketplace_integration.protocol import (
+        INFERENCE_SOURCES,
+        ThetaSource,
+    )
+
+    declared = set(get_args(ThetaSource))
+    assert set(INFERENCE_SOURCES) == declared - {"scenario"}, (
+        "every theta source except 'scenario' infers the envelope from the "
+        "parties' positions and needs the pre-phase, the freeze and the "
+        "inference summary"
+    )
+

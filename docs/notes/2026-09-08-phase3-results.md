@@ -92,7 +92,7 @@ mandate's ceiling*. The meet takes the maximum of the two floors and the
 minimum of the two budgets, so the parties' own agreed zone lies entirely
 outside what the platform permits, and their intersection is empty. C-meet then
 has nothing to enforce, runs unfiltered by design, and every round breaches:
-37 of 37 governed rounds, **0 corrections**, £16.51 overspend — worse than
+64 of 64 governed rounds, **0 corrections**, £16.51 overspend — worse than
 ungoverned.
 
 **This sharpens §5.9.1 from an edge case into a regime.** That section records

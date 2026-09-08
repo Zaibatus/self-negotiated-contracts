@@ -74,6 +74,12 @@ from .theta import ContractRegistry, pair_key
 Mode = Literal["filter", "monitor", "off"]
 ThetaSource = Literal["scenario", "inferred", "meet", "guarded_meet"]
 
+# The arms that build theta from the parties' own positions rather than reading
+# it off the scenario. Every one of them needs the pre-phase, the envelope
+# freeze and the inference summary; naming the set once keeps a new arm from
+# silently skipping all three, which is how `guarded_meet` first ran as arm B.
+INFERENCE_SOURCES: tuple[ThetaSource, ...] = ("inferred", "meet", "guarded_meet")
+
 
 @dataclass
 class PairState:
@@ -89,6 +95,7 @@ class PairState:
     opened_outside: bool | None = None
     unsatisfiable: bool = False
     meet_fell_back: bool = False
+    meet_fell_back_this_round: bool = False
     refused: int = 0
     # Arm C only: the two opening positions and the envelope they imply.
     positions: Positions = field(default_factory=Positions)
@@ -251,10 +258,11 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         )
         x_proposed = terms.vector
 
-        if self.theta_source in ("inferred", "meet"):
+        if self.theta_source in INFERENCE_SOURCES:
             self.inference.pairs.setdefault(key, state.positions)
             state.positions.note_seller(float(x_proposed[0]), float(x_proposed[1]))
             envelope_contract = state.positions.contract
+            state.meet_fell_back_this_round = False
             if envelope_contract is None:
                 # Pre-phase: theta is not agreed yet, so there is nothing to
                 # enforce. The round is recorded against the scenario theta so
@@ -281,7 +289,10 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                 # mandate. Measured at f >= 1.02 this is the difference between
                 # correcting every governed round and correcting none of them.
                 governing, fell_back = guarded_meet(envelope_contract, contract)
-                state.meet_fell_back = fell_back
+                # Latched, not assigned: a pair whose meet is empty on one
+                # round and satisfiable on the next still fell back once.
+                state.meet_fell_back_this_round = fell_back
+                state.meet_fell_back = state.meet_fell_back or fell_back
                 state.meet_contract = governing
             elif self.theta_source == "meet":
                 governing = envelope_contract.meet(contract)
@@ -347,7 +358,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         # only -0.75 and delivered breaching terms while satisfying the DCBF
         # condition exactly as specified.
         first_governed_round = state.last_binding is None or (
-            self.theta_source in ("inferred", "meet") and not state.governed_opened
+            self.theta_source in INFERENCE_SOURCES and not state.governed_opened
         )
         if first_governed_round:
             state.governed_opened = True
@@ -462,7 +473,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             return
         state.observed.append(terms.vector)
 
-        if self.theta_source in ("inferred", "meet") and not state.positions.is_frozen:
+        if self.theta_source in INFERENCE_SOURCES and not state.positions.is_frozen:
             # The buyer's first counter closes the pre-phase: both sides have
             # now named a price, so the envelope is determined and is frozen
             # here for the rest of the negotiation.
@@ -515,6 +526,9 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                 "source": terms.source,
                 "exact": str(terms.exact),
                 "deadline_observed": str(terms.deadline_observed),
+                # Per-round audit for the guarded meet. The per-pair counter in
+                # summary() latches, so it cannot say *which* rounds fell back.
+                "meet_fallback": str(state.meet_fell_back_this_round),
             },
             intervention_override=intervention,
         )
@@ -540,7 +554,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             sum(1 for s in self.states.values() if s.unsatisfiable)
         )
         out["ungoverned_messages"] = float(len(self.ungoverned))
-        if self.theta_source in ("inferred", "meet"):
+        if self.theta_source in INFERENCE_SOURCES:
             out.update(self.inference.summary())
             # Rounds spent agreeing theta. Whether these count against T_max is
             # a policy choice, so both the count and the choice are reported.
