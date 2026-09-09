@@ -82,7 +82,13 @@ nothing as a standalone claim.
 
 ## They converge to a floor, not to the solution
 
-Fitted floors are positive and pair-specific — 0.029 to 0.183 scaled units.
+Fitted floors are positive and pair-specific on 13 of the 16 — 0.029 to 0.183
+scaled units. The other three fit a floor of zero; they are the shortest
+trajectories, at four or five points, where the grid search cannot separate a
+small floor from none.
+
+*(Scoped 2026-09-09: this line read "Fitted floors are positive and
+pair-specific" without the 13-of-16 qualifier.)*
 A representative trajectory:
 
 ```
