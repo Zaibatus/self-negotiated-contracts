@@ -2,7 +2,7 @@
 
 The one diagram the prose of Section 1.4 cannot carry quickly. Three blocks
 left to right, numbered so the text can refer to the numbers, and the worked
-exchange of Section 1.2 (£13.51 -> £11.57 against a £11.58 budget) carried
+exchange of Section 1.2 (£13.51 -> £11.58 against a £11.58 budget) carried
 along the path so the figure states a measured example rather than a cartoon.
 
 FIGURES.md: five blocks maximum, visible entry point, greyscale first, ACCENT
@@ -57,7 +57,7 @@ def main() -> None:
     block(7.40, 3, "buyer agent", "never sees the\noriginal terms")
 
     arrow(ax, 2.64, 3.71, ymid, "£13.51", ACCENT)
-    arrow(ax, 6.29, 7.36, ymid, "£11.57", INK)
+    arrow(ax, 6.29, 7.36, ymid, "£11.58", INK)
 
     # the contract enters from below: it is configuration, not a message
     box(ax, 3.30, 0.30, 3.40, 0.78, edge=GREY, lw=1.0, fill="#f4f4f4")
