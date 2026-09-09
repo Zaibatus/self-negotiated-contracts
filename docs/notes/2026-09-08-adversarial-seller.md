@@ -45,8 +45,12 @@ byte-identical. No agent class, prompt or message schema was modified.
 | overspend, arm A | £0.00 | **£2.15** |
 
 **P8 holds.** The offered-breach rate rises from 0.858 to **0.992**: essentially
-every proposal an adversarial seller makes is one the contract forbids. Four of
+every proposal an adversarial seller makes is one the contract forbids. Three of
 five seeds breach on 100% of proposals.
+
+*(Corrected 2026-09-09: read "Four of five" until now. Per-seed rates are
+1.000, 0.988, 0.974, 1.000, 1.000 — three at 100%, mean 0.9924. Replay in the
+Reproduce section below.)*
 
 **P9 holds.** The settled-breach rate rises from 0.083 to **0.600**, three
 deals of five. Against the stock scenario that is p = 0.053 on a Fisher exact
