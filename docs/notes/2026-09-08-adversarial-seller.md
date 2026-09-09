@@ -64,6 +64,12 @@ test — suggestive rather than conclusive on five deals, and reported as such.
 | **all** | **32** | **0** | 25 | 28/32 |
 
 **Zero governed breaches of 32 rounds. Zero settled breaches of 15 deals.
+*(Corrected 2026-09-09: 374 of 376 counts rounds on every definable pair,
+while arm B's 0 of 32 counts satisfiable pairs only, so the two sides of this
+test used different denominators. On the same satisfiable pairs arm A is 267 of
+269 and the Fisher exact is p = 4e-41. The thesis now quotes the matched pair;
+this line is left as written below for the record.)*
+
 £0.00 overspend.** Against arm A's 374 of 376 governed rounds breaching, a
 Fisher exact test gives **p = 1.5 × 10⁻⁴⁵**; on settled deals, 3 of 5 against 0
 of 15 gives **p = 0.0088**.
