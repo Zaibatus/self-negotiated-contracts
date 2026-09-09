@@ -80,7 +80,13 @@ breaches at 0.992 when ungoverned and 0.000 when governed.
 Ungoverned, the adversarial seller destroyed trade: closure fell from 12 deals
 to **5**. Buyers faced with impossible prices walked away. Under enforcement
 closure held at **15**, against 16 on the stock scenario — statistically
-indistinguishable, and p = 0.0042 against the ungoverned adversarial arm.
+indistinguishable, and p = 0.0002 against the ungoverned adversarial arm.
+
+*(Corrected 2026-09-09: this line read p = 0.0042, which does not reconcile
+with any table of these counts. Fisher exact on 5 of 15 against 15 of 15 is
+p = 0.00020. The thesis had separately picked up a closure of "6 of 15" and
+quoted p = 0.0007, the value for 6; both were wrong and both are fixed. The
+deal counts themselves are confirmed by replay — see below.)*
 
 So the filter's effect under adversarial pricing is not the expected trade-off
 of safety against volume. It is the opposite: the layer that bounds what the
@@ -102,3 +108,31 @@ and not optimising against the filter. A seller that knew the barrier condition
 and searched for a proposal that satisfies the linearised program while leaving
 C(θ) — the surface limitation B3 records — is a different threat and is not
 tested here.
+
+## Reproduce the closure counts
+
+```bash
+uv run python - <<'PY'
+import asyncio
+from src.marketplace_integration.replay import replay_schema, _dsn_from_env
+from src.marketplace_integration.theta import ContractRegistry
+from src.contract import ContractSpec
+
+async def go():
+    reg = ContractRegistry.from_data_dir(
+        "data/bargain_adv_3_9", spec=ContractSpec())
+    dsn = _dsn_from_env()
+    for arm in ("arm_a_adv", "arm_b_adv"):
+        n = br = 0; over = 0.0
+        for i in range(1, 6):
+            r = await replay_schema(f"{arm}_{i}", reg, dsn)
+            for d in r.deals:
+                n += 1; br += d.breached; over += d.overspend
+        print(arm, "deals", n, "breaching", br, "overspend %.2f" % over)
+
+asyncio.run(go())
+PY
+```
+
+Expected: `arm_a_adv deals 5 breaching 3 overspend 2.15` and
+`arm_b_adv deals 15 breaching 0 overspend 0.00`.
