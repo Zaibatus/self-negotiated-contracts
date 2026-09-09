@@ -1,9 +1,5 @@
 # self-negotiated-contracts
 
-Formal safety and convergence guarantees for LLM-agent negotiation: **contracts
-as controllers**. MSc thesis, Imperial College London.
-Supervisor: Dr Pietro Ferraro; co-supervisor: Haozhe Tian.
-
 **In one line.** A negotiated contract is a controller for the negotiation
 itself: a discrete-time control barrier function guarantees no contract breach
 at any round, and two anchor-free certificates built from current payoff
