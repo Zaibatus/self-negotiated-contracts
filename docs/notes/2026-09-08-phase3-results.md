@@ -46,7 +46,11 @@ point rather than an interpolation.
 **P2 holds.** Zero governed breaches on 28 rounds, £0.00 overspend.
 
 **P4 holds weakly.** £1.21 rather than £0.00, on a buyer told *less* than it may
-spend. The residual sits on pairs the mandate cannot satisfy anyway. The
+spend. Corrected 2026-09-08 by replay: the residual does *not* sit on
+unsatisfiable pairs. Of the 8 breaching deals, 7 are `meaningful` (satisfiable
+pairs) and 1 is `infeasible`; but 7 of the 8 carry £0.00 of overspend, so the
+whole £1.21 is one deal, and the breaches are on rows other than the budget.
+The
 direction is right: an over-cautious buyer is nearly as safe as a correctly
 informed one, so P1's effect is about the *direction* of the offset and not
 about disclosure merely being imperfect.
@@ -192,3 +196,32 @@ tolerance is zero. Whether it is zero in general or an artefact of
 `q_min = q_requested` is not established here, and the algebra above suggests
 the latter is worth checking: a contract with slack between `q_min` and the
 requested basket would not sit on the boundary.
+
+## Reproduce the P4 correction
+
+```bash
+uv run python - <<'EOF'
+import asyncio, collections
+from src.marketplace_integration.replay import replay_schema, _dsn_from_env
+from src.marketplace_integration.theta import ContractRegistry
+from src.contract import ContractSpec
+
+async def go():
+    reg = ContractRegistry.from_data_dir(
+        "data/disclosed_offset_low_3_9", spec=ContractSpec())
+    dsn = _dsn_from_env()
+    n = collections.Counter(); over = collections.Counter()
+    for i in range(1, 6):
+        r = await replay_schema(f"arm_a_off09_{i}", reg, dsn)
+        for d in r.deals:
+            if d.breached:
+                n[d.classification] += 1
+                over[d.classification] += d.overspend
+    print(dict(n), {k: round(v, 2) for k, v in over.items()})
+
+asyncio.run(go())
+EOF
+```
+
+Expected: `{'meaningful': 7, 'infeasible': 1} {'meaningful': 1.21, 'infeasible': 0.0}`,
+and the seven meaningful overspends are `[0, 0, 0, 0, 0, 0, 1.21]`.
