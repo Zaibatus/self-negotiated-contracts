@@ -259,3 +259,105 @@ a rate comparison needs. Quantity is the cheaper route (finding 3).
 `zone_position` is not the lever (finding 4). No run has been made and none
 should be without a go — cost would be ~£0.15 for a 1-seed pilot, ~£1 for a
 5-seed A/B.
+
+---
+
+# RESULTS — phase 3, the quantity pilot
+
+**Run 2026-09-14 on `quantity_off09_3_9`, arms A and B, 1 seed each, γ = 0.4,
+T_max = 6, gemini-2.5-flash minimal reasoning.** Predictions were registered in
+`PREREGISTRATION-quantity.md` and committed (`3d708f0`) before the first run.
+
+## Scoring the registered predictions
+
+| | prediction | threshold | observed | verdict |
+|---|---|---|---|---|
+| **P1** | arm A moves quantity | ≥ 10% of continuation rounds | 12.5% (2 of 16) | **held literally, failed in substance** |
+| **P2** | quantity duals active in arm B | ≥ 20% of governed rounds | **0.0%** (0 of 40) | **falsified** |
+| **P3** | a rest point with `cost_floor` + a quantity row both active | ≥ 1 pair | 0 pairs (one pair had `budget` + `cost_floor`) | **falsified** |
+| **P4** | Φ_projected net down in arm B | ≥ 80% of trajectories | 75% (3 of 4) | **falsified** |
+| **P5** | median arm B length | ≥ 4 rounds | 2.5 | **falsified** |
+
+Four of five falsified. P1 needs the qualification, and the reason it needs one
+matters more than the score.
+
+**P1 held on the number and not on the intent.** Both arm A quantity moves were
+*downward* — `3 → 1` and `3 → 2`, an item being dropped from the basket. That is
+the identical artefact the baseline shows across the 3,865 thesis rounds. **The
+ungoverned agents never once proposed a larger order**: 0 of 16 rounds carried
+`q` above `q_min`. The volume clause did not make the buyer bulk-buy. I set the
+threshold on "quantity moves" when what I meant was "quantity is negotiated
+upward", and the looser wording let a null pass.
+
+## What actually happened, which no prediction anticipated
+
+**In arm B the seller did upsell, and the filter cut it back.** Seven of 40
+governed rounds carried `q` above `q_min`, and the filter changed quantity on
+**6 of 40 rounds (15.0%)** — the first active quantity control anywhere in this
+project:
+
+| pair | proposed | applied | duals active |
+|---|---|---|---|
+| b0002\|c0001 | p 5.58, q 4 | p 5.79, **q 2** | budget, cost_floor |
+| b0002\|c0001 | p 5.79, **q 6** | p 5.79, **q 2** | budget |
+| b0004\|c0002 | p 6.71, q 2 | p 7.19, **q 1** | — (opening projection) |
+| b0004\|c0002 ×3 | p 6.71, q 2 | p ~7.3, **q 1** | budget, cost_floor |
+
+**And this is why P2 was falsified while its underlying reasoning held.** The
+pre-registration argued the QP would be forced to cut quantity because price is
+floored at `c` and `c·(q_min+1) > B`. That is exactly what happened. But the row
+doing the work is the **budget** row, not a quantity row: `h₁ = B − pq` is
+itself bilinear in `(p, q)`, so it delivers a two-dimensional correction on its
+own. The `q_min`/`q_max` box rows never bind, because the agents sit at `q_min`
+by construction and approach the box from the inside. P2 measured the wrong
+instrument for a mechanism that did occur.
+
+Note `b0002|c0001` proposing `q = 6` against `q_max = 4` and being returned to
+`q = 2` rather than to 4 — the nearest point on the `q` axis. The budget row,
+not the box, decides where it lands.
+
+## Three cautions, and one confound worth naming
+
+1. **n = 1 seed.** P4 is 3 of 4 trajectories: a single path decides an 80%
+   threshold. Setting that threshold for a one-seed pilot was a design error on
+   my part, not an informative result.
+2. **Arm A showed 0 upsells and arm B showed 7, on identical prompts.** That
+   difference should not exist — θ and the scenario text are the same, and only
+   the filter differs. Either it is one-seed variance, or the filter's rewritten
+   proposals change what the seller sees on the next turn and so change its
+   behaviour. **This is a confound in the design, not a finding**, and it cannot
+   be separated without seeds.
+3. **Negotiations got shorter, not longer.** Median 2.5 rounds against off09's
+   10.5 on identical θ. The volume clause gives the seller a concession that is
+   not a price cut, and the negotiation appears to end sooner as a result.
+
+## What this answers
+
+The 2-D route is **not** closed by the agents — the seller will upsell when
+told it may, and the filter will correct it. But quantity is not *negotiated*:
+it is proposed once and clipped, rather than converging over rounds. The
+trajectory is still one-dimensional in the sense that matters for a rate,
+because the second axis is a step, not a path.
+
+A rate comparison still has no common quantity between arms, for the reasons
+in phase 2, and now for a fourth: the arms differ in how often the seller
+upsells at all.
+
+## Cost
+
+Two live runs, 1 seed each. Prior notes put a 1-seed pilot at ~£0.15, so
+**≈ £0.30 total**, against the £5 ask-first threshold. I do not have exact
+per-run token telemetry — the `client_metrics_*.json` counters are cumulative
+for the client, not per-run — so this is an estimate from the historical
+figures, not a measurement.
+
+One wasted invocation cost nothing: `arm_a_no_contract.py` defaults to
+**replay**, not live, so the first arm A call re-evaluated θ against the
+pre-recorded `baseline_v1..v5` schemas (run on stock `mexican_3_9`) instead of
+running my scenario. No API spend, and no result; it was re-run with `--live`.
+
+## If this goes further
+
+The next question is whether the arm A/arm B upsell asymmetry is real. That is
+5 seeds per arm, ~£1.50, and it is worth more than adding a third dimension.
+Nothing has been run beyond the two pilots above.
