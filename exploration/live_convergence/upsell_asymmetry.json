@@ -1,0 +1,22 @@
+{
+  "a": {
+    "seeds": 5,
+    "rounds": 57,
+    "upsell_rounds": 4,
+    "upsell_rate": 0.07017543859649122,
+    "median_rounds_per_pair": 2
+  },
+  "b": {
+    "seeds": 5,
+    "rounds": 204,
+    "upsell_rounds": 94,
+    "upsell_rate": 0.46078431372549017,
+    "median_rounds_per_pair": 2.5
+  },
+  "fisher_p": 8.678707049684243e-09,
+  "p8_preceded": "87/94",
+  "duals": {
+    "cost_floor": 137,
+    "budget": 87
+  }
+}

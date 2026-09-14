@@ -1,0 +1,744 @@
+{
+  "controller": {
+    "gamma": 0.4,
+    "t_max": 6,
+    "kappa0": 2.0,
+    "rho": 0.5
+  },
+  "negotiations": [
+    {
+      "pair": "business_0001|customer_0001",
+      "rounds": 3,
+      "shadow_prices": {},
+      "breach_rate": 0.0,
+      "breach_rounds": 0,
+      "lambda": {
+        "value": 0.15027499999999974,
+        "identified": false,
+        "n_events": 3,
+        "reason": "all 3 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          1.6604874060549555,
+          0.33958878808479614,
+          1.88079096131566e-32
+        ],
+        "final": 1.88079096131566e-32,
+        "fraction_decreasing": 1.0
+      },
+      "phi_projected": {
+        "series": [
+          1.6604874060549555,
+          null,
+          null
+        ],
+        "defined_at": 1,
+        "of_rounds": 3,
+        "final": 1.6604874060549555,
+        "fraction_decreasing": null,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 2
+      },
+      "settled": {
+        "terms": [
+          10.94,
+          2.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          5.6797249999999995,
+          2.0000000000000004,
+          0.0
+        ],
+        "distance_scaled_units": 5.260275,
+        "surplus": 0.6010999999999989,
+        "w_max": 0.601099999999999,
+        "surplus_loss_pct": 1.8469855675015112e-14
+      },
+      "rationalizability": {
+        "consistent": true,
+        "kappa_interval": [
+          0.0,
+          0.10877099624606588
+        ],
+        "n_rounds": 2,
+        "n_moved": 2,
+        "n_inconsistent_rounds": 0,
+        "description": "consistent with cost-benefit rationalizability for kappa in [0.000, 0.109] (2/2 rounds moved)"
+      },
+      "status": "ok"
+    },
+    {
+      "pair": "business_0002|customer_0001",
+      "rounds": 6,
+      "shadow_prices": {
+        "budget": 0.0,
+        "cost_floor": 0.9821417858214185,
+        "q_min": 0.0,
+        "q_max": 0.0
+      },
+      "breach_rate": 0.0,
+      "breach_rounds": 0,
+      "lambda": {
+        "value": 0.0742999999999996,
+        "identified": false,
+        "n_events": 6,
+        "reason": "all 6 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          1.1501452112341186,
+          7.569666676231989e-05,
+          7.569666676231989e-05,
+          1.8453038534539017,
+          7.569666676231989e-05,
+          2.0136666334163795
+        ],
+        "final": 2.0136666334163795,
+        "fraction_decreasing": 0.6
+      },
+      "phi_projected": {
+        "series": [
+          1.1501452112341186,
+          null,
+          null,
+          1.6827722661347937,
+          null,
+          1.6496599852929004
+        ],
+        "defined_at": 3,
+        "of_rounds": 6,
+        "final": 1.6496599852929004,
+        "fraction_decreasing": 0.5,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 5
+      },
+      "settled": {
+        "terms": [
+          5.65,
+          2.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          5.7557,
+          2.0000000000000004,
+          0.0
+        ],
+        "distance_scaled_units": 0.10569999999999968,
+        "surplus": 0.29719999999999835,
+        "w_max": 0.2971999999999984,
+        "surplus_loss_pct": 1.867804550176922e-14
+      },
+      "rationalizability": {
+        "consistent": false,
+        "kappa_interval": null,
+        "n_rounds": 5,
+        "n_moved": 4,
+        "n_inconsistent_rounds": 3,
+        "description": "NOT consistent: the agent stalled at incentive 0.000 and moved at 0.000, so no single kappa explains it; 3 of 5 rounds cannot be reconciled. The bridge from the gradient-ascent proxies to these agents does not hold at this scale"
+      },
+      "status": "ok"
+    },
+    {
+      "pair": "business_0004|customer_0002",
+      "rounds": 49,
+      "shadow_prices": {
+        "budget": 0.0026314800486193376,
+        "cost_floor": 1.056345845464074,
+        "q_min": 0.0,
+        "q_max": 0.0
+      },
+      "breach_rate": 0.0,
+      "breach_rounds": 0,
+      "lambda": {
+        "value": 0.06369999999999998,
+        "identified": false,
+        "n_events": 49,
+        "reason": "all 49 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          2.5928789941226786,
+          0.0,
+          0.9804610460515839,
+          0.0,
+          0.10699337494517623,
+          0.0,
+          0.5501155798181776,
+          0.0,
+          0.6976384664523821,
+          0.0,
+          0.7572836190524957,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026,
+          0.0,
+          0.8094970678410026
+        ],
+        "final": 0.8094970678410026,
+        "fraction_decreasing": 0.5
+      },
+      "phi_projected": {
+        "series": [
+          0.9307893377140559,
+          null,
+          0.5196433096817803,
+          null,
+          0.10699337494517623,
+          null,
+          0.5501155798181776,
+          null,
+          0.6976384664523821,
+          null,
+          0.7572836190524957,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026,
+          null,
+          0.8094970678410026
+        ],
+        "defined_at": 25,
+        "of_rounds": 49,
+        "final": 0.8094970678410026,
+        "fraction_decreasing": 0.8333333333333334,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 48
+      },
+      "settled": {
+        "terms": [
+          7.43,
+          1.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          7.3426,
+          1.0,
+          0.0
+        ],
+        "distance_scaled_units": 0.0873999999999997,
+        "surplus": 0.25480000000000036,
+        "w_max": 0.2547999999999999,
+        "surplus_loss_pct": -1.7428932882655526e-13
+      },
+      "rationalizability": {
+        "consistent": true,
+        "kappa_interval": [
+          0.0,
+          5.758125923713447e-21
+        ],
+        "n_rounds": 48,
+        "n_moved": 48,
+        "n_inconsistent_rounds": 0,
+        "description": "consistent with cost-benefit rationalizability for kappa in [0.000, 0.000] (48/48 rounds moved)"
+      },
+      "status": "ok"
+    },
+    {
+      "pair": "business_0005|customer_0002",
+      "rounds": 14,
+      "shadow_prices": {
+        "budget": 0.002576823668560012,
+        "cost_floor": 0.919044919176641,
+        "q_min": 0.0,
+        "q_max": 0.0
+      },
+      "breach_rate": 0.0,
+      "breach_rounds": 0,
+      "lambda": {
+        "value": 0.10272499999999996,
+        "identified": false,
+        "n_events": 14,
+        "reason": "all 14 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          0.9222988959013341,
+          9.4039548065783e-33,
+          0.9065286740492037,
+          9.4039548065783e-33,
+          0.8939230656407202,
+          9.4039548065783e-33,
+          0.8939230656407202,
+          9.4039548065783e-33,
+          0.8939230656407202,
+          9.4039548065783e-33,
+          0.8939230656407202,
+          9.4039548065783e-33,
+          0.8939230656407202,
+          9.4039548065783e-33
+        ],
+        "final": 9.4039548065783e-33,
+        "fraction_decreasing": 0.5384615384615384
+      },
+      "phi_projected": {
+        "series": [
+          0.9222988959013341,
+          null,
+          0.9065286740492037,
+          null,
+          0.8939230656407202,
+          null,
+          0.8939230656407202,
+          null,
+          0.8939230656407202,
+          null,
+          0.8939230656407202,
+          null,
+          0.8939230656407202,
+          null
+        ],
+        "defined_at": 7,
+        "of_rounds": 14,
+        "final": 0.8939230656407202,
+        "fraction_decreasing": 1.0,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 13
+      },
+      "settled": {
+        "terms": [
+          13.34,
+          1.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          7.26455,
+          1.0,
+          0.0
+        ],
+        "distance_scaled_units": 6.07545,
+        "surplus": 0.4108999999999998,
+        "w_max": 0.4108999999999998,
+        "surplus_loss_pct": 0.0
+      },
+      "rationalizability": {
+        "consistent": true,
+        "kappa_interval": [
+          0.0,
+          5.680986897706684e-21
+        ],
+        "n_rounds": 13,
+        "n_moved": 13,
+        "n_inconsistent_rounds": 0,
+        "description": "consistent with cost-benefit rationalizability for kappa in [0.000, 0.000] (13/13 rounds moved)"
+      },
+      "status": "ok"
+    },
+    {
+      "pair": "business_0007|customer_0003",
+      "rounds": 9,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 3,
+      "status": "payoff model not definable: pair business_0007|customer_0003 has no bargaining zone: the buyer's reservation price 10.46 is at or below the seller's marginal cost 11.76, so any agreement destroys surplus"
+    },
+    {
+      "pair": "business_0008|customer_0003",
+      "rounds": 36,
+      "shadow_prices": {
+        "budget": 0.0008218130271489081,
+        "cost_floor": 0.6883149409206888,
+        "q_min": 0.0,
+        "q_max": 0.0
+      },
+      "breach_rate": 0.0,
+      "breach_rounds": 0,
+      "lambda": {
+        "value": 0.14519999999999902,
+        "identified": false,
+        "n_events": 36,
+        "reason": "all 36 events have the same outcome (rejected); lambda is not identified from one-sided data"
+      },
+      "phi": {
+        "series": [
+          1.4440234701165733,
+          1.4440234701165733,
+          2.792810381710135e-07,
+          2.6154583775304596,
+          2.792810381710135e-07,
+          2.883707361269889,
+          2.792810381710135e-07,
+          2.0593185955784516,
+          7.52316384526264e-32,
+          1.4449369358470014,
+          7.52316384526264e-32,
+          1.244466361555521,
+          7.52316384526264e-32,
+          1.122112563175009,
+          7.52316384526264e-32,
+          1.122112563175009,
+          7.52316384526264e-32,
+          1.0644074587042376,
+          7.52316384526264e-32,
+          1.0090176357540537,
+          7.52316384526264e-32,
+          7.52316384526264e-32,
+          3.1056813408986867,
+          0.0,
+          2.792810381710135e-07,
+          2.208658088013279,
+          7.52316384526264e-32,
+          0.9455636696068062,
+          7.52316384526264e-32,
+          0.005425487707619639,
+          0.9455636696068062,
+          0.5437039654306244,
+          0.0,
+          0.8080814769463459,
+          0.0,
+          0.0
+        ],
+        "final": 0.0,
+        "fraction_decreasing": 0.5428571428571428
+      },
+      "phi_projected": {
+        "series": [
+          1.4440234701165733,
+          1.4440234701165733,
+          null,
+          2.464323304211813,
+          null,
+          2.4969014860178746,
+          null,
+          1.68705952997214,
+          null,
+          1.1344286741283431,
+          null,
+          0.9612575359677424,
+          null,
+          0.8573275689227957,
+          null,
+          0.8573275689227957,
+          null,
+          0.8087924003962257,
+          null,
+          0.762503613245362,
+          null,
+          null,
+          2.7529044153640907,
+          null,
+          null,
+          2.1089521412803736,
+          null,
+          0.9272014619227111,
+          null,
+          0.005425487707619639,
+          0.9272014619227111,
+          0.5437039654306244,
+          null,
+          0.8080814769463459,
+          null,
+          null
+        ],
+        "defined_at": 18,
+        "of_rounds": 36,
+        "final": 0.8080814769463459,
+        "fraction_decreasing": 0.7058823529411765,
+        "note": "null where the state is outside C(theta): the projected certificate is undefined in breach, and a state in breach needs recovery rather than convergence"
+      },
+      "g_kappa": {
+        "series": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "stopping_round": 0,
+        "t_max": 6,
+        "within_t_max": true,
+        "realised_rounds": 35
+      },
+      "settled": {
+        "terms": [
+          31.31,
+          3.0,
+          0.0
+        ],
+        "nash_bargaining_solution": [
+          10.4232,
+          2.999999999999994,
+          0.0
+        ],
+        "distance_scaled_units": 20.8868,
+        "surplus": 0.5807999999999964,
+        "w_max": 0.5807999999999961,
+        "surplus_loss_pct": -5.734623061080393e-14
+      },
+      "rationalizability": {
+        "consistent": false,
+        "kappa_interval": null,
+        "n_rounds": 35,
+        "n_moved": 32,
+        "n_inconsistent_rounds": 21,
+        "description": "NOT consistent: the agent stalled at incentive 0.596 and moved at 0.000, so no single kappa explains it; 21 of 35 rounds cannot be reconciled. The bridge from the gradient-ascent proxies to these agents does not hold at this scale"
+      },
+      "status": "ok"
+    },
+    {
+      "pair": "business_0009|customer_0003",
+      "rounds": 7,
+      "shadow_prices": {},
+      "breach_rate": 1.0,
+      "breach_rounds": 3,
+      "status": "payoff model not definable: pair business_0009|customer_0003 has no bargaining zone: the buyer's reservation price 10.46 is at or below the seller's marginal cost 14.00, so any agreement destroys surplus"
+    }
+  ],
+  "aggregate": {
+    "negotiations": 7,
+    "measurable": 5,
+    "mean_distance_to_nbs_scaled": 6.483124999999999,
+    "mean_surplus_loss_pct": -3.889753165211497e-14,
+    "rationalizable_fraction": 0.6,
+    "fallback_realised_displacement": {
+      "series": [
+        27.964511111111108,
+        0.25147777777777774,
+        0.0036999999999999668,
+        0.0069444444444443955,
+        0.001600000000000003,
+        0.001344444444444474,
+        455.2537444444444,
+        0.0007111111111110492,
+        0.006499999999999723,
+        0.00010000000000003127,
+        9.999999999999574e-05,
+        4.4444444444434655e-05,
+        0.002500000000000071,
+        0.0,
+        0.0,
+        1.1111111111114584e-05,
+        0.00010000000000003127,
+        1.1111111111102743e-05,
+        9.999999999996021e-05,
+        416.15999999999997,
+        411.95467777777776,
+        0.09609999999999921,
+        0.792100000000001,
+        422.02854444444444,
+        470.31151111111114,
+        0.0011111111111111033,
+        0.009999999999999573,
+        0.0005444444444444488,
+        432.6399999999999,
+        0.00017777777777773862,
+        437.22809999999987,
+        4.444444444445834e-05,
+        0.0,
+        435.4177777777778,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "contraction": 0.01150263254744585,
+      "note": "assumption-free; weaker than G_kappa"
+    }
+  }
+}

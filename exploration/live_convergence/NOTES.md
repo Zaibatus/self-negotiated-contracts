@@ -361,3 +361,101 @@ running my scenario. No API spend, and no result; it was re-run with `--live`.
 The next question is whether the arm A/arm B upsell asymmetry is real. That is
 5 seeds per arm, ~£1.50, and it is worth more than adding a third dimension.
 Nothing has been run beyond the two pilots above.
+
+---
+
+# RESULTS — phase 4, the upsell asymmetry
+
+**Run 2026-09-14, seeds v2–v5 added to the v1 pilot, 5 per arm.** Predictions
+registered and committed (`02e6bc3`) before the first new run. 57 arm A rounds,
+204 arm B rounds.
+
+## All five predictions held
+
+| | prediction | threshold | observed | verdict |
+|---|---|---|---|---|
+| P6 | arm A upsells at all | ≥ 1 round | 4 | **held** |
+| P7 | arm B rate > arm A, Fisher | p < 0.05 | **p = 8.7 × 10⁻⁹** | **held** |
+| P8 | upsells follow a price alteration | ≥ 2/3 | 87 of 94 = 0.926 | **held** |
+| P9 | quantity duals stay quiet | < 5% | **0 of 204** | **held** |
+| P10 | the shortening replicates | median < 6 | 2.5 | **held** |
+
+Upsell rate, `q > q_min` on `x_proposed`: **arm A 4 of 57 (7.0%)**, **arm B 94
+of 204 (46.1%)**. The pilot's 0-of-16 was small-sample — ungoverned sellers do
+upsell occasionally — but the asymmetry is real and large.
+
+## P8 is not vacuous, and the stronger test is cleaner
+
+P8 as registered is weak: the filter alters price on most governed rounds, so
+"preceded by a price alteration" could be near-automatic. Checking the base
+rate:
+
+| | preceded by a price alteration |
+|---|---|
+| upsell rounds | 87 of 94 = **92.6%** |
+| non-upsell rounds | 69 of 110 = **62.7%** |
+| all rounds | 156 of 204 = 76.5% |
+
+Upsells are markedly more likely to follow a price alteration than other rounds
+are, so the test carries information. The sharper version — upsell rate
+conditional on whether the filter has yet touched price in that pair:
+
+| | upsell rate |
+|---|---|
+| **before** any price alteration | 7 of 48 = **14.6%** |
+| **after** a price alteration | 87 of 156 = **55.8%** |
+
+Fisher exact **p = 3.4 × 10⁻⁷**. The seller's upsell rate **quadruples** once
+the filter has altered its price. And 14.6% before alteration sits close to arm
+A's unconditional 7.0%, which is what a baseline propensity should look like.
+
+## The finding
+
+**H_redirect is supported and H_noise is rejected.** The contract does not only
+constrain the negotiation, it **redirects it onto a different axis**: holding
+price at the cost floor pushes the seller to the volume lever the scenario told
+it about. The filter changes *what the agents negotiate over*, not merely what
+they are permitted to agree.
+
+Nothing in the dissertation measures this. It is a claim about mechanism rather
+than about safety, and it is the most interesting thing this exploration found.
+
+Two qualifications it needs:
+
+1. **It is a property of this scenario's prompts.** The seller had a volume
+   lever because `VOLUME_SELLER_CLAUSE` gave it one. What generalises is
+   "blocked on one axis, an agent will use another it has been offered" — not a
+   claim about quantity specifically.
+2. **5 seeds × 3 customers is 5 draws of the same 3 situations.** The p-values
+   describe seed variance under a fixed scenario, not sampling error over
+   baskets. The effect is large enough that this is unlikely to overturn it,
+   but the caveat is the same one that applies everywhere in this project.
+
+## The budget row is still doing all the work
+
+`q_min`/`q_max` duals: **0 of 204 governed rounds**, confirming the pilot.
+Active duals are `cost_floor` (137) and `budget` (87). Quantity is corrected —
+often — but always through `h₁ = B − pq`, which is bilinear in `(p, q)` and so
+delivers a two-dimensional correction without any quantity row ever binding.
+
+This has a design consequence worth recording: **the box rows on quantity are
+inert in this testbed.** They were specified, they are checked, and they have
+never once bound in any run in this project. A reader of θ would reasonably
+assume `q_max` is what stops an upsell. It is not.
+
+## Cost
+
+Eight live runs at roughly £0.15 each, **≈ £1.20**, against the £5 ask-first
+threshold. Cumulative for the whole exploration: **≈ £1.50**. Estimated from
+the historical per-run figures in `docs/notes/`, not measured — the
+`client_metrics_*.json` counters are cumulative for the client rather than
+per-run.
+
+## Where this would go next, not run
+
+The claim to test is the general one, and it needs a scenario where the second
+axis is *not* quantity — delivery speed is the obvious candidate, and it needs
+`deadline_active=True` plumbed through a copied runner (finding 3). If blocking
+price redirects onto whatever lever exists, that is a property of contract
+enforcement worth stating. If it only works for quantity, it is a quirk of the
+budget row being bilinear.
