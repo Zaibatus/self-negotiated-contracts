@@ -1,0 +1,21 @@
+id: customer_0003
+name: Angela Ng
+request: 'I am looking for a business that serves the following menu items: 1 Southwest Chicken
+  Enchiladas, 1 Coconut Lime Tres Leches, and 1 Chargrilled Carne Asada. Additionally, the
+  establishment must accommodate large groups and offer onsite parking. Once a suitable business
+  is found, I intend to place the order as specified. Thank you for your assistance. Budget:
+  I can spend at most $28.24 in total, and I must not exceed it. The first quote I receive
+  will probably be above that, so do not accept it. Ask the business for a better price, and
+  keep negotiating — several rounds if necessary — until the total is within my budget. Only
+  pay once a proposal is at or under $28.24. Quantity: I will take more than one unit of an
+  item if that brings the unit price down, and you should ask whether it does. My total spend
+  is still capped at the figure above, so a larger order only helps me if the unit price falls
+  enough to keep the total within it. Say how many units I would take at the unit price being
+  offered.'
+menu_features:
+  Southwest Chicken Enchiladas: 10.17
+  Coconut Lime Tres Leches: 6.05
+  Chargrilled Carne Asada: 15.16
+amenity_features:
+- Large Groups
+- Onsite Parking
