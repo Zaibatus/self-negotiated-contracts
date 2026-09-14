@@ -459,3 +459,102 @@ axis is *not* quantity — delivery speed is the obvious candidate, and it needs
 price redirects onto whatever lever exists, that is a property of contract
 enforcement worth stating. If it only works for quantity, it is a quirk of the
 budget row being bilinear.
+
+---
+
+# RESULTS — phase 5, the delivery axis. The redirection does NOT generalise.
+
+**Run 2026-09-14, 5 seeds per arm on `delivery_off09_3_9`.** θ byte-identical
+to off09, `deadline_active` False, so the filter cannot touch `d`
+(`rewrite_proposal` carries `estimated_delivery` through untouched). Predictions
+registered and committed (`8b7a214`) before the first run. 136 arm A rounds,
+228 arm B.
+
+| | prediction | threshold | observed | verdict |
+|---|---|---|---|---|
+| P11 | delivery axis is alive | ≥ 50% observed | **100%** (228/228) | **held** |
+| P12 | `d` moves | ≥ 10% of continuations | 29.4% (55/187) | **held** |
+| P13 | **`d` moves more after price is blocked** | p < 0.05, upward | **47.1% → 25.5%, reversed** | **falsified** |
+| P14 | arm B moves `d` more than arm A | p < 0.05 | A 40.8% > B 29.4% | **falsified** |
+| P15 | control: no volume clause → no upsell | < 15% | **0 of 228 (0.0%)** | **held** |
+
+## The delivery axis opened, and nothing redirected onto it
+
+P11 is a result in its own right: `estimated_delivery` was populated on **228 of
+228** proposals, against **0 of 4,126** rounds in every prior run in this
+project. The field was always available and optional; nothing had ever asked for
+it. `d` took values 1, 2 and 3 days and moved on 29.4% of continuation rounds.
+
+But P13 reversed. Deadline movement **falls** after the filter alters price —
+47.1% before, 25.5% after, p = 0.021 — where the quantity run rose 14.6% → 55.8%.
+
+## Ruling out the obvious confound
+
+If the filter simply froze everything, a fall in `d` would mean nothing. It does
+not. Within arm B of the delivery scenario, before vs after the filter alters
+price in that pair:
+
+| dimension | before | after | Fisher p |
+|---|---|---|---|
+| price | 47.1% | **83.0%** | 3.1 × 10⁻⁵ |
+| quantity | 0.0% | 0.0% | 1.0 |
+| deadline | 47.1% | **25.5%** | 2.1 × 10⁻² |
+
+Price movement *rises* sharply while deadline movement falls. There is no
+general freeze; the seller stays engaged and stays on price.
+
+## So H_general is rejected, and the refined claim is narrower
+
+Blocking price does **not** push the seller onto whatever lever it has been
+offered. It pushed it onto quantity and not onto delivery, with both clauses
+written the same way and both axes offered the same way.
+
+The plausible reason is structural. **Quantity sits inside the binding
+constraint and delivery sits outside every constraint.** `h₁ = B − pq` is
+bilinear in `(p, q)`, so when price is pinned at the cost floor and the budget
+still binds, altering `q` is the only remaining way to change whether a deal
+fits. Delivery changes nothing about feasibility, so a seller in a price fight
+has no reason to reach for it.
+
+The claim that survives is therefore **not** "enforcement displaces activity
+onto unmonitored axes". It is the narrower and more mechanical:
+
+> **When a filter pins one term of a multiplicative constraint, agents explore
+> the other term of that same constraint. Axes outside the constraint set are
+> not taken up.**
+
+Less sweeping than the phase-4 write-up implied, and better supported: it now
+rests on a positive case and a negative control rather than on one scenario.
+
+## A measurement distinction that could produce a false contradiction
+
+Phase 4 counted upsells on `x_proposed`; the table above counts movement on
+`x_applied`. On the **quantity** scenario these diverge sharply:
+
+| quantity scenario, arm B | before | after |
+|---|---|---|
+| agent **proposes** `q > q_min` (`x_proposed`) | 14.6% | **55.8%** |
+| applied `q` **moves** (`x_applied`) | 35.7% | **0.0%** |
+
+Both are correct and they are not in conflict. After the filter starts binding,
+the agent proposes upsells far more often *and* the filter clips every one of
+them back to `q_min`, so the applied quantity stops moving entirely. The first
+measures what the agent tried; the second measures what the market saw.
+
+For delivery the distinction is empty — the filter never rewrites `d`, so
+applied and proposed are the same series. The pre-registration fixed
+`x_proposed` for upsell and `x_applied` for deadline movement, which is why the
+two analyses use different fields.
+
+## What P15 settles about phase 4
+
+Arm B upsell rate on this scenario, with no volume clause: **0 of 228 rounds**,
+against 46.1% on `quantity_off09_3_9`. The quantity behaviour was caused by the
+clause, exactly as the phase-4 write-up assumed. A seller blocked on price does
+not invent a second axis; it uses one it has been given, and only if that axis
+is coupled to the constraint.
+
+## Cost
+
+Ten runs, ≈ £1.50. Cumulative for the exploration: **≈ £3.00**, estimated from
+the historical per-run figures rather than measured.

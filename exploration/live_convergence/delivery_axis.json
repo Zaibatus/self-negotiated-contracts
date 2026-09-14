@@ -1,0 +1,27 @@
+{
+  "arm_a": {
+    "rounds": 136,
+    "observed": 136,
+    "moved": 40,
+    "continuations": 98
+  },
+  "arm_b": {
+    "rounds": 228,
+    "observed": 228,
+    "moved": 55,
+    "continuations": 187,
+    "upsell_rounds": 0
+  },
+  "p13": {
+    "before": [
+      16,
+      34
+    ],
+    "after": [
+      39,
+      153
+    ],
+    "fisher_p": 0.02078051147354306
+  },
+  "p14_fisher_p": 0.06394645088550742
+}
