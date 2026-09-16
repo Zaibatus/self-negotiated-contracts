@@ -46,26 +46,26 @@
     }
   },
   "open04": {
-    "trajectories": 5,
-    "rounds": 73,
-    "breach_rounds": 5,
-    "length_median": 15.0,
+    "trajectories": 24,
+    "rounds": 295,
+    "breach_rounds": 21,
+    "length_median": 10.0,
     "length_max": 37,
-    "premium_median": 0.0021999999999993136,
-    "premium_mean": 0.29304666666666623,
-    "openings_in_breach": 4,
+    "premium_median": 0.006650000000000489,
+    "premium_mean": 0.15289027777785605,
+    "openings_in_breach": 19,
     "recovery_rounds_median": 1.0,
     "violation_decay_ratio_median": 0.0,
-    "violation_decay_steps": 4,
+    "violation_decay_steps": 19,
     "refused_deadline": 0,
     "pairs_deadline_hit": 0,
     "deals": {
-      "deals": 1,
-      "deals_satisfiable_pairs": 1,
-      "deals_breached": 1,
-      "deals_meaningful": 1,
-      "total_overspend": 0.33000000000000007,
-      "mean_spend": 7.78
+      "deals": 3,
+      "deals_satisfiable_pairs": 3,
+      "deals_breached": 2,
+      "deals_meaningful": 2,
+      "total_overspend": 0.6600000000000001,
+      "mean_spend": 7.41
     }
   }
 }
