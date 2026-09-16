@@ -818,3 +818,131 @@ class TestTheNegotiatedArmsReachTheGovernedPhase:
         assert enforced.cost_floor == pytest.approx(
             max(envelope_theta.cost_floor, mandate.cost_floor)
         )
+
+
+class TestDeadlineEnforcement:
+    """T_max as a rule of the marketplace, not a line in the report.
+
+    Every thesis run certified the deadline post hoc while the agents sailed
+    past it (14/29 arm C pairs exceeded T_max = 6). ``enforce_tmax`` is the
+    protocol-level limit of the escalating friction schedule: past the
+    deadline, no proposal is deliverable.
+    """
+
+    async def test_a_proposal_past_t_max_is_refused(self):
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", t_max=2, enforce_tmax=True
+        )
+        await send(protocol, proposal(total=10.0, quantity=2, pid="p1"))
+        await send(protocol, proposal(total=10.5, quantity=2, pid="p2"))
+        sent = await send(protocol, proposal(total=10.9, quantity=2, pid="p3"))
+
+        assert isinstance(sent.message, TextMessage)
+        assert "deadline" in sent.message.content.lower()
+        report = protocol.report()
+        assert report["proposals_refused_deadline"] == 1.0
+        assert report["pairs_deadline_hit"] == 1.0
+
+    async def test_a_refused_proposal_is_not_a_round(self):
+        """The offer was never delivered: it must not extend the trajectory,
+        feed the certificate log, or advance the round count it was refused
+        under — otherwise the deadline would charge the pair for events of
+        the deadline itself."""
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", t_max=2, enforce_tmax=True
+        )
+        for k in range(5):
+            await send(protocol, proposal(total=10.0, quantity=2, pid=f"p{k}"))
+
+        assert len(protocol.records) == 2
+        state = next(iter(protocol.states.values()))
+        assert len(state.binding) == 2
+        assert state.rounds == 2
+        assert protocol.report()["proposals_refused_deadline"] == 3.0
+
+    async def test_without_the_flag_the_overrun_passes_as_before(self):
+        protocol = GovernedMarketplaceProtocol(registry(), mode="filter", t_max=2)
+        sent = None
+        for k in range(4):
+            sent = await send(protocol, proposal(total=10.0, quantity=2, pid=f"p{k}"))
+        assert isinstance(sent.message, OrderProposal)
+        assert protocol.report()["proposals_refused_deadline"] == 0.0
+
+    async def test_monitor_mode_never_refuses(self):
+        """Arm D flags, it does not act — the deadline included."""
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="monitor", t_max=2, enforce_tmax=True
+        )
+        sent = None
+        for k in range(4):
+            sent = await send(protocol, proposal(total=10.0, quantity=2, pid=f"p{k}"))
+        assert isinstance(sent.message, OrderProposal)
+        assert protocol.report()["proposals_refused_deadline"] == 0.0
+
+
+class TestOpeningAtGamma:
+    """Route 2 of the gamma-independence note: the opening governed by the
+    barrier at the arm's gamma instead of the gamma = 1 projection."""
+
+    async def test_at_gamma_below_one_the_opener_is_corrected_but_still_breaches(
+        self,
+    ):
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", gamma=0.4, open_with_gamma=True
+        )
+        sent = await send(protocol, proposal(total=30.0, quantity=2))
+
+        contract = protocol.registry.get("business_0001", "customer_0001")
+        terms = from_order_proposal(sent.message)
+        assert sent.message.total_price < 30.0
+        assert not contract.without_deadline().is_safe(terms.vector)
+        assert protocol.records[0].breach
+        assert protocol.report()["pairs_opened_outside_C"] == 1.0
+
+    async def test_the_barrier_recovers_the_opener_geometrically(self):
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", gamma=0.4, open_with_gamma=True
+        )
+        for k in range(7):
+            await send(protocol, proposal(total=30.0, quantity=2, pid=f"p{k}"))
+
+        contract = protocol.registry.get(
+            "business_0001", "customer_0001"
+        ).without_deadline()
+        state = next(iter(protocol.states.values()))
+        margins = [
+            float(contract.h(x)[contract.active_mask()].min()) for x in state.binding
+        ]
+        assert margins[0] < 0.0
+        # Violation shrinks monotonically and by the end is nearly closed.
+        assert all(b >= a - 1e-9 for a, b in zip(margins, margins[1:]))
+        assert margins[-1] > 0.1 * margins[0]
+
+    async def test_at_gamma_one_the_single_step_reaches_the_safe_set(self):
+        protocol = GovernedMarketplaceProtocol(
+            registry(), mode="filter", gamma=1.0, open_with_gamma=True
+        )
+        sent = await send(protocol, proposal(total=30.0, quantity=2))
+        contract = protocol.registry.get("business_0001", "customer_0001")
+        terms = from_order_proposal(sent.message)
+        assert contract.without_deadline().is_safe(terms.vector)
+
+
+class TestRefuseUnsatisfiable:
+    """Regression: the G8 refusal returned `message.model_copy` where the
+    variable is named `envelope`, so the flag raised NameError the first time
+    it ever fired. Caught by ruff (F821) while wiring the deadline refusal."""
+
+    async def test_the_refusal_is_a_text_message_not_a_crash(self):
+        expensive = business(min_price_factor=1.0, menu_features={"Tacos": 50.0})
+        reg = registry(
+            businesses=[expensive],
+            customers=[customer(menu_features={"Tacos": 8.0})],
+        )
+        protocol = GovernedMarketplaceProtocol(
+            reg, mode="filter", refuse_unsatisfiable=True
+        )
+        sent = await send(protocol, proposal(total=60.0, quantity=1))
+        assert isinstance(sent.message, TextMessage)
+        assert "no gains from trade" in sent.message.content.lower()
+        assert protocol.report()["proposals_refused"] == 1.0

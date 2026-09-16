@@ -26,6 +26,16 @@ Three asymmetries are deliberate and are results, not shortcuts:
     Forwarding a breaching opener while the barrier recovers geometrically
     would be a knowing breach, so the opening state is projected into C once.
 
+Two opt-in departures, both off by default and both treatments in their own
+right: ``enforce_tmax`` stops delivering proposals once a pair has used its
+T_max rounds — the protocol-level limit of the escalating-friction deadline
+(formulation.md section 6), which certifies termination in the report but
+until now was never experienced by an agent — and ``open_with_gamma``
+replaces the opening projection with a single barrier step at the arm's
+gamma, which at gamma < 1 knowingly forwards a still-breaching opener and
+recovers it geometrically (route 2 of the gamma-independence note). Both
+apply in "filter" mode only.
+
 Modes:
     "filter"  project proposals and rewrite the outgoing message
     "monitor" detect and record, forward the message untouched (arm D)
@@ -98,6 +108,10 @@ class PairState:
     prephase_governed: int = 0
     meet_fell_back_this_round: bool = False
     refused: int = 0
+    # Proposals refused because the pair had already used its T_max rounds.
+    # Distinct from `refused` (empty safe set): these offers may be perfectly
+    # admissible terms that simply arrived after the negotiation window closed.
+    deadline_refusals: int = 0
     # Arm C only: the two opening positions and the envelope they imply.
     positions: Positions = field(default_factory=Positions)
     # Arm C-meet only: the composed contract actually enforced, kept so the
@@ -133,6 +147,9 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         prephase_counts_against_tmax: bool = True,
         refuse_unsatisfiable: bool = False,
         govern_prephase: bool = False,
+        t_max: int | None = None,
+        enforce_tmax: bool = False,
+        open_with_gamma: bool = False,
     ):
         """Configure the regulator.
 
@@ -158,6 +175,22 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
                 either way, because at observed lengths of one to two rounds
                 this is the difference between a T_max that never binds and
                 one that binds immediately.
+            t_max: the liveness bound, in rounds charged per `enforced_rounds`.
+                Only consulted when `enforce_tmax` is set; the certificate in
+                the report has its own copy and is computed either way.
+            enforce_tmax: refuse to deliver order proposals once a pair has
+                used its T_max rounds. This is the protocol-level limit of the
+                escalating friction schedule kappa_k = kappa_0/(1 - k/T_max):
+                past the deadline no residual incentive justifies a move, so
+                no move is deliverable. Filter mode only. Off by default —
+                every thesis run certified the deadline without enforcing it.
+            open_with_gamma: govern the opening proposal by one barrier step
+                at the arm's gamma instead of projecting it into C. At
+                gamma < 1 this knowingly forwards a breaching opener, which
+                the module docstring's third asymmetry exists to prevent — the
+                flag is the controlled experiment on that asymmetry, and gives
+                gamma an observable at the opening it otherwise lacks. Filter
+                mode only.
         """
         super().__init__()
         self.registry = registry
@@ -168,6 +201,9 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         self.refuse_unsatisfiable = refuse_unsatisfiable
         # Govern the pre-phase by the mandate instead of forwarding it (B6).
         self.govern_prephase = govern_prephase
+        self.t_max = t_max
+        self.enforce_tmax = enforce_tmax
+        self.open_with_gamma = open_with_gamma
         self.filter = DCBFFilter(gamma=gamma, rho=rho, solver=solver)
         self.states: dict[str, PairState] = {}
         self.records: list[RoundRecord] = []
@@ -262,6 +298,32 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         )
         x_proposed = terms.vector
 
+        # The deadline, enforced rather than certified. Placed before the
+        # inference block on purpose: an offer that is never delivered must not
+        # feed the envelope, extend the trajectory or count as a round — it is
+        # an event of the deadline, not of the negotiation.
+        if (
+            self.enforce_tmax
+            and self.t_max is not None
+            and self.mode == "filter"
+            and self.enforced_rounds(state) >= self.t_max
+        ):
+            state.deadline_refusals += 1
+            return envelope.model_copy(
+                update={
+                    "message": TextMessage(
+                        content=(
+                            "This order proposal was not delivered. The "
+                            "marketplace enforces a negotiation deadline of "
+                            f"{self.t_max} rounds on this pair, and this "
+                            "negotiation has used all of them. No further "
+                            "offers can be exchanged; a proposal already "
+                            "delivered may still be accepted or declined."
+                        )
+                    )
+                }
+            )
+
         if self.theta_source in INFERENCE_SOURCES:
             self.inference.pairs.setdefault(key, state.positions)
             state.positions.note_seller(float(x_proposed[0]), float(x_proposed[1]))
@@ -318,7 +380,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             # in the stock schema; no agent class, prompt or message type is
             # modified, and the seller learns why rather than being ignored.
             state.refused += 1
-            return message.model_copy(
+            return envelope.model_copy(
                 update={
                     "message": TextMessage(
                         content=(
@@ -368,8 +430,20 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         """First proposal of a pair: project into C rather than recover into it."""
         state.opened_outside = not contract.is_safe(x_proposed)
 
+        qp_result = None
         if self.mode == "filter" and state.opened_outside:
-            x_applied = project_into_safe_set(x_proposed, contract)
+            if self.open_with_gamma:
+                # Route 2 of the gamma-independence note: treat the opening as
+                # a transition from the proposal itself and take one barrier
+                # step at the arm's gamma. At gamma < 1 the applied opener is
+                # still in breach — knowingly, which is the treatment — and
+                # the barrier recovers it geometrically from here.
+                qp_result = self.filter.step(
+                    [x_proposed], [np.zeros(3)], [contract]
+                )
+                x_applied = x_proposed + qp_result.u[:3]
+            else:
+                x_applied = project_into_safe_set(x_proposed, contract)
         else:
             x_applied = x_proposed.copy()
 
@@ -389,7 +463,7 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
             x_proposed,
             x_proposed,
             x_applied,
-            None,
+            qp_result,
             terms,
             intervention=dist_M(x_applied, x_proposed),
         )
@@ -577,6 +651,12 @@ class GovernedMarketplaceProtocol(SimpleMarketplaceProtocol):
         )
         out["proposals_refused"] = float(
             sum(s.refused for s in self.states.values())
+        )
+        out["proposals_refused_deadline"] = float(
+            sum(s.deadline_refusals for s in self.states.values())
+        )
+        out["pairs_deadline_hit"] = float(
+            sum(1 for s in self.states.values() if s.deadline_refusals)
         )
         out["pairs_unsatisfiable"] = float(
             sum(1 for s in self.states.values() if s.unsatisfiable)

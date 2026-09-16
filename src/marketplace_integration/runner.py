@@ -55,6 +55,9 @@ async def run_governed_experiment(
     prephase_counts_against_tmax: bool = True,
     refuse_unsatisfiable: bool = False,
     govern_prephase: bool = False,
+    t_max: int | None = None,
+    enforce_tmax: bool = False,
+    open_with_gamma: bool = False,
     contract_spec=None,
     results_dir: str | Path = "results",
     search_algorithm: str = "simple",
@@ -122,6 +125,9 @@ async def run_governed_experiment(
         prephase_counts_against_tmax=prephase_counts_against_tmax,
         refuse_unsatisfiable=refuse_unsatisfiable,
         govern_prephase=govern_prephase,
+        t_max=t_max,
+        enforce_tmax=enforce_tmax,
+        open_with_gamma=open_with_gamma,
     )
 
     def database_factory():
@@ -193,6 +199,9 @@ async def run_governed_experiment(
                 "gamma": gamma,
                 "capacity_factor": capacity_factor,
                 "solver": solver,
+                "t_max": t_max,
+                "enforce_tmax": enforce_tmax,
+                "open_with_gamma": open_with_gamma,
                 "registry": registry.summary(),
                 "report": report,
                 "ungoverned": protocol.ungoverned,
