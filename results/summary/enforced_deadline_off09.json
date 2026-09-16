@@ -1,0 +1,71 @@
+{
+  "baseline": {
+    "trajectories": 24,
+    "rounds": 285,
+    "breach_rounds": 0,
+    "length_median": 10.5,
+    "length_max": 31,
+    "premium_median": 0.006650000000000489,
+    "premium_mean": 0.04782083333333479,
+    "openings_in_breach": 0,
+    "recovery_rounds_median": null,
+    "violation_decay_ratio_median": null,
+    "violation_decay_steps": 0,
+    "refused_deadline": 0,
+    "pairs_deadline_hit": 0,
+    "deals": {
+      "deals": 4,
+      "deals_satisfiable_pairs": 4,
+      "deals_breached": 0,
+      "deals_meaningful": 0,
+      "total_overspend": 0.0,
+      "mean_spend": 12.9725
+    }
+  },
+  "tmax6": {
+    "trajectories": 25,
+    "rounds": 117,
+    "breach_rounds": 0,
+    "length_median": 6.0,
+    "length_max": 6,
+    "premium_median": 0.03959999999999919,
+    "premium_mean": 0.05537999999999944,
+    "openings_in_breach": 0,
+    "recovery_rounds_median": null,
+    "violation_decay_ratio_median": null,
+    "violation_decay_steps": 0,
+    "refused_deadline": 16,
+    "pairs_deadline_hit": 16,
+    "deals": {
+      "deals": 4,
+      "deals_satisfiable_pairs": 4,
+      "deals_breached": 0,
+      "deals_meaningful": 0,
+      "total_overspend": 0.0,
+      "mean_spend": 7.702500000000001
+    }
+  },
+  "open04": {
+    "trajectories": 5,
+    "rounds": 73,
+    "breach_rounds": 5,
+    "length_median": 15.0,
+    "length_max": 37,
+    "premium_median": 0.0021999999999993136,
+    "premium_mean": 0.29304666666666623,
+    "openings_in_breach": 4,
+    "recovery_rounds_median": 1.0,
+    "violation_decay_ratio_median": 0.0,
+    "violation_decay_steps": 4,
+    "refused_deadline": 0,
+    "pairs_deadline_hit": 0,
+    "deals": {
+      "deals": 1,
+      "deals_satisfiable_pairs": 1,
+      "deals_breached": 1,
+      "deals_meaningful": 1,
+      "total_overspend": 0.33000000000000007,
+      "mean_spend": 7.78
+    }
+  }
+}
