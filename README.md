@@ -9,10 +9,10 @@ gradients certify that the haggling reaches an agreement and that it stops.
 exactly the Nash bargaining solution, so the equilibrium is a property of the
 agents' preferences rather than of whatever update rule they happen to run.
 
-Theory: [`docs/formulation.md`](docs/formulation.md) (v2, definitive).
-v1 is archived as [`docs/formulation_v1.md`](docs/formulation_v1.md); it defined
-the equilibrium as the fixed point of a concession *heuristic*, which was
-circular, and is superseded.
+**Theory and run records.** The formulation and the dated run notes behind
+every measured number below are maintained with the thesis and are not
+published in this repository. The code, data, experiment scripts and result
+summaries needed to reproduce the numbers are all here.
 
 ---
 
@@ -69,17 +69,16 @@ experiments/
   _common.py                 the section 11 report
   certificates/              the prototype experiments, kept byte-identical
 data/bargain_3_9/            the bargaining scenario (generated, YAML only)
-docs/                        formulation, supervision docs, integration notes
 ```
 
 ## Arms
 
 | arm | contract | regulator | status |
 |---|---|---|---|
-| **A** no contract | — | `off` | measured on both scenarios ([mexican](docs/notes/2026-08-04-arm-a-ungoverned-breach-rate.md), [bargain](docs/notes/2026-08-05-arm-a-bargain-scenario.md)) |
-| **B** imposed | θ from scenario data | `filter` | measured: **zero breaches on governed rounds, across three models** ([arm B](docs/notes/2026-08-05-arm-b-imposed-contract.md), [models](docs/notes/2026-08-07-model-dependence.md)) |
+| **A** no contract | — | `off` | measured on both scenarios |
+| **B** imposed | θ from scenario data | `filter` | measured: **zero breaches on governed rounds, across three models** |
 | **C** negotiated | θ agreed by the agents | `filter` | **scaffold** — the θ-negotiation pre-phase is the open piece |
-| **D** monitored | θ from scenario data | `monitor` | measured: **73% of governed rounds flagged** — breaches *and* DCBF rate violations — when nothing is enforced; also the noise floor for A/B ([note](docs/notes/2026-08-05-arm-d-monitoring-vs-enforcement.md)) |
+| **D** monitored | θ from scenario data | `monitor` | measured: **73% of governed rounds flagged** — breaches *and* DCBF rate violations — when nothing is enforced; also the noise floor for A/B |
 | **E** RL-AR | θ from scenario data | learned β(s) | **deferred** — π_reg *is* the filter output, β(s) a state-dependent γ |
 
 B against D isolates *projecting* from *flagging*: same θ, same bookkeeping,
@@ -113,7 +112,7 @@ closure and surplus differences do not, and are not claimed.
 | `certificates/e13_dcbf.py` | **E13 rerun under the real filter** (discharges §10.5). The residual is neither the clip nor step decay; the new result is the γ-dependent boundary layer |
 | `certificates/audit.py` | reliability probes: transient-only contraction estimator, SLSQP status failures, drift-outside-a-ball |
 
-Corrected claims and scope: `docs/formulation.md` §10.
+Corrected claims and scope are recorded in the formulation, §10.
 
 ---
 
@@ -151,9 +150,8 @@ unaided. The third row is magnitude: most settled breaches are a few pence.
 result** — offers got much worse, deals got much cleaner. Every settled deal
 lands exactly on the budget, because the edit that makes the budget bind also
 tells the customer what it is, and the customer then polices it. Benefit of the
-safety layer and buyer diligence are substitutes; the
-[note](docs/notes/2026-08-05-arm-a-bargain-scenario.md) works through what
-survives.
+safety layer and buyer diligence are substitutes; the run note for that
+scenario works through what survives.
 
 **Read the ± as seed variance, not sampling error.** Both scenarios have 3
 customers, so 5 seeds are 5 draws of the same 3 situations — not 15 or 37
@@ -193,23 +191,13 @@ transcripts the model cannot be fitted to.
 **Does the contract funnel outcomes?** Yes — it collapses them. Settled-term
 dispersion goes 0.384 (ungoverned) → **0.000** (filtered), against an A/D noise
 floor of 0.002, and every settled price is exactly θ's budget boundary to the
-cent. The contract, not the interaction, picks the result
-([note](docs/notes/2026-08-06-drift-and-funnelling.md)).
+cent. The contract, not the interaction, picks the result.
 
 **Is it γ-dependent?** Safety, no — zero breaches at γ ∈ {0.2, 0.4, 0.7, 1.0}
 across 126 governed rounds. Outcomes, also no, but for a reason that *corrects*
 the formulation: the predicted boundary layer does not appear, because live
 negotiations run ~1.3 rounds and 73–86% of governed rounds are the opening
-projection, which uses γ = 1 by construction
-([note](docs/notes/2026-08-07-gamma-independence.md)).
-
-## Dissertation
-
-`docs/dissertation/` holds the chapter skeleton, with every section marked
-DONE / RERUN / OPEN / DECISION. It points at its sources rather than copying
-them, so a correction to `formulation.md` cannot leave a stale duplicate.
-[`00-outline.md`](docs/dissertation/00-outline.md) lists the seven argument
-gaps the exercise surfaced, ordered by how much they threaten the thesis.
+projection, which uses γ = 1 by construction.
 
 ## Known scope limits
 

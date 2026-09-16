@@ -27,3 +27,6 @@ results/*/*
 !results/*/comparison.json
 !results/summary/
 !results/summary/*.json
+
+# Research notes and supervision docs: kept locally, not published.
+docs/
