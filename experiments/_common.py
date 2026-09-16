@@ -100,6 +100,22 @@ def build_parser(description: str) -> argparse.ArgumentParser:
         "with a refusal rather than forwarding it unfiltered (open question G8)",
     )
     parser.add_argument(
+        "--enforce-tmax",
+        action="store_true",
+        help="refuse order proposals once a pair has used its T_max rounds, "
+        "so the agents experience the deadline instead of overrunning a bound "
+        "only the report checks. The protocol-level limit of the escalating "
+        "friction schedule (formulation.md section 6). Filter mode only",
+    )
+    parser.add_argument(
+        "--open-with-gamma",
+        action="store_true",
+        help="govern the opening proposal by one barrier step at the arm's "
+        "gamma instead of projecting it into C(theta); at gamma < 1 this "
+        "knowingly forwards a breaching opener and recovers it geometrically "
+        "(route 2 of the gamma-independence note). Filter mode only",
+    )
+    parser.add_argument(
         "--govern-prephase",
         action="store_true",
         help="govern the rounds before theta is agreed by the platform's "
@@ -167,6 +183,9 @@ def run_arm(args: argparse.Namespace, mode: str) -> dict[str, Any]:
             prephase_counts_against_tmax=args.prephase_counts_against_tmax,
             refuse_unsatisfiable=args.refuse_unsatisfiable,
             govern_prephase=args.govern_prephase,
+            t_max=args.t_max,
+            enforce_tmax=args.enforce_tmax,
+            open_with_gamma=args.open_with_gamma,
             contract_spec=contract_spec(args),
             results_dir=args.results,
             customer_max_steps=args.max_steps,
@@ -533,6 +552,8 @@ def print_report(safety: dict[str, float], section11: dict[str, Any]) -> None:
         "slack_total",
         "pairs_opened_outside_C",
         "pairs_unsatisfiable",
+        "proposals_refused_deadline",
+        "pairs_deadline_hit",
         "ungoverned_messages",
     ):
         if key in safety:
